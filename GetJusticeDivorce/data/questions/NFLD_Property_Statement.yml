@@ -1,0 +1,1022 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+objects:
+  - real_property: DAList.using(object_type=DAObject, there_are_any=True)
+  - vehicle: DAList.using(object_type=DAObject, there_are_any=True)
+  - savings_or_bank: DAList.using(object_type=DAObject, there_are_any=True)
+  - safety_deposit: DAList.using(object_type=DAObject, there_are_any=True)
+  - employment_benefits: DAList.using(object_type=DAObject, there_are_any=True)
+  - insurance_asset: DAList.using(object_type=DAObject, there_are_any=True)
+  - investment_or_security: DAList.using(object_type=DAObject, there_are_any=True)
+  - business_interest: DAList.using(object_type=DAObject, there_are_any=True)
+  - money_owed: DAList.using(object_type=DAObject, there_are_any=True)
+  - other_property: DAList.using(object_type=DAObject, there_are_any=True)
+  - secured_debt: DAList.using(object_type=DAObject, there_are_any=True)
+  - loan: DAList.using(object_type=DAObject, there_are_any=True)
+  - cc: DAList.using(object_type=DAObject, there_are_any=True)
+  - other_debt: DAList.using(object_type=DAObject, there_are_any=True)
+  - exempted_property: DAList.using(object_type=DAObject, there_are_any=True)
+---
+mandatory: True
+code: |
+  interview_metadata
+  if not defined("interview_metadata['NFLD_Property_Statement']"):
+    interview_metadata.initializeObject("NFLD_Property_Statement")
+    interview_metadata["NFLD_Property_Statement"].update({
+      "al_weaver_version": "1.3.0",
+      "generated on": "2021-10-26",
+      "title": "Nfld property statement",
+      "short title": "Nfld property statement",
+      "description": "Nfld property statement",
+      "original_form": "",
+      "allowed courts": [
+      ],
+      "categories": [
+      ],        
+      "logic block variable": "interview_order_NFLD_Property_Statement",
+      "attachment block variable": "NFLD_Property_Statement_attachment",
+      "typical role": "plaintiff",
+    })
+---
+code: |
+  interview_metadata['main_interview_key'] =  'NFLD_Property_Statement'
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_NFLD_Property_Statement
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["NFLD_Property_Statement"]["allowed courts"]
+  nav.set_section('review_NFLD_Property_Statement')
+  user_role = 'plaintiff'
+  real_property_yesno
+  
+  if real_property_yesno == "Yes":
+    real_property[0].owner
+    
+  if motor_vehicles_yesno == "Yes":
+    vehicle[0].owner
+    
+  if savings_or_bank_yesno == "Yes":
+    savings_or_bank[0].type 
+    
+  if safety_deposit_yesno == "Yes":
+    safety_deposit[0].location
+    
+  if employment_benefits_yesno == "Yes":
+    employment_benefits[0].owner 
+    
+  if insurance_yesno == "Yes":
+    insurance_asset[0].owner
+    
+  if financials_yesno == "Yes":
+    investment_or_security[0].owner
+    
+  if business_yesno == "Yes":
+    business_interest[0].owner
+    
+  if money_owed_yesno == "Yes":
+    money_owed[0].owed_to
+    
+  if other_assets_yesno == "Yes":
+    other_property[0].owner
+  
+  secured_yesno
+  
+  if secured_yesno == "Yes":
+    secured_debt[0].lender  
+
+  if loans_yesno == "Yes":
+    loan[0].lender
+
+  if credit_card_yesno == "Yes":
+    cc[0].holders
+
+  if other_debts_yesno == "Yes":
+    other_debt[0].lender
+
+  if excluded_yesno == "Yes":
+    exempted_property[0].description
+  
+  changes
+
+  interview_order_NFLD_Property_Statement = True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: assets yes/no
+question: |
+  Assets 
+fields:
+  - Do you own any real property?: real_property_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you own any Cars, Boats, or Vehicles?: motor_vehicles_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any Savings or Bank Accounts to your claim?: savings_or_bank_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you own any safety deposit boxes?: safety_deposit_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you receive any employment benefits that you'd like to add to your claim?: employment_benefits_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any insurance plans to your claim?: insurance_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any investments or securities to your claim?: financials_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+    help: RRSPs, RESPs, Shares, bonds, mutual funds, warrants, options, debentures, notes, etc.
+  - Do you have any financial interests in a business?: business_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you have any money-owed-to-you that you'd like to add to your claim?: money_owed_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any other assets to your claim?: other_assets_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Is there any property you'd like to exclude from your claim?: excluded_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: real_property
+question: |
+  Real Property 
+fields:
+  - Owner: real_property[i].owner
+  - Type of Ownership: real_property[i].ownership
+  - Address: real_property[i].address
+  - Value of interest as of ${ separated_date }: real_property[i].sep_value
+    datatype: currency
+  - Value of interest as of ${ today() }: real_property[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: vehicles
+question: |
+  Vehicles
+fields:
+  - Registered Owner: vehicle[i].owner
+  - Are you currently in possession of this item?: vehicle[i].possession
+    datatype: yesnoradio
+  - Make, Model, and Year: vehicle[i].description
+  - Market value as of ${ separated_date }: vehicle[i].sep_value
+    datatype: currency
+  - Market value as of ${ today() }: vehicle[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: savings_or_bank
+question: |
+  Savings and other Accounts
+fields:
+  - Type of Account: savings_or_bank[i].type
+    help: Cash, Savings, Chequing Account, Term Deposit, Guaranteed Investment Certificate, TFSA, or RESP
+  - Account Holder: savings_or_bank[i].holder
+  - Institution and Branch: savings_or_bank[i].institution
+  - Account Number: savings_or_bank[i].account_number
+  - Market value as of ${ separated_date }: savings_or_bank[i].sep_value
+    datatype: currency
+  - Market value as of ${ today() }: savings_or_bank[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: safety deposit
+question: |
+  Safety Deposit Boxes
+fields:
+  - Location: safety_deposit[i].location
+  - Contents: safety_deposit[i].contents
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: employment benefits
+question: |
+  Employment Benefits
+fields:
+  - Account Holder: employment_benefits[i].owner
+  - Type of Benefit: employment_benefits[i].type
+  - Institution: employment_benefits[i].institution
+  - Account Number: employment_benefits[i].account_number
+  - Market value as of ${ separated_date }: employment_benefits[i].sep_value
+    datatype: currency
+  - Market value as of ${ today() }: employment_benefits[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: life_and_disability_insurance
+question: |
+  Insurance Policies
+fields:
+  - Owner: insurance_asset[i].owner
+  - Insurance Company: insurance_asset[i].company
+  - Type of Policy & Policy Number: insurance_asset[i].type_and_number
+  - Beneficiary: insurance_asset[i].beneficiary
+  - Face Amount: insurance_asset[i].face_amount
+    datatype: currency
+  - Cash surrender value as of ${ separated_date }: insurance_asset[i].sep_value
+    datatype: currency
+  - Cash surrender value as of ${ today() }: insurance_asset[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: securities
+question: |
+  Investment & Securities
+fields:
+  - Owner: investment_or_security[i].owner
+  - Type of Investment: investment_or_security[i].type
+  - Number: investment_or_security[i].number
+  - Number of units held: investment_or_security[i].units  
+  - Market value as of ${ separated_date }: investment_or_security[i].sep_value
+    datatype: currency
+  - Market value as of ${ today() }: investment_or_security[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: business_interest
+question: |
+  Business Interests
+fields:
+  - Interest held by: business_interest[i].owner
+  - Name of Firm or Company: business_interest[i].company
+  - Description of Interest: business_interest[i].interest
+  - Market value as of ${ separated_date }: business_interest[i].sep_value
+    datatype: currency
+  - Market value as of ${ today() }: business_interest[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: money owed
+question: |
+  Money Owed to You
+fields:
+  - Owed to: money_owed[i].owed_to
+  - Details: money_owed[i].details
+  - Amount owed as of ${ separated_date }: money_owed[i].sep_amount
+    datatype: currency
+  - Amount owed as of ${ today() }: money_owed[i].today_amount
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: other property
+question: |
+  Other Property
+fields:
+  - Owner: other_property[i].owner
+  - Description: other_property[i].description
+  - Market value as of ${ separated_date }: other_property[i].sep_value
+    datatype: currency
+  - Market value as of ${ today() }: other_property[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: assets yes/no
+question: |
+  Debts 
+fields:
+  - Would you like to add any Mortgages to your claim?: secured_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any loans to your claim?: loans_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add credit card debts to your claim?: credit_card_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Is there any other debts you'd like to add to your claim?: other_debts_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: secured debt
+question: |
+  Secured Debts - Mortgages
+fields:
+  - Name of lender: secured_debt[i].lender
+  - Names of all borrowers: secured_debt[i].borrower
+  - Mortgage account number: secured_debt[i].account_number
+  - Is this debt in arrears?: secured_debt[i].arrears
+    datatype: yesnoradio
+  - Amount owing as of ${ separated_date }: secured_debt[i].sep_amount
+    datatype: currency
+  - Amount owing as of ${ today() }: secured_debt[i].today_amount
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: laon debt
+question: |
+  Loan Debts
+fields:
+  - Name of lender: loan[i].lender
+  - Names of all borrowers: loan[i].borrower
+  - Type of loan and account number: loan[i].account_number
+  - Is this debt in arrears?: loan[i].arrears
+    datatype: yesnoradio
+  - Amount owing as of ${ separated_date }: loan[i].sep_amount
+    datatype: currency
+  - Amount owing as of ${ today() }: loan[i].today_amount
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: cc debt
+question: |
+  Credit Card Debts
+fields:
+  - Name of primary cardholder (and any secondary cardholder(s)): cc[i].holders
+  - Type of credit card and account number: cc[i].details
+  - Amount owing as of ${ separated_date }: cc[i].sep_amount
+    datatype: currency
+  - Amount owing as of ${ today() }: cc[i].today_amount
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: other debt
+question: |
+  Other Debts
+fields:
+  - Name of lender: other_debt[i].lender
+  - Names of all borrowers: other_debt[i].borrower
+  - Details: other_debt[i].details
+  - Is this debt in arrears?: other_debt[i].arrears
+    datatype: yesnoradio
+  - Amount owing as of ${ separated_date }: other_debt[i].sep_amount
+    datatype: currency
+  - Amount owing as of ${ today() }: other_debt[i].today_amount
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: exemptions
+question: |
+  Exemptions
+fields:
+  - Description: exempted_property[i].description
+  - Item and Reason for Exemption: exempted_property[i].item_and_reason
+list collect: True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: changes
+question: |
+  Financial Changes
+fields:
+  - Do you expect any significant changes that will effect the financial facts previously described?: changes
+    datatype: yesnoradio
+  - Please explain these changes: changes_details
+    datatype: area
+    show if: changes    
+---
+objects:
+  - NFLD_Property_Statement_attachment: ALDocument.using(title="Property Statement (Form F10.04A)", filename="Property_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - NFLD_Property_Statement_watermarked: ALDocument.using(title="Property Statement (Form F10.04A)", filename="Property_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+attachments:
+  - name: NFLD Property Statement attachment
+    filename: NFLD_Property_Statement     
+    variable name: NFLD_Property_Statement_attachment[i]        
+    skip undefined: True
+    pdf template file: NFLD_Property_Statement.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "today()": ${ today().format('M/d/yyyy') }
+      - "change_yes": ${ changes }
+      - "change_no": ${ not changes }
+      - "change_details": ${ changes_details }
+      - "home_today_value1": ${ currency(real_property[0].today_value) }
+      - "home_separation_value1": ${ currency(real_property[0].sep_value) }
+      - "Home_Owner1": ${ real_property[0].owner }
+      - "Type_Ownership1": ${ real_property[0].ownership }
+      - "Property_address1": ${ real_property[0].address }
+      - "home_today_value2": ${ currency(real_property[1].today_value) }
+      - "home_separation_value2": ${ currency(real_property[1].sep_value) }
+      - "Home_Owner2": ${ real_property[1].owner }
+      - "Type_Ownership2": ${ real_property[1].ownership }
+      - "Property_address2": ${ real_property[1].address }
+      - "home_separation_value3": ${ currency(real_property[2].sep_value) }
+      - "home_today_value3": ${ currency(real_property[2].today_value) }
+      - "Home_Owner3": ${ real_property[2].owner }
+      - "Type_Ownership3": ${ real_property[2].ownership }
+      - "Property_address3": ${ real_property[2].address }
+      - "vehicle_today_value1": ${ currency(vehicle[0].today_value) }
+      - "vehicle_separation_value1": ${ currency(vehicle[0].sep_value) }
+      - "registered_owner_vehicle1": ${ vehicle[0].owner }
+      - "possession_vehicle1": |
+          % if vehicle[0].possession:
+          ${ users[0].name.first }
+          % else:
+          ${ respondents[0].name.first }
+          % endif
+      - "details_vehicle1": ${ vehicle[0].description }
+      - "vehicle_today_value2": ${ currency(vehicle[1].today_value) }
+      - "vehicle_separation_value2": ${ currency(vehicle[1].sep_value) }
+      - "registered_owner_vehicle2": ${ vehicle[1].owner }
+      - "possession_vehicle2": |
+          % if vehicle[1].possession:
+          ${ users[0].name.first }
+          % else:
+          ${ respondents[0].name.first }
+          % endif
+      - "details_vehicle2": ${ vehicle[1].description }
+      - "vehicle_separation_value3": ${ currency(vehicle[2].sep_value) }
+      - "registered_owner_vehicle3": ${ vehicle[2].owner }
+      - "possession_vehicle3": |
+          % if vehicle[2].possession:
+          ${ users[0].name.first }
+          % else:
+          ${ respondents[0].name.first }
+          % endif
+      - "details_vehicle3": ${ vehicle[2].description }
+      - "vehicle_today_value3": ${ currency(vehicle[2].today_value) }
+      - "account_today_value1": ${ currency(savings_or_bank[0].today_value) }
+      - "account_separation_value1": ${ currency(savings_or_bank[0].sep_value) }
+      - "account_holder1": ${ savings_or_bank[0].holder }
+      - "account_type1": ${ savings_or_bank[0].today_value }
+      - "institute_branch1": ${ savings_or_bank[0].institution }
+      - "account_number1": ${ savings_or_bank[0].account_number }
+      - "account_today_value2": ${ currency(savings_or_bank[1].today_value) }
+      - "account_holder2": ${ savings_or_bank[1].holder }
+      - "account_type2": ${ savings_or_bank[1].today_value }
+      - "institute_branch2": ${ savings_or_bank[1].institution }
+      - "account_number2": ${ savings_or_bank[1].account_number }
+      - "account_separation_value2": ${ currency(savings_or_bank[1].sep_value) }
+      - "account_today_value3": ${ currency(savings_or_bank[2].today_value) }
+      - "account_separation_value3": ${ currency(savings_or_bank[2].sep_value) }
+      - "account_holder3": ${ savings_or_bank[2].holder }
+      - "account_type3": ${ savings_or_bank[2].today_value }
+      - "institute_branch3": ${ savings_or_bank[2].institution }
+      - "account_number3": ${ savings_or_bank[2].account_number }
+      - "account_today_value4": ${ currency(savings_or_bank[3].today_value) }
+      - "account_separation_value4": ${ currency(savings_or_bank[3].sep_value) }
+      - "account_holder4": ${ savings_or_bank[3].holder }
+      - "account_type4": ${ savings_or_bank[3].type }
+      - "institute_branch14": ${ savings_or_bank[3].institution }
+      - "account_number4": ${ savings_or_bank[3].account_number }
+      - "safety_box_location1": ${ safety_deposit[0].location }
+      - "safety_box_contents1": ${ safety_deposit[0].contents }
+      - "safety_box_location2": ${ safety_deposit[1].location }
+      - "safety_box_contents2": ${ safety_deposit[1].contents }
+      - "benefit_today_value1": ${ currency(employment_benefits[0].today_value) }
+      - "benefit_separation_value1": ${ currency(employment_benefits[0].sep_value) }
+      - "owner_benefit1": ${ employment_benefits[0].owner }
+      - "benefit_type1": ${ employment_benefits[0].type }
+      - "benefit_institution1": ${ employment_benefits[0].institution }
+      - "benefit_account_number1": ${ employment_benefits[0].account_number }
+      - "owner_benefit2": ${ employment_benefits[1].owner }
+      - "benefit_type2": ${ employment_benefits[1].type }
+      - "benefit_institution2": ${ employment_benefits[1].institution }
+      - "benefit_account_number2": ${ employment_benefits[1].account_number }
+      - "benefit_today_value2": ${ currency(employment_benefits[1].today_value) }
+      - "benefit_separation_value2": ${ currency(employment_benefits[1].sep_value) }
+      - "benefit_today_value3": ${ currency(employment_benefits[2].today_value) }
+      - "benefit_separation_value3": ${ currency(employment_benefits[2].sep_value) }
+      - "owner_benefit3": ${ employment_benefits[2].owner }
+      - "benefit_type3": ${ employment_benefits[2].type }
+      - "benefit_institution3": ${ employment_benefits[2].institution }
+      - "benefit_account_number3": ${ employment_benefits[2].account_number }
+      - "benefit_today_value4": ${ currency(employment_benefits[3].today_value) }
+      - "benefit_separation_value4": ${ currency(employment_benefits[3].sep_value) }
+      - "owner_benefit4": ${ employment_benefits[3].owner }
+      - "benefit_type4": ${ employment_benefits[3].type }
+      - "benefit_institution4": ${ employment_benefits[3].institution }
+      - "benefit_account_number4": ${ employment_benefits[3].account_number }
+      - "insurance_today_value1": ${ currency(insurance_asset[0].today_value) }
+      - "insurance_separation_value1": ${ currency(insurance_asset[0].sep_value) }
+      - "insurance_face_value1": ${ currency(insurance_asset[0].face_amount) }
+      - "insurance_owner1": ${ insurance_asset[0].owner }
+      - "insurance_company1": ${ insurance_asset[0].company }
+      - "insurance_type_and_number1": ${ insurance_asset[0].type_and_number }
+      - "insurance_beneficiary1": ${ insurance_asset[0].beneficiary }
+      - "insurance_separation_value2": ${ currency(insurance_asset[1].sep_value) }
+      - "insurance_today_value2": ${ currency(insurance_asset[1].today_value) }
+      - "insurance_face_value2": ${ currency(insurance_asset[1].face_amount) }
+      - "insurance_owner2": ${ insurance_asset[1].owner }
+      - "insurance_company2": ${ insurance_asset[1].company }
+      - "insurance_type_and_number2": ${ insurance_asset[1].type_and_number }
+      - "insurance_beneficiary2": ${ insurance_asset[1].beneficiary }
+      - "insurance_today_value3": ${ currency(insurance_asset[2].today_value) }
+      - "insurance_face_value3": ${ currency(insurance_asset[2].face_amount) }
+      - "insurance_separation_value3": ${ currency(insurance_asset[2].sep_value) }
+      - "insurance_owner3": ${ insurance_asset[2].owner }
+      - "insurance_company3": ${ insurance_asset[2].company }
+      - "insurance_type_and_number3": ${ insurance_asset[2].type_and_number }
+      - "BeneficiaryRow3": ${ insurance_asset[2].beneficiary }
+      - "financial_separation_value1": ${ currency(investment_or_security[0].sep_value) }
+      - "financial_today_value1": ${ currency(investment_or_security[0].today_value) }
+      - "financial_owner1": ${ investment_or_security[0].owner }
+      - "financial_type1": ${ investment_or_security[0].type }
+      - "financial_account_number1": ${ investment_or_security[0].number }
+      - "financial_units1": ${ investment_or_security[0].units  }
+      - "financial_separation_value2": ${ currency(investment_or_security[1].sep_value) }
+      - "financial_today_value2": ${ currency(investment_or_security[1].today_value) }
+      - "financial_owner2": ${ investment_or_security[1].owner }
+      - "financial_type2": ${ investment_or_security[1].type }
+      - "financial_account_number2": ${ investment_or_security[1].number }
+      - "financial_units2": ${ investment_or_security[1].units  }
+      - "financial_separation_value3": ${ currency(investment_or_security[2].sep_value) }
+      - "financial_today_value3": ${ currency(investment_or_security[2].today_value) }
+      - "financial_owner3": ${ investment_or_security[2].owner }
+      - "financial_type3": ${ investment_or_security[2].type }
+      - "financial_account_number3": ${ investment_or_security[2].number }
+      - "financial_units3": ${ investment_or_security[2].units  }
+      - "business_interest_separation_value1": ${ currency(business_interest[0].sep_value) }
+      - "business_interest_today_value1": ${ currency(business_interest[0].today_value) }
+      - "business_interest_interest1": ${ business_interest[0].owner }
+      - "business_interest_company1": ${ business_interest[0].company }
+      - "business_interest_description1": ${ business_interest[0].interest }
+      - "business_interest_separation_value2": ${ currency(business_interest[1].sep_value) }
+      - "business_interest_today_value2": ${ currency(business_interest[1].today_value) }
+      - "business_interest_interest2": ${ business_interest[1].owner }
+      - "business_interest_company2": ${ business_interest[1].company }
+      - "business_interest_description2": ${ business_interest[1].interest }
+      - "business_interest_separation_value3": ${ currency(business_interest[2].sep_value) }
+      - "business_interest_today_value3": ${ currency(business_interest[2].today_value) }
+      - "business_interest_interest3": ${ business_interest[2].owner }
+      - "business_interest_company3": ${ business_interest[2].company }
+      - "business_interest_description3": ${ business_interest[2].interest }
+      - "money_owed_separation_amount1": ${ currency(money_owed[0].sep_amount) }
+      - "money_owed_today_amount1": ${ currency(money_owed[0].today_amount) }
+      - "money_owed_to1": ${ money_owed[0].owed_to }
+      - "money_owed_details1": ${ money_owed[0].details }
+      - "money_owed_separation_amount2": ${ currency(money_owed[1].sep_amount) }
+      - "money_owed_today_amount2": ${ currency(money_owed[1].today_amount) }
+      - "money_owed_to2": ${ money_owed[1].owed_to }
+      - "money_owed_details2": ${ money_owed[1].details }
+      - "money_owed_separation_amount3": ${ currency(money_owed[2].sep_amount) }
+      - "money_owed_today_amount3": ${ currency(money_owed[2].today_amount) }
+      - "money_owed_to3": ${ money_owed[2].owed_to }
+      - "DetailsRow3": ${ money_owed[2].details }
+      - "other_separation_value1": ${ currency(other_property[0].sep_value) }
+      - "other_today_value1": ${ currency(other_property[0].today_value) }
+      - "other_owner1": ${ other_property[0].owner }
+      - "other_description1": ${ other_property[0].description }
+      - "other_separation_value2": ${ currency(other_property[1].sep_value) }
+      - "other_today_value2": ${ currency(other_property[1].today_value) }
+      - "other_owner2": ${ other_property[1].owner }
+      - "other_description2": ${ other_property[1].description }
+      - "other_separation_value3": ${ currency(other_property[2].sep_value) }
+      - "other_today_value3": ${ currency(other_property[2].today_value) }
+      - "other_owner3": ${ other_property[2].owner }
+      - "other_description3": ${ other_property[2].description }
+      - "other_separation_value4": ${ currency(other_property[3].sep_value) }
+      - "other_today_value4": ${ currency(other_property[3].today_value) }
+      - "other_owner4": ${ other_property[3].owner }
+      - "other_description4": ${ other_property[3].description }
+      - "other_separation_value5": ${ currency(other_property[4].sep_value) }
+      - "other_today_value5": ${ currency(other_property[4].today_value) }
+      - "other_owner5": ${ other_property[4].owner }
+      - "other_description5": ${ other_property[4].description }
+      - "mortgage_lender1": ${ secured_debt[0].lender }
+      - "mortgage_borrowers1": ${ secured_debt[0].borrower }
+      - "mortgage_account_number1": ${ secured_debt[0].account_number }
+      - "mortgage_in_arrears1": ${ secured_debt[0].arrears }
+      - "mortgage_amount_owing_separation1": ${ currency(secured_debt[0].sep_amount) }
+      - "mortgage_amount_owing_today1": ${ currency(secured_debt[0].today_amount) }
+      - "mortgage_amount_owing_separation2": ${ currency(secured_debt[1].sep_amount) }
+      - "mortgage_amount_owing_today2": ${ currency(secured_debt[1].today_amount) }
+      - "mortgage_lender2": ${ secured_debt[1].lender }
+      - "mortgage_borrowers2": ${ secured_debt[1].borrower }
+      - "mortgage_account_number2": ${ secured_debt[1].account_number }
+      - "mortgage_in_arrears2": ${ secured_debt[1].arrears }
+      - "mortgage_amount_owing_separation3": ${ currency(secured_debt[2].sep_amount) }
+      - "mortgage_amount_owing_today3": ${ currency(secured_debt[2].today_amount) }
+      - "mortgage_lender3": ${ secured_debt[2].lender }
+      - "mortgage_borrowers3": ${ secured_debt[2].borrower }
+      - "mortgage_account_number3": ${ secured_debt[2].account_number }
+      - "mortgage_in_arrears3": ${ secured_debt[2].arrears }
+      - "loan_amount_owing_separation1": ${ currency(loan[0].sep_amount) }
+      - "loan_lender1": ${ loan[0].lender }
+      - "loan_borrowers1": ${ loan[0].borrower }
+      - "loan_amount_owing_today1": ${ currency(loan[0].today_amount) }
+      - "loan_type_and_account_number1": ${ loan[0].account_number }
+      - "loan_in_arrears1": ${ loan[0].arrears }
+      - "loan_amount_owing_separation2": ${ currency(loan[1].sep_amount) }
+      - "loan_amount_owing_today2": ${ currency(loan[1].today_amount) }
+      - "loan_lender2": ${ loan[1].lender }
+      - "loan_borrowers2": ${ loan[1].borrower }
+      - "loan_type_and_account_number2": ${ loan[1].account_number }
+      - "loan_in_arrears2": ${ loan[1].arrears }
+      - "loan_lender3": ${ loan[2].lender }
+      - "loan_borrowers3": ${ loan[2].borrower }
+      - "loan_amount_owing_separation3": ${ currency(loan[2].sep_amount) }
+      - "loan_type_and_account_number3": ${ loan[2].account_number }
+      - "loan_in_arrears3": ${ loan[2].arrears }
+      - "loan_amount_owing_today3": ${ currency(loan[2].today_amount) }
+      - "cc_amount_owing_separation1": ${ currency(cc[0].sep_amount) }
+      - "cc_amount_owing_today1": ${ currency(cc[0].today_amount) }
+      - "cc_carholders1": ${ cc[0].holders }
+      - "cc_type_and_account_number1": ${ cc[0].details }
+      - "cc_amount_owing_separation2": ${ currency(cc[1].sep_amount) }
+      - "cc_amount_owing_today2": ${ currency(cc[1].today_amount) }
+      - "cc_carholders2": ${ cc[1].holders }
+      - "cc_type_and_account_number2": ${ cc[1].details }
+      - "cc_amount_owing_separation3": ${ currency(cc[2].sep_amount) }
+      - "cc_carholders3": ${ cc[2].holders }
+      - "cc_type_and_account_number3": ${ cc[2].details }
+      - "cc_amount_owing_today3": ${ currency(cc[2].today_amount) }
+      - "cc_amount_owing_separation4": ${ currency(cc[3].sep_amount) }
+      - "cc_amount_owing_today4": ${ currency(cc[3].today_amount) }
+      - "cc_carholders4": ${ cc[3].holders }
+      - "cc_type_and_account_number4": ${ cc[3].details }
+      - "cc_amount_owing_separation5": ${ currency(cc[4].sep_amount) }
+      - "cc_amount_owing_today5": ${ currency(cc[4].today_amount) }
+      - "cc_carholders5": ${ cc[4].holders }
+      - "cc_type_and_account_number5": ${ cc[4].details }
+      - "other_amount_owing_separation1": ${ currency(other_debt[0].sep_amount) }
+      - "other_lender1": ${ other_debt[0].lender }
+      - "other_borrowers1": ${ other_debt[0].borrower }
+      - "other_amount_owing_today1": ${ currency(other_debt[0].today_amount) }
+      - "other_type_and_account_number1": ${ other_debt[0].details }
+      - "other_in_arrears1": ${ other_debt[0].arrears }
+      - "other_amount_owing_separation2": ${ currency(other_debt[1].sep_amount) }
+      - "other_amount_owing_today2": ${ currency(other_debt[1].today_amount) }
+      - "other_lender2": ${ other_debt[1].lender }
+      - "other_borrowers2": ${ other_debt[1].borrower }
+      - "other_type_and_account_number2": ${ other_debt[1].details }
+      - "other_in_arrears2": ${ other_debt[1].arrears }
+      - "other_lender3": ${ other_debt[2].lender }
+      - "other_borrowers3": ${ other_debt[2].borrower }
+      - "other_amount_owing_separation3": ${ currency(other_debt[2].sep_amount) }
+      - "other_type_and_account_number3": ${ other_debt[2].details }
+      - "other_in_arrears3": ${ other_debt[2].arrears }
+      - "other_amount_owing_today3": ${ currency(other_debt[2].today_amount) }
+      - "other_amount_owing_separation4": ${ currency(other_debt[3].sep_amount) }
+      - "other_amount_owing_today4": ${ currency(other_debt[3].today_amount) }
+      - "other_lender4": ${ other_debt[3].lender }
+      - "other_borrowers4": ${ other_debt[3].borrower }
+      - "other_type_and_account_number4": ${ other_debt[3].details }
+      - "other_in_arrears4": ${ other_debt[3].arrears }
+      - "other_lender5": ${ other_debt[4].lender }
+      - "other_borrowers5": ${ other_debt[4].borrower }
+      - "other_amount_owing_separation5": ${ currency(other_debt[4].sep_amount) }
+      - "other_type_and_account_number5": ${ other_debt[4].details }
+      - "other_in_arrears5": ${ other_debt[4].arrears }
+      - "other_amount_owing_today5": ${ currency(other_debt[4].today_amount) }
+      - "exemption1": ${ exempted_property[0].description }
+      - "exemption_reason1": ${ exempted_property[0].item_and_reason }
+      - "exemption2": ${ exempted_property[1].description }
+      - "exemption_reason2": ${ exempted_property[1].item_and_reason }
+      - "exemption3": ${ exempted_property[2].description }
+      - "exemption_reason3": ${ exempted_property[2].item_and_reason }
+      - "exemption4": ${ exempted_property[3].description }
+      - "exemption_reason4": ${ exempted_property[3].item_and_reason }
+      - "exemption5": ${ exempted_property[4].description }
+      - "exemption_reason5": ${ exempted_property[4].item_and_reason }
+  - name: NFLD_Property_Statement_watermarked
+    filename: NFLD_Property_Statement_watermarked
+    variable name: NFLD_Property_Statement_watermarked[i]        
+    skip undefined: True
+    pdf template file: NFLD_Property_Statement_watermarked.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "today()": ${ today().format('M/d/yyyy') }
+      - "change_yes": ${ changes }
+      - "change_no": ${ not changes }
+      - "change_details": ${ changes_details }
+      - "home_today_value1": ${ currency(real_property[0].today_value) }
+      - "home_separation_value1": ${ currency(real_property[0].sep_value) }
+      - "Home_Owner1": ${ real_property[0].owner }
+      - "Type_Ownership1": ${ real_property[0].ownership }
+      - "Property_address1": ${ real_property[0].address }
+      - "home_today_value2": ${ currency(real_property[1].today_value) }
+      - "home_separation_value2": ${ currency(real_property[1].sep_value) }
+      - "Home_Owner2": ${ real_property[1].owner }
+      - "Type_Ownership2": ${ real_property[1].ownership }
+      - "Property_address2": ${ real_property[1].address }
+      - "home_separation_value3": ${ currency(real_property[2].sep_value) }
+      - "home_today_value3": ${ currency(real_property[2].today_value) }
+      - "Home_Owner3": ${ real_property[2].owner }
+      - "Type_Ownership3": ${ real_property[2].ownership }
+      - "Property_address3": ${ real_property[2].address }
+      - "vehicle_today_value1": ${ currency(vehicle[0].today_value) }
+      - "vehicle_separation_value1": ${ currency(vehicle[0].sep_value) }
+      - "registered_owner_vehicle1": ${ vehicle[0].owner }
+      - "possession_vehicle1": |
+          % if vehicle[0].possession:
+          ${ users[0].name.first }
+          % else:
+          ${ respondents[0].name.first }
+          % endif
+      - "details_vehicle1": ${ vehicle[0].description }
+      - "vehicle_today_value2": ${ currency(vehicle[1].today_value) }
+      - "vehicle_separation_value2": ${ currency(vehicle[1].sep_value) }
+      - "registered_owner_vehicle2": ${ vehicle[1].owner }
+      - "possession_vehicle2": |
+          % if vehicle[1].possession:
+          ${ users[0].name.first }
+          % else:
+          ${ respondents[0].name.first }
+          % endif
+      - "details_vehicle2": ${ vehicle[1].description }
+      - "vehicle_separation_value3": ${ currency(vehicle[2].sep_value) }
+      - "registered_owner_vehicle3": ${ vehicle[2].owner }
+      - "possession_vehicle3": |
+          % if vehicle[2].possession:
+          ${ users[0].name.first }
+          % else:
+          ${ respondents[0].name.first }
+          % endif
+      - "details_vehicle3": ${ vehicle[2].description }
+      - "vehicle_today_value3": ${ currency(vehicle[2].today_value) }
+      - "account_today_value1": ${ currency(savings_or_bank[0].today_value) }
+      - "account_separation_value1": ${ currency(savings_or_bank[0].sep_value) }
+      - "account_holder1": ${ savings_or_bank[0].holder }
+      - "account_type1": ${ savings_or_bank[0].today_value }
+      - "institute_branch1": ${ savings_or_bank[0].institution }
+      - "account_number1": ${ savings_or_bank[0].account_number }
+      - "account_today_value2": ${ currency(savings_or_bank[1].today_value) }
+      - "account_holder2": ${ savings_or_bank[1].holder }
+      - "account_type2": ${ savings_or_bank[1].today_value }
+      - "institute_branch2": ${ savings_or_bank[1].institution }
+      - "account_number2": ${ savings_or_bank[1].account_number }
+      - "account_separation_value2": ${ currency(savings_or_bank[1].sep_value) }
+      - "account_today_value3": ${ currency(savings_or_bank[2].today_value) }
+      - "account_separation_value3": ${ currency(savings_or_bank[2].sep_value) }
+      - "account_holder3": ${ savings_or_bank[2].holder }
+      - "account_type3": ${ savings_or_bank[2].today_value }
+      - "institute_branch3": ${ savings_or_bank[2].institution }
+      - "account_number3": ${ savings_or_bank[2].account_number }
+      - "account_today_value4": ${ currency(savings_or_bank[3].today_value) }
+      - "account_separation_value4": ${ currency(savings_or_bank[3].sep_value) }
+      - "account_holder4": ${ savings_or_bank[3].holder }
+      - "account_type4": ${ savings_or_bank[3].type }
+      - "institute_branch14": ${ savings_or_bank[3].institution }
+      - "account_number4": ${ savings_or_bank[3].account_number }
+      - "safety_box_location1": ${ safety_deposit[0].location }
+      - "safety_box_contents1": ${ safety_deposit[0].contents }
+      - "safety_box_location2": ${ safety_deposit[1].location }
+      - "safety_box_contents2": ${ safety_deposit[1].contents }
+      - "benefit_today_value1": ${ currency(employment_benefits[0].today_value) }
+      - "benefit_separation_value1": ${ currency(employment_benefits[0].sep_value) }
+      - "owner_benefit1": ${ employment_benefits[0].owner }
+      - "benefit_type1": ${ employment_benefits[0].type }
+      - "benefit_institution1": ${ employment_benefits[0].institution }
+      - "benefit_account_number1": ${ employment_benefits[0].account_number }
+      - "owner_benefit2": ${ employment_benefits[1].owner }
+      - "benefit_type2": ${ employment_benefits[1].type }
+      - "benefit_institution2": ${ employment_benefits[1].institution }
+      - "benefit_account_number2": ${ employment_benefits[1].account_number }
+      - "benefit_today_value2": ${ currency(employment_benefits[1].today_value) }
+      - "benefit_separation_value2": ${ currency(employment_benefits[1].sep_value) }
+      - "benefit_today_value3": ${ currency(employment_benefits[2].today_value) }
+      - "benefit_separation_value3": ${ currency(employment_benefits[2].sep_value) }
+      - "owner_benefit3": ${ employment_benefits[2].owner }
+      - "benefit_type3": ${ employment_benefits[2].type }
+      - "benefit_institution3": ${ employment_benefits[2].institution }
+      - "benefit_account_number3": ${ employment_benefits[2].account_number }
+      - "benefit_today_value4": ${ currency(employment_benefits[3].today_value) }
+      - "benefit_separation_value4": ${ currency(employment_benefits[3].sep_value) }
+      - "owner_benefit4": ${ employment_benefits[3].owner }
+      - "benefit_type4": ${ employment_benefits[3].type }
+      - "benefit_institution4": ${ employment_benefits[3].institution }
+      - "benefit_account_number4": ${ employment_benefits[3].account_number }
+      - "insurance_today_value1": ${ currency(insurance_asset[0].today_value) }
+      - "insurance_separation_value1": ${ currency(insurance_asset[0].sep_value) }
+      - "insurance_face_value1": ${ currency(insurance_asset[0].face_amount) }
+      - "insurance_owner1": ${ insurance_asset[0].owner }
+      - "insurance_company1": ${ insurance_asset[0].company }
+      - "insurance_type_and_number1": ${ insurance_asset[0].type_and_number }
+      - "insurance_beneficiary1": ${ insurance_asset[0].beneficiary }
+      - "insurance_separation_value2": ${ currency(insurance_asset[1].sep_value) }
+      - "insurance_today_value2": ${ currency(insurance_asset[1].today_value) }
+      - "insurance_face_value2": ${ currency(insurance_asset[1].face_amount) }
+      - "insurance_owner2": ${ insurance_asset[1].owner }
+      - "insurance_company2": ${ insurance_asset[1].company }
+      - "insurance_type_and_number2": ${ insurance_asset[1].type_and_number }
+      - "insurance_beneficiary2": ${ insurance_asset[1].beneficiary }
+      - "insurance_today_value3": ${ currency(insurance_asset[2].today_value) }
+      - "insurance_face_value3": ${ currency(insurance_asset[2].face_amount) }
+      - "insurance_separation_value3": ${ currency(insurance_asset[2].sep_value) }
+      - "insurance_owner3": ${ insurance_asset[2].owner }
+      - "insurance_company3": ${ insurance_asset[2].company }
+      - "insurance_type_and_number3": ${ insurance_asset[2].type_and_number }
+      - "BeneficiaryRow3": ${ insurance_asset[2].beneficiary }
+      - "financial_separation_value1": ${ currency(investment_or_security[0].sep_value) }
+      - "financial_today_value1": ${ currency(investment_or_security[0].today_value) }
+      - "financial_owner1": ${ investment_or_security[0].owner }
+      - "financial_type1": ${ investment_or_security[0].type }
+      - "financial_account_number1": ${ investment_or_security[0].number }
+      - "financial_units1": ${ investment_or_security[0].units  }
+      - "financial_separation_value2": ${ currency(investment_or_security[1].sep_value) }
+      - "financial_today_value2": ${ currency(investment_or_security[1].today_value) }
+      - "financial_owner2": ${ investment_or_security[1].owner }
+      - "financial_type2": ${ investment_or_security[1].type }
+      - "financial_account_number2": ${ investment_or_security[1].number }
+      - "financial_units2": ${ investment_or_security[1].units  }
+      - "financial_separation_value3": ${ currency(investment_or_security[2].sep_value) }
+      - "financial_today_value3": ${ currency(investment_or_security[2].today_value) }
+      - "financial_owner3": ${ investment_or_security[2].owner }
+      - "financial_type3": ${ investment_or_security[2].type }
+      - "financial_account_number3": ${ investment_or_security[2].number }
+      - "financial_units3": ${ investment_or_security[2].units  }
+      - "business_interest_separation_value1": ${ currency(business_interest[0].sep_value) }
+      - "business_interest_today_value1": ${ currency(business_interest[0].today_value) }
+      - "business_interest_interest1": ${ business_interest[0].owner }
+      - "business_interest_company1": ${ business_interest[0].company }
+      - "business_interest_description1": ${ business_interest[0].interest }
+      - "business_interest_separation_value2": ${ currency(business_interest[1].sep_value) }
+      - "business_interest_today_value2": ${ currency(business_interest[1].today_value) }
+      - "business_interest_interest2": ${ business_interest[1].owner }
+      - "business_interest_company2": ${ business_interest[1].company }
+      - "business_interest_description2": ${ business_interest[1].interest }
+      - "business_interest_separation_value3": ${ currency(business_interest[2].sep_value) }
+      - "business_interest_today_value3": ${ currency(business_interest[2].today_value) }
+      - "business_interest_interest3": ${ business_interest[2].owner }
+      - "business_interest_company3": ${ business_interest[2].company }
+      - "business_interest_description3": ${ business_interest[2].interest }
+      - "money_owed_separation_amount1": ${ currency(money_owed[0].sep_amount) }
+      - "money_owed_today_amount1": ${ currency(money_owed[0].today_amount) }
+      - "money_owed_to1": ${ money_owed[0].owed_to }
+      - "money_owed_details1": ${ money_owed[0].details }
+      - "money_owed_separation_amount2": ${ currency(money_owed[1].sep_amount) }
+      - "money_owed_today_amount2": ${ currency(money_owed[1].today_amount) }
+      - "money_owed_to2": ${ money_owed[1].owed_to }
+      - "money_owed_details2": ${ money_owed[1].details }
+      - "money_owed_separation_amount3": ${ currency(money_owed[2].sep_amount) }
+      - "money_owed_today_amount3": ${ currency(money_owed[2].today_amount) }
+      - "money_owed_to3": ${ money_owed[2].owed_to }
+      - "DetailsRow3": ${ money_owed[2].details }
+      - "other_separation_value1": ${ currency(other_property[0].sep_value) }
+      - "other_today_value1": ${ currency(other_property[0].today_value) }
+      - "other_owner1": ${ other_property[0].owner }
+      - "other_description1": ${ other_property[0].description }
+      - "other_separation_value2": ${ currency(other_property[1].sep_value) }
+      - "other_today_value2": ${ currency(other_property[1].today_value) }
+      - "other_owner2": ${ other_property[1].owner }
+      - "other_description2": ${ other_property[1].description }
+      - "other_separation_value3": ${ currency(other_property[2].sep_value) }
+      - "other_today_value3": ${ currency(other_property[2].today_value) }
+      - "other_owner3": ${ other_property[2].owner }
+      - "other_description3": ${ other_property[2].description }
+      - "other_separation_value4": ${ currency(other_property[3].sep_value) }
+      - "other_today_value4": ${ currency(other_property[3].today_value) }
+      - "other_owner4": ${ other_property[3].owner }
+      - "other_description4": ${ other_property[3].description }
+      - "other_separation_value5": ${ currency(other_property[4].sep_value) }
+      - "other_today_value5": ${ currency(other_property[4].today_value) }
+      - "other_owner5": ${ other_property[4].owner }
+      - "other_description5": ${ other_property[4].description }
+      - "mortgage_lender1": ${ secured_debt[0].lender }
+      - "mortgage_borrowers1": ${ secured_debt[0].borrower }
+      - "mortgage_account_number1": ${ secured_debt[0].account_number }
+      - "mortgage_in_arrears1": ${ secured_debt[0].arrears }
+      - "mortgage_amount_owing_separation1": ${ currency(secured_debt[0].sep_amount) }
+      - "mortgage_amount_owing_today1": ${ currency(secured_debt[0].today_amount) }
+      - "mortgage_amount_owing_separation2": ${ currency(secured_debt[1].sep_amount) }
+      - "mortgage_amount_owing_today2": ${ currency(secured_debt[1].today_amount) }
+      - "mortgage_lender2": ${ secured_debt[1].lender }
+      - "mortgage_borrowers2": ${ secured_debt[1].borrower }
+      - "mortgage_account_number2": ${ secured_debt[1].account_number }
+      - "mortgage_in_arrears2": ${ secured_debt[1].arrears }
+      - "mortgage_amount_owing_separation3": ${ currency(secured_debt[2].sep_amount) }
+      - "mortgage_amount_owing_today3": ${ currency(secured_debt[2].today_amount) }
+      - "mortgage_lender3": ${ secured_debt[2].lender }
+      - "mortgage_borrowers3": ${ secured_debt[2].borrower }
+      - "mortgage_account_number3": ${ secured_debt[2].account_number }
+      - "mortgage_in_arrears3": ${ secured_debt[2].arrears }
+      - "loan_amount_owing_separation1": ${ currency(loan[0].sep_amount) }
+      - "loan_lender1": ${ loan[0].lender }
+      - "loan_borrowers1": ${ loan[0].borrower }
+      - "loan_amount_owing_today1": ${ currency(loan[0].today_amount) }
+      - "loan_type_and_account_number1": ${ loan[0].account_number }
+      - "loan_in_arrears1": ${ loan[0].arrears }
+      - "loan_amount_owing_separation2": ${ currency(loan[1].sep_amount) }
+      - "loan_amount_owing_today2": ${ currency(loan[1].today_amount) }
+      - "loan_lender2": ${ loan[1].lender }
+      - "loan_borrowers2": ${ loan[1].borrower }
+      - "loan_type_and_account_number2": ${ loan[1].account_number }
+      - "loan_in_arrears2": ${ loan[1].arrears }
+      - "loan_lender3": ${ loan[2].lender }
+      - "loan_borrowers3": ${ loan[2].borrower }
+      - "loan_amount_owing_separation3": ${ currency(loan[2].sep_amount) }
+      - "loan_type_and_account_number3": ${ loan[2].account_number }
+      - "loan_in_arrears3": ${ loan[2].arrears }
+      - "loan_amount_owing_today3": ${ currency(loan[2].today_amount) }
+      - "cc_amount_owing_separation1": ${ currency(cc[0].sep_amount) }
+      - "cc_amount_owing_today1": ${ currency(cc[0].today_amount) }
+      - "cc_carholders1": ${ cc[0].holders }
+      - "cc_type_and_account_number1": ${ cc[0].details }
+      - "cc_amount_owing_separation2": ${ currency(cc[1].sep_amount) }
+      - "cc_amount_owing_today2": ${ currency(cc[1].today_amount) }
+      - "cc_carholders2": ${ cc[1].holders }
+      - "cc_type_and_account_number2": ${ cc[1].details }
+      - "cc_amount_owing_separation3": ${ currency(cc[2].sep_amount) }
+      - "cc_carholders3": ${ cc[2].holders }
+      - "cc_type_and_account_number3": ${ cc[2].details }
+      - "cc_amount_owing_today3": ${ currency(cc[2].today_amount) }
+      - "cc_amount_owing_separation4": ${ currency(cc[3].sep_amount) }
+      - "cc_amount_owing_today4": ${ currency(cc[3].today_amount) }
+      - "cc_carholders4": ${ cc[3].holders }
+      - "cc_type_and_account_number4": ${ cc[3].details }
+      - "cc_amount_owing_separation5": ${ currency(cc[4].sep_amount) }
+      - "cc_amount_owing_today5": ${ currency(cc[4].today_amount) }
+      - "cc_carholders5": ${ cc[4].holders }
+      - "cc_type_and_account_number5": ${ cc[4].details }
+      - "other_amount_owing_separation1": ${ currency(other_debt[0].sep_amount) }
+      - "other_lender1": ${ other_debt[0].lender }
+      - "other_borrowers1": ${ other_debt[0].borrower }
+      - "other_amount_owing_today1": ${ currency(other_debt[0].today_amount) }
+      - "other_type_and_account_number1": ${ other_debt[0].details }
+      - "other_in_arrears1": ${ other_debt[0].arrears }
+      - "other_amount_owing_separation2": ${ currency(other_debt[1].sep_amount) }
+      - "other_amount_owing_today2": ${ currency(other_debt[1].today_amount) }
+      - "other_lender2": ${ other_debt[1].lender }
+      - "other_borrowers2": ${ other_debt[1].borrower }
+      - "other_type_and_account_number2": ${ other_debt[1].details }
+      - "other_in_arrears2": ${ other_debt[1].arrears }
+      - "other_lender3": ${ other_debt[2].lender }
+      - "other_borrowers3": ${ other_debt[2].borrower }
+      - "other_amount_owing_separation3": ${ currency(other_debt[2].sep_amount) }
+      - "other_type_and_account_number3": ${ other_debt[2].details }
+      - "other_in_arrears3": ${ other_debt[2].arrears }
+      - "other_amount_owing_today3": ${ currency(other_debt[2].today_amount) }
+      - "other_amount_owing_separation4": ${ currency(other_debt[3].sep_amount) }
+      - "other_amount_owing_today4": ${ currency(other_debt[3].today_amount) }
+      - "other_lender4": ${ other_debt[3].lender }
+      - "other_borrowers4": ${ other_debt[3].borrower }
+      - "other_type_and_account_number4": ${ other_debt[3].details }
+      - "other_in_arrears4": ${ other_debt[3].arrears }
+      - "other_lender5": ${ other_debt[4].lender }
+      - "other_borrowers5": ${ other_debt[4].borrower }
+      - "other_amount_owing_separation5": ${ currency(other_debt[4].sep_amount) }
+      - "other_type_and_account_number5": ${ other_debt[4].details }
+      - "other_in_arrears5": ${ other_debt[4].arrears }
+      - "other_amount_owing_today5": ${ currency(other_debt[4].today_amount) }
+      - "exemption1": ${ exempted_property[0].description }
+      - "exemption_reason1": ${ exempted_property[0].item_and_reason }
+      - "exemption2": ${ exempted_property[1].description }
+      - "exemption_reason2": ${ exempted_property[1].item_and_reason }
+      - "exemption3": ${ exempted_property[2].description }
+      - "exemption_reason3": ${ exempted_property[2].item_and_reason }
+      - "exemption4": ${ exempted_property[3].description }
+      - "exemption_reason4": ${ exempted_property[3].item_and_reason }
+      - "exemption5": ${ exempted_property[4].description }
+      - "exemption_reason5": ${ exempted_property[4].item_and_reason }

@@ -1,0 +1,123 @@
+---  
+metadata:
+  title: |
+    GetJustice
+  short title: |
+    GetJustice  
+  title url: https://getjustice.io
+  logo: |
+    <img src="/packagestatic/docassemble.GetJusticeBranding/white_logo_transparent_background.png" class="ma_icon" alt="Logo"><div class="title">&nbsp;</div>
+  exit url: |
+    https://getjustice.io
+---
+features:
+  question help button: True
+  question back button: True
+  progress bar: True
+  css: getjustice_colors.css
+  bootstrap theme: getjustice.theme.css
+  # bootstrap theme: https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/cerulean/bootstrap.min.css
+---
+id: basic questions intro screen
+decoration: form-lineal
+question: |
+  ${interview_short_title}: GetJustice - Do it Your Way
+subquestion: |
+  You are just steps away from ${ interview_short_title }.
+  
+  1. Answer the questions on the next screens.
+  1. Get a completed, properly formatted document.
+  1. Use GetJustice to serve and file your document with the court
+  and the other side of your case.
+  
+fields:
+  - To continue, you must accept our [terms of use](https://getjustice.io/terms-and-conditions/){:target="_blank"}: acknowledged_information_use
+    datatype: checkboxes
+    none of the above: False    
+    minlength: 1
+    choices:
+      - I accept the terms of use.: I accept
+    validation messages:
+      minlength: |
+        You cannot continue unless you agree to the terms of use.        
+continue button field: al_intro_screen
+terms:
+  green words: |
+    Green words are legal terms or a short way of referring to something that needs more explanation. The definition or explanation pops up when you tap the green words.
+right: |
+  % if user_has_saved_answers:
+  ${fa_icon("bell", color="primary", size="sm")}
+  Saved answers available!  
+  
+  ${action_button_html(url_action('load_answer'), icon="folder-open", label=word("View answers"), size="sm" )}
+  % endif    
+css: |
+  <style>
+  #daMainQuestion {
+    text-align: center;
+  }
+  </style>
+---
+template: how_to_pick_court_help_template
+content: |
+  For some cases, you can choose your court.
+  % if user_role=='plaintiff':    
+  How do you know which court to choose?
+  
+  The District Court and Superior Court are all courts that can hear
+  any type of case. Housing, Probate and Family and Juvenile Court are
+    **specialist** courts that hear one kind of case.
+  They have judges with special training as well as special 
+  resources available.
+  
+  Different courts can make different kinds of decisions. Not every court
+  can give you every kind of help. For example, you can only
+  ask for visitation in the Probate and Family Court. Only
+  the Housing Court or Superior Court can hear discrimination
+  cases.
+  
+  Depending on where you live, different courts may be further or closer to
+  your address. There are many district courts all over the state,
+  but each county has only one or a few Superior Courts or specialty
+  courts.
+  
+  Choosing a court means thinking about what kind of help you need, as well
+  as which court you can get transportation to on the day of your hearing.
+  
+  Only you know the right choice.
+  
+  % else:
+  If you are responding to a case someone else filed, you may not
+  get to choose your court. Select the court that is already
+  listed on your court paperwork.
+  % endif
+---
+code: |
+  # This is just a placeholder
+  allowed_courts = ['District', 'Superior']
+---
+id: choose a court (courts matching provided address were found)
+question: |
+  % if al_form_type == 'starts_case':
+  What court do you want to file in?
+  % elif al_form_type == 'appeal':
+  What is the name of the trial court your case was originally filed in?
+  % else:
+  What court is your case in?
+  % endif
+subquestion: |
+  % if not al_form_type == 'starts_case':
+  Look at your court paperwork. Match the name listed there.
+  % endif
+fields:
+  - no label: trial_court_index
+    code: all_courts.filter_courts(allowed_courts, column='department')
+help: 
+  label: |
+    How do I pick a court?
+  content: |
+    ${ how_to_pick_court_help_template }
+---
+code: |
+  trial_court = all_courts.as_court('trial_court', trial_court_index)
+  trial_court.geolocate()  

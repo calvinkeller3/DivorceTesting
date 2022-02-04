@@ -1,0 +1,1650 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+objects:
+  - real_property: DAList.using(object_type=DAObject, there_are_any=True)
+  - household: DAList.using(object_type=DAObject, there_are_any=True)
+  - vehicle: DAList.using(object_type=DAObject, there_are_any=True)
+  - personal_item: DAList.using(object_type=DAObject, there_are_any=True)
+  - other_item: DAList.using(object_type=DAObject, there_are_any=True)
+  - savings_or_bank: DAList.using(object_type=DAObject, there_are_any=True)
+  - pension_or_retire: DAList.using(object_type=DAObject, there_are_any=True)
+  - security: DAList.using(object_type=DAObject, there_are_any=True)
+  - business_interest: DAList.using(object_type=DAObject, there_are_any=True)
+  - life_and_disability_insurance: DAList.using(object_type=DAObject, there_are_any=True)
+  - other_property: DAList.using(object_type=DAObject, there_are_any=True)
+  - secured_debt: DAList.using(object_type=DAObject, there_are_any=True)
+  - loan: DAList.using(object_type=DAObject, there_are_any=True)
+  - cc: DAList.using(object_type=DAObject, there_are_any=True)
+  - unpaid_support: DAList.using(object_type=DAObject, there_are_any=True)
+  - other_debt: DAList.using(object_type=DAObject, there_are_any=True)
+  - exempted_property: DAList.using(object_type=DAObject, there_are_any=True)
+  - disposed_property: DAList.using(object_type=DAObject, there_are_any=True)
+---
+mandatory: True
+code: |
+  interview_metadata
+  if not defined("interview_metadata['SK_Property_Statement']"):
+    interview_metadata.initializeObject("SK_Property_Statement")
+    interview_metadata["SK_Property_Statement"].update({
+      "al_weaver_version": "1.3.0",
+      "generated on": "2021-10-22",
+      "title": "Sk property statement",
+      "short title": "Sk property statement",
+      "description": "Sk property statement",
+      "original_form": "",
+      "allowed courts": [
+      ],
+      "categories": [
+      ],        
+      "logic block variable": "interview_order_SK_Property_Statement",
+      "attachment block variable": "SK_Property_Statement_attachment",
+      "typical role": "plaintiff",
+    })
+---
+code: |
+  interview_metadata['main_interview_key'] =  'SK_Property_Statement'
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_SK_Property_Statement
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["SK_Property_Statement"]["allowed courts"]
+  nav.set_section('review_SK_Property_Statement')
+  user_role = 'plaintiff'
+  real_property_yesno
+  
+  if real_property_yesno == "Yes":
+    real_property[0].owner
+    
+  if household_yesno == "Yes":
+    household[0].description
+  
+  if motor_vehicles_yesno == "Yes":
+    vehicle[0].description
+  
+  if special_yesno == "Yes":
+    personal_item[0].description
+  
+  if other_item_yesno == "Yes":
+    other_item[0].description
+  
+  if savings_or_bank_yesno == "Yes":
+    savings_or_bank[0].category
+  
+  if pensions_yesno == "Yes":
+    pension_or_retire[0].category
+  
+  if financials_yesno == "Yes":
+    security[0].category 
+  
+  if business_yesno == "Yes":
+    business_interest[0].owner
+  
+  if life_and_disability_insurance_yesno == "Yes":
+    life_and_disability_insurance[0].company
+  
+  if other_assets_yesno == "Yes":
+    other_property[0].owner
+  
+  if debts_yesno == "Yes":
+    secured_yesno
+
+  if secured_yesno == "Yes":
+    secured_debt[0].owed_by
+  
+  if loans_yesno == "Yes":
+    loan[0].owed_by
+  
+  if credit_card_yesno == "Yes":
+    cc[0].owed_by
+  
+  if unpaid_suppurt_yesno == "Yes":
+    unpaid_support[0].owed_by
+  
+  if other_debts_yesno == "Yes":
+    other_debt[0].owed_by
+
+  if excluded_yesno == "Yes":
+    exempted_property[0].category
+  
+  if disposed_yesnno == "Yes":
+    disposed_property[0].description
+
+  interview_order_SK_Property_Statement = True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: assets yes/no
+question: |
+  Assets 
+fields:
+  - Do you own any real property?: real_property_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any household goods, furniture or appliance to your claim??: household_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you own any Cars, Boats, or Vehicles?: motor_vehicles_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any special items to your claim: special_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any other items to your claim: other_item_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any Savings or Bank Accounts to your claim?: savings_or_bank_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any pensions or R.R.S.Ps to your claim?: pensions_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any Bonds, shares, term deposits, investment certificates, or mutual funds to your claim?: financials_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you have any financial interests in a business?: business_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any life or disability insurance plans to your claim?: life_and_disability_insurance_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any other assets to your claim?: other_assets_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add debts to your claim?: debts_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Is there any property you'd like to exclude from your claim?: excluded_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any disposed property to your claim?: disposed_yesnno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: real_property
+question: |
+  Real Property 
+fields:
+  - Owner: real_property[i].owner
+  - Nature and Type of Ownership: real_property[i].ownership
+  - Nature of property and address: real_property[i].address
+  - Estimated Total Value: real_property[i].total_value
+    datatype: currency
+  - Value of interest as of ${ separated_date }: real_property[i].app_value
+    datatype: currency
+  - Value of interest as of ${ today() }: real_property[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: household
+question: |
+  Household Items
+fields:
+  - Description: household[i].description
+  - Are you currently in possession of this item?: household[i].possession
+    datatype: yesnoradio
+  - Market value as of ${ separated_date }: household[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: household[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: vehicles
+question: |
+  Vehicles
+fields:
+  - Make, Model, and Year: vehicle[i].description
+  - Are you currently in possession of this item?: vehicle[i].possession
+    datatype: yesnoradio
+  - Market value as of ${ separated_date }: vehicle[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: vehicle[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: personal special
+question: |
+  Personal Items
+fields:
+  - Description: personal_item[i].description
+  - Are you currently in possession of this item?: personal_item[i].possession
+    datatype: yesnoradio
+  - Market value as of ${ separated_date }: personal_item[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: personal_item[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: other items
+question: |
+  Other Items
+fields:
+  - Description: other_item[i].description
+  - Are you currently in possession of this item?: other_item[i].possession
+    datatype: yesnoradio
+  - Market value as of ${ separated_date }: other_item[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: other_item[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: savings_or_bank
+question: |
+  Savings and other Accounts
+fields:
+  - Category: savings_or_bank[i].category
+    help: Cash, Savings, Chequing Account, Term Deposit, Guaranteed Investment Certificate, TFSA, or RESP
+  - Owner: savings_or_bank[i].owner
+  - Institution: savings_or_bank[i].institution
+  - Account Number: savings_or_bank[i].account_number
+  - Market value as of ${ separated_date }: savings_or_bank[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: savings_or_bank[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: pension and retirement
+question: |
+  Pension
+fields:
+  - Category: pension_or_retire[i].category
+    help: RRSP or Pension Plan
+  - Owner: pension_or_retire[i].owner
+  - Institution: pension_or_retire[i].institution
+  - Account Number: pension_or_retire[i].account_number
+  - Market value as of ${ separated_date }: pension_or_retire[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: pension_or_retire[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: securities
+question: |
+  Securities
+fields:
+  - Category: security[i].category
+  - Owner: security[i].owner
+  - Number: security[i].number
+  - Description: security[i].description  
+  - Market value as of ${ separated_date }: security[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: security[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: business_interest
+question: |
+  Business Interests
+fields:
+  - Owner: business_interest[i].owner
+  - Name of Firm or Company: business_interest[i].company
+  - Interest: business_interest[i].interest
+  - Market value as of ${ separated_date }: business_interest[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: business_interest[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: life_and_disability_insurance
+question: |
+  Life and Disability Insurance
+fields:
+  - Company & Policy Number: life_and_disability_insurance[i].company
+  - Owner: life_and_disability_insurance[i].owner
+  - Type of Policy: life_and_disability_insurance[i].type
+  - Beneficiary: life_and_disability_insurance[i].beneficiary
+  - Face Amount: life_and_disability_insurance[i].face_amount
+    datatype: currency
+  - Market value as of ${ separated_date }: life_and_disability_insurance[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: life_and_disability_insurance[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: other property
+question: |
+  Other Property
+fields:
+  - Owner: other_property[i].owner
+  - Category: other_property[i].category
+  - Details: other_property[i].details
+  - Market value as of ${ separated_date }: other_property[i].app_value
+    datatype: currency
+  - Market value as of ${ today() }: other_property[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: assets yes/no
+question: |
+  Debts 
+fields:
+  - Would you like to add secured debts to your claim?: secured_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any loans to your claim?: loans_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add credit card debts to your claim?: credit_card_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any unpaid support debt to your claim?: unpaid_suppurt_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Is there any other debts you'd like to add to your claim?: other_debts_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: secured debt
+question: |
+  Secured Debts
+fields:
+  - Owed by: secured_debt[i].owed_by
+  - Owed to (name and address): secured_debt[i].owed_to
+  - Full amount owing: secured_debt[i].amount_owing
+    datatype: currency
+  - Monthly Payments: secured_debt[i].monthly_payments
+    datatype: currency
+  - Are payments being made?: secured_debt[i].payment_made
+    datatype: yesnoradio
+  - By whom?: secured_debt[i].payment_made_by
+    show if: secured_debt[i].payment_made
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: laon debt
+question: |
+  Loan Debts
+fields:
+  - Owed by: loan[i].owed_by
+  - Owed to (name and address): loan[i].owed_to
+  - Full amount owing: loan[i].amount_owing
+    datatype: currency
+  - Monthly Payments: loan[i].monthly_payments
+    datatype: currency
+  - Are payments being made?: loan[i].payment_made
+    datatype: yesnoradio
+  - By whom?: loan[i].payment_made_by
+    show if: loan[i].payment_made
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: cc debt
+question: |
+  Credit Card Debts
+fields:
+  - Owed by: cc[i].owed_by
+  - Owed to (name and address): cc[i].owed_to
+  - Full amount owing: cc[i].amount_owing
+    datatype: currency
+  - Monthly Payments: cc[i].monthly_payments
+    datatype: currency
+  - Are payments being made?: cc[i].payment_made
+    datatype: yesnoradio
+  - By whom?: cc[i].payment_made_by
+    show if: cc[i].payment_made
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: unpaid_support
+question: |
+  Unpaid Support
+fields:
+  - Owed by: unpaid_support[i].owed_by
+  - Owed to (name and address): unpaid_support[i].owed_to
+  - Full amount owing: unpaid_support[i].amount_owing
+    datatype: currency
+  - Monthly Payments: unpaid_support[i].monthly_payments
+    datatype: currency
+  - Are payments being made?: unpaid_support[i].payment_made
+    datatype: yesnoradio
+  - By whom?: unpaid_support[i].payment_made_by
+    show if: unpaid_support[i].payment_made
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: other debt
+question: |
+  Other Debts
+fields:
+  - Owed by: other_debt[i].owed_by
+  - Owed to (name and address): other_debt[i].owed_to
+  - Full amount owing: other_debt[i].amount_owing
+    datatype: currency
+  - Monthly Payments: other_debt[i].monthly_payments
+    datatype: currency
+  - Are payments being made?: other_debt[i].payment_made
+    datatype: yesnoradio
+  - By whom?: other_debt[i].payment_made_by
+    show if: other_debt[i].payment_made
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: exemptions
+question: |
+  Exemptions
+fields:
+  - Category: exempted_property[i].category
+  - Item and Reason for Exemption: exempted_property[i].item_and_reason
+  - Market value as of ${ separated_date }: exempted_property[i].app_value
+    datatype: currency
+  - Exemption Claimed: exempted_property[i].today_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: disposed property
+question: |
+  Disposed Property
+fields:
+  - Description: disposed_property[i].description
+  - Date of Disposal: disposed_property[i].date
+    datatype: date
+  - Value: disposed_property[i].today_value
+    datatype: currency
+list collect: True
+---
+objects:
+  - SK_Property_Statement_attachment: ALDocument.using(title="Property Statement (Form 15-49)", filename="Property_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - SK_Property_Statement_watermarked: ALDocument.using(title="Property Statement (Form 15-49)", filename="Property_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+attachments:
+  - name: SK Property Statement attachment
+    filename: SK_Property_Statement     
+    variable name: SK_Property_Statement_attachment[i]        
+    skip undefined: True
+    pdf template file: SK_Property_Statement.pdf
+    fields:
+      - "trial_court": ${ trial_court }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "real_property_total_value1": ${ currency(real_property[0].total_value) }
+      - "real_property1": ${ real_property[0].owner }
+      - "real_property_nature1": ${ real_property[0].ownership }
+      - "real_property_address1": ${ real_property[0].address }
+      - "real_property_interest_app_val1": ${ currency(real_property[0].app_value) }
+      - "real_property_interest_current_val1": ${ currency(real_property[0].today_value) }
+      - "real_property_total_value2": ${ currency(real_property[1].total_value) }
+      - "real_property_interest_app_val2": ${ currency(real_property[1].app_value) }
+      - "real_property2": ${ real_property[1].owner }
+      - "real_property_nature2": ${ real_property[1].ownership }
+      - "real_property_address2": ${ real_property[1].address }
+      - "real_property_interest_current_val2": ${ currency(real_property[1].today_value) }
+      - "real_property_total_value3": ${ currency(real_property[2].total_value) }
+      - "real_property3": ${ real_property[2].owner }
+      - "real_property_nature3": ${ real_property[2].ownership }
+      - "real_property_address3": ${ real_property[2].address }
+      - "real_property_interest_app_val3": ${ currency(real_property[2].app_value) }
+      - "real_property_interest_current_val3": ${ currency(real_property[2].today_value) }
+      - "real_property_interest_app_val_total": ${ currency(sum_if_defined("real_property[0].app_value", "real_property[1].app_value", "real_property[2].app_value")) }
+      - "real_property_interest_app_val_total__2": ${ currency(sum_if_defined("real_property[0].app_value", "real_property[1].app_value", "real_property[2].app_value")) }
+      - "real_property_interest_current_val_total": ${ currency(sum_if_defined("real_property[0].today_value", "real_property[1].today_value", "real_property[2].today_value")) }
+      - "householdgood_description1": ${ household[0].description }
+      - "householdgood_possession1": |
+          % if household[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "householdgood_value_app1": ${ currency(household[0].app_value) }
+      - "householdgood_current_value1": ${ currency(household[0].today_value) }
+      - "householdgood_description2": ${ household[1].description }
+      - "householdgood_possession2": |
+          % if household[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "householdgood_value_app2": ${ currency(household[1].app_value) }
+      - "householdgood_current_value2": ${ currency(household[1].today_value) }
+      - "householdgood_description3": ${ household[2].description }
+      - "householdgood_possession3": |
+          % if household[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "householdgood_value_app3": ${ currency(household[2].app_value) }
+      - "householdgood_current_value3": ${ currency(household[2].today_value) }
+      - "vehicles1": ${ vehicle[0].description }
+      - "vehicles_posession1": |
+          % if vehicle[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "vehicles_posession_app_value1": ${ currency(vehicle[0].app_value) }
+      - "vehicles_posession_current_value1": ${ currency(vehicle[0].today_value) }
+      - "vehicles2": ${ vehicle[1].description }
+      - "vehicles_posession2": |
+          % if vehicle[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "vehicles_posession_app_value2": ${ currency(vehicle[1].app_value) }
+      - "vehicles_posession_current_value2": ${ currency(vehicle[1].today_value) }
+      - "vehicles3": ${ vehicle[2].description }
+      - "vehicles_posession3": |
+          % if vehicle[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "vehicles_posession_current_value3": ${ currency(vehicle[2].today_value) }
+      - "vehicles_posession_app_value3": ${ currency(vehicle[2].app_value) }
+      - "vehicles4": ${ vehicle[3].description }
+      - "vehicles_posession4": |
+          % if vehicle[3].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "vehicles_posession_app_value4": ${ currency(vehicle[3].app_value) }
+      - "vehicles_posession_current_value4": ${ currency(vehicle[3].today_value) }
+      - "personal_item1": ${ personal_item[0].description }
+      - "personal_item_possession1": |
+          % if personal_item[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "personal_item_current_value1": ${ currency(personal_item[0].today_value) }
+      - "personal_item_app_value1": ${ currency(personal_item[0].app_value) }
+      - "personal_item2": ${ personal_item[1].description }
+      - "personal_item_possession2": |
+          % if personal_item[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "personal_item_app_value2": ${ currency(personal_item[1].app_value) }
+      - "personal_item_current_value2": ${ currency(personal_item[1].today_value) }
+      - "personal_item3": ${ personal_item[2].description }
+      - "personal_item_possession3": |
+          % if personal_item[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "personal_item_app_value3": ${ currency(personal_item[2].app_value) }
+      - "personal_item_current_value3": ${ currency(personal_item[2].today_value) }
+      - "other_item1": ${ other_item[0].description }
+      - "other_item_possession1": |
+          % if other_item[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "other_item_possession_app_value1": ${ currency(other_item[0].app_value) }
+      - "other_item_possession_current_value1": ${ currency(other_item[0].today_value) }
+      - "other_item2": ${ other_item[1].description }
+      - "other_item_possession2": |
+          % if other_item[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "other_item_possession_app_value2": ${ currency(other_item[1].app_value) }
+      - "other_item_possession_current_value2": ${ currency(other_item[1].today_value) }
+      - "other_item3": ${ other_item[2].description }
+      - "other_item_possession3": |
+          % if other_item[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "other_item_possession_app_value3": ${ currency(other_item[2].app_value) }
+      - "other_item_possession_current_value3": ${ currency(other_item[2].today_value) }
+      - "all_items_app_value": ${ currency(sum_if_defined("household[0].app_value", "household[1].app_value", "household[2].app_value", "vehicle[0].app_value", "vehicle[1].app_value", "vehicle[2].app_value", "vehicle[3].app_value", "personal_item[0].app_value", "personal_item[1].app_value", "personal_item[2].app_value", "other_item[0].app_value", "other_item[1].app_value", "other_item[2].app_value")) }
+      - "all_items_app_value__2": ${ currency(sum_if_defined("household[0].app_value", "household[1].app_value", "household[2].app_value", "vehicle[0].app_value", "vehicle[1].app_value", "vehicle[2].app_value", "vehicle[3].app_value", "personal_item[0].app_value", "personal_item[1].app_value", "personal_item[2].app_value", "other_item[0].app_value", "other_item[1].app_value", "other_item[2].app_value")) }
+      - "all_items_current_value": ${ currency(sum_if_defined("household[0].today_value", "household[1].today_value", "household[2].today_value", "vehicle[0].today_value", "vehicle[1].today_value", "vehicle[2].today_value", "vehicle[3].today_value", "personal_item[0].today_value", "personal_item[1].today_value", "personal_item[2].today_value", "other_item[0].today_value", "other_item[1].today_value", "other_item[2].app_value")) }
+      - "bank_or_saving_category1": ${ savings_or_bank[0].category }
+      - "bank_or_saving_owner1": ${ savings_or_bank[0].owner }
+      - "bank_or_saving_institution1": ${ savings_or_bank[0].institution }
+      - "bank_or_saving_acc1": ${ savings_or_bank[0].account_number }
+      - "bank_or_saving_current_value1": ${ currency(savings_or_bank[0].today_value) }
+      - "bank_or_saving_app_value1": ${ currency(savings_or_bank[0].app_value) }
+      - "bank_or_saving_category2": ${ savings_or_bank[1].category }
+      - "bank_or_saving_current_value2": ${ currency(savings_or_bank[1].today_value) }
+      - "bank_or_saving_owner2": ${ savings_or_bank[1].owner }
+      - "bank_or_saving_institution2": ${ savings_or_bank[1].institution }
+      - "bank_or_saving_acc2": ${ savings_or_bank[1].account_number }
+      - "bank_or_saving_app_value2": ${ currency(savings_or_bank[1].app_value) }
+      - "bank_or_saving_category3": ${ savings_or_bank[2].category }
+      - "bank_or_saving_owner3": ${ savings_or_bank[2].owner }
+      - "bank_or_saving_institution3": ${ savings_or_bank[2].institution }
+      - "bank_or_saving_acc3": ${ savings_or_bank[2].account_number }
+      - "bank_or_saving_app_value3": ${ currency(savings_or_bank[2].app_value) }
+      - "bank_or_saving_current_value3": ${ currency(savings_or_bank[2].today_value) }
+      - "bank_or_saving_category4": ${ savings_or_bank[3].category }
+      - "bank_or_saving_owner4": ${ savings_or_bank[3].owner }
+      - "bank_or_saving_institution4": ${ savings_or_bank[3].institution }
+      - "bank_or_saving_acc4": ${ savings_or_bank[3].account_number }
+      - "bank_or_saving_app_value4": ${ currency(savings_or_bank[3].app_value) }
+      - "bank_or_saving_current_value4": ${ currency(savings_or_bank[3].today_value) }
+      - "bank_or_saving_category5": ${ savings_or_bank[4].category }
+      - "bank_or_saving_owner5": ${ savings_or_bank[4].owner }
+      - "bank_or_saving_institution5": ${ savings_or_bank[4].institution }
+      - "bank_or_saving_acc5": ${ savings_or_bank[4].account_number }
+      - "bank_or_saving_app_value5": ${ currency(savings_or_bank[4].app_value) }
+      - "bank_or_saving_current_value5": ${ currency(savings_or_bank[4].today_value) }
+      - "bank_or_saving_category6": ${ savings_or_bank[5].category }
+      - "bank_or_saving_owner6": ${ savings_or_bank[5].owner }
+      - "bank_or_saving_institution6": ${ savings_or_bank[5].institution }
+      - "bank_or_saving_acc6": ${ savings_or_bank[5].account_number }
+      - "bank_or_saving_app_value6": ${ currency(savings_or_bank[5].app_value) }
+      - "bank_or_saving_current_value6": ${ currency(savings_or_bank[5].today_value) }
+      - "bank_or_saving_category7": ${ savings_or_bank[6].category }
+      - "bank_or_saving_owner7": ${ savings_or_bank[6].owner }
+      - "bank_or_saving_institution7": ${ savings_or_bank[6].institution }
+      - "bank_or_saving_acc7": ${ savings_or_bank[6].account_number }
+      - "bank_or_saving_app_value7": ${ currency(savings_or_bank[6].app_value) }
+      - "bank_or_saving_current_value7": ${ currency(savings_or_bank[6].today_value) }
+      - "bank_or_saving_category8": ${ savings_or_bank[7].category }
+      - "bank_or_saving_owner8": ${ savings_or_bank[7].owner }
+      - "bank_or_saving_institution8": ${ savings_or_bank[7].institution }
+      - "bank_or_saving_acc8": ${ savings_or_bank[7].account_number }
+      - "bank_or_saving_app_value8": ${ currency(savings_or_bank[7].app_value) }
+      - "bank_or_saving_current_value8": ${ currency(savings_or_bank[7].today_value) }
+      - "total_bank_or_saving_current_value": ${ currency(sum_if_defined("savings_or_bank[0].today_value", "savings_or_bank[1].today_value", "savings_or_bank[2].today_value", "savings_or_bank[3].today_value", "savings_or_bank[4].today_value", "savings_or_bank[5].today_value", "savings_or_bank[6].today_value", "savings_or_bank[7].today_value")) }
+      - "total_bank_or_saving_app_value__2": ${ currency(sum_if_defined("savings_or_bank[0].app_value", "savings_or_bank[1].app_value", "savings_or_bank[2].app_value", "savings_or_bank[3].app_value", "savings_or_bank[4].app_value", "savings_or_bank[5].app_value", "savings_or_bank[6].app_value", "savings_or_bank[7].app_value")) }
+      - "total_bank_or_saving_app_value": ${ currency(sum_if_defined("savings_or_bank[0].app_value", "savings_or_bank[1].app_value", "savings_or_bank[2].app_value", "savings_or_bank[3].app_value", "savings_or_bank[4].app_value", "savings_or_bank[5].app_value", "savings_or_bank[6].app_value", "savings_or_bank[7].app_value")) }
+      - "pension_or_retire_current_value1": ${ currency(pension_or_retire[0].today_value) }
+      - "pension_or_retire_app_value1": ${ currency(pension_or_retire[0].app_value) }
+      - "pension_or_retire_owner1": ${ pension_or_retire[0].owner }
+      - "pension_or_retire_category1": ${ pension_or_retire[0].category }
+      - "pension_or_retire_institution1": ${ pension_or_retire[0].institution }
+      - "pension_or_retire_acc1": ${ pension_or_retire[0].account_number }
+      - "pension_or_retire_current_value2": ${ currency(pension_or_retire[1].today_value) }
+      - "pension_or_retire_app_value2": ${ currency(pension_or_retire[1].app_value) }
+      - "pension_or_retire_owner2": ${ pension_or_retire[1].owner }
+      - "pension_or_retire_category2": ${ pension_or_retire[1].category }
+      - "pension_or_retire_institution2": ${ pension_or_retire[1].institution }
+      - "pension_or_retire_acc2": ${ pension_or_retire[1].account_number }
+      - "pension_or_retire_current_value3": ${ currency(pension_or_retire[2].today_value) }
+      - "pension_or_retire_app_value3": ${ currency(pension_or_retire[2].app_value) }
+      - "pension_or_retire_owner3": ${ pension_or_retire[2].owner }
+      - "pension_or_retire_category3": ${ pension_or_retire[2].category }
+      - "pension_or_retire_institution3": ${ pension_or_retire[2].institution }
+      - "pension_or_retire_acc3": ${ pension_or_retire[2].account_number }
+      - "pension_or_retire_current_value4": ${ currency(pension_or_retire[3].today_value) }
+      - "pension_or_retire_app_value4": ${ currency(pension_or_retire[3].app_value) }
+      - "pension_or_retire_owner4": ${ pension_or_retire[3].owner }
+      - "pension_or_retire_category4": ${ pension_or_retire[3].category }
+      - "pension_or_retire_institution4": ${ pension_or_retire[3].institution }
+      - "pension_or_retire_acc4": ${ pension_or_retire[3].account_number }
+      - "pension_or_retire_current_value5": ${ currency(pension_or_retire[4].today_value) }
+      - "pension_or_retire_app_value5": ${ currency(pension_or_retire[4].app_value) }
+      - "pension_or_retire_owner5": ${ pension_or_retire[4].owner }
+      - "pension_or_retire_category5": ${ pension_or_retire[4].category }
+      - "pension_or_retire_institution5": ${ pension_or_retire[4].institution }
+      - "pension_or_retire_acc5": ${ pension_or_retire[4].account_number }
+      - "total_pension_or_retire_app_value": ${ currency(sum_if_defined("pension_or_retire[0].app_value", "pension_or_retire[1].app_value", "pension_or_retire[2].app_value", "pension_or_retire[3].app_value", "pension_or_retire[4].app_value")) }
+      - "total_pension_or_retire_app_value__2": ${ currency(sum_if_defined("pension_or_retire[0].app_value", "pension_or_retire[1].app_value", "pension_or_retire[2].app_value", "pension_or_retire[3].app_value", "pension_or_retire[4].app_value")) }
+      - "total_pension_or_retire_current_value": ${ currency(sum_if_defined("pension_or_retire[0].today_value", "pension_or_retire[1].today_value", "pension_or_retire[2].today_value", "pension_or_retire[3].today_value", "pension_or_retire[4].today_value")) }
+      - "security_owner1": ${ security[0].owner }
+      - "security_category1": ${ security[0].category }
+      - "security_description1": ${ security[0].description }
+      - "security_number1": ${ security[0].number }
+      - "security_app_value1": ${ currency(security[0].app_value) }
+      - "security_current_value1": ${ currency(security[0].today_value) }
+      - "security_owner2": ${ security[1].owner }
+      - "security_category2": ${ security[1].category }
+      - "security_description2": ${ security[1].description }
+      - "security_number2": ${ security[1].number }
+      - "security_app_value2": ${ currency(security[1].app_value) }
+      - "security_current_value2": ${ currency(security[1].today_value) }
+      - "security_owner3": ${ security[2].owner }
+      - "security_category3": ${ security[2].category }
+      - "security_description3": ${ security[2].description }
+      - "security_number3": ${ security[2].number }
+      - "security_app_value3": ${ currency(security[2].app_value) }
+      - "security_current_value3": ${ currency(security[2].today_value) }
+      - "security_owner4": ${ security[3].owner }
+      - "security_category4": ${ security[3].category }
+      - "security_description4": ${ security[3].description }
+      - "security_number4": ${ security[3].number }
+      - "security_app_value4": ${ currency(security[3].app_value) }
+      - "security_current_value4": ${ currency(security[3].today_value) }
+      - "security_owner5": ${ security[4].owner }
+      - "security_category5": ${ security[4].category }
+      - "security_description5": ${ security[4].description }
+      - "security_number5": ${ security[4].number }
+      - "security_app_value5": ${ currency(security[4].app_value) }
+      - "security_current_value5": ${ currency(security[4].today_value) }
+      - "total_security_current_value": ${ currency(sum_if_defined("security[4].today_value", "security[4].today_value", "security[4].today_value", "security[4].today_value", "security[4].today_value")) }
+      - "total_security_app_value": ${ currency(sum_if_defined("security[0].app_value", "security[1].app_value", "security[2].app_value", "security[3].app_value", "security[4].app_value")) }
+      - "total_security_app_value__2": ${ currency(sum_if_defined("security[0].app_value", "security[1].app_value", "security[2].app_value", "security[3].app_value", "security[4].app_value")) }
+      - "business_interest1": ${ business_interest[0].interest }
+      - "business_current_value1": ${ currency(business_interest[0].today_value) }
+      - "business_owner1": ${ business_interest[0].owner }
+      - "business_name1": ${ business_interest[0].company }
+      - "business_app_value1": ${ currency(business_interest[0].app_value) }
+      - "business_current_value2": ${ currency(business_interest[1].today_value) }
+      - "business_owner2": ${ business_interest[1].owner }
+      - "business_name2": ${ business_interest[1].company }
+      - "business_interest2": ${ business_interest[1].interest }
+      - "business_app_value2": ${ currency(business_interest[1].app_value) }
+      - "business_current_value3": ${ currency(business_interest[2].today_value) }
+      - "business_owner3": ${ business_interest[2].owner }
+      - "business_name3": ${ business_interest[2].company }
+      - "business_interest3": ${ business_interest[2].interest }
+      - "business_app_value3": ${ currency(business_interest[2].app_value) }
+      - "business_current_value4": ${ currency(business_interest[3].today_value) }
+      - "business_owner4": ${ business_interest[3].owner }
+      - "business_name4": ${ business_interest[3].company }
+      - "business_interest4": ${ business_interest[3].interest }
+      - "business_app_value4": ${ currency(business_interest[3].app_value) }
+      - "business_current_value5": ${ currency(business_interest[4].today_value) }
+      - "business_owner5": ${ business_interest[4].owner }
+      - "business_name5": ${ business_interest[4].company }
+      - "business_interest5": ${ business_interest[4].interest }
+      - "business_app_value5": ${ currency(business_interest[4].app_value) }
+      - "total_business_app_value": ${ currency(sum_if_defined("business_interest[0].app_value", "business_interest[1].app_value", "business_interest[2].app_value", "business_interest[3].app_value", "business_interest[4].app_value")) }
+      - "total_business_app_value__2": ${ currency(sum_if_defined("business_interest[0].app_value", "business_interest[1].app_value", "business_interest[2].app_value", "business_interest[3].app_value", "business_interest[4].app_value")) }
+      - "total_business_current_value": ${ currency(sum_if_defined("business_interest[0].today_value", "business_interest[1].today_value", "business_interest[2].today_value", "business_interest[3].today_value", "business_interest[4].today_value")) }
+      - "insurance_owner1": ${ life_and_disability_insurance[0].owner }
+      - "insurance_company_policy1": ${ life_and_disability_insurance[0].company }
+      - "insurance_type1": ${ life_and_disability_insurance[0].type }
+      - "insurance_beneficiary1": ${ life_and_disability_insurance[0].beneficiary }
+      - "insurance_amount1": ${ currency(life_and_disability_insurance[0].face_amount) }
+      - "insurance_app_value1": ${ currency(life_and_disability_insurance[0].app_value) }
+      - "insurance_current_value1": ${ currency(life_and_disability_insurance[0].today_value) }
+      - "insurance_app_value2": ${ currency(life_and_disability_insurance[1].app_value) }
+      - "insurance_owner2": ${ life_and_disability_insurance[1].owner }
+      - "insurance_company_policy2": ${ life_and_disability_insurance[1].company }
+      - "insurance_type2": ${ life_and_disability_insurance[1].type }
+      - "insurance_beneficiary2": ${ life_and_disability_insurance[1].beneficiary }
+      - "insurance_amount2": ${ currency(life_and_disability_insurance[1].face_amount) }
+      - "insurance_current_value2": ${ currency(life_and_disability_insurance[1].today_value) }
+      - "insurance_app_value3": ${ currency(life_and_disability_insurance[2].app_value) }
+      - "insurance_owner3": ${ life_and_disability_insurance[2].owner }
+      - "insurance_company_policy3": ${ life_and_disability_insurance[2].company }
+      - "insurance_type3": ${ life_and_disability_insurance[2].type }
+      - "insurance_beneficiary3": ${ life_and_disability_insurance[2].beneficiary }
+      - "insurance_amount3": ${ currency(life_and_disability_insurance[2].face_amount) }
+      - "insurance_current_value3": ${ currency(life_and_disability_insurance[2].today_value) }
+      - "insurance_app_value4": ${ currency(life_and_disability_insurance[3].app_value) }
+      - "insurance_owner4": ${ life_and_disability_insurance[3].owner }
+      - "insurance_company_policy4": ${ life_and_disability_insurance[3].company }
+      - "insurance_type4": ${ life_and_disability_insurance[3].type }
+      - "insurance_beneficiary4": ${ life_and_disability_insurance[3].beneficiary }
+      - "insurance_amount4": ${ currency(life_and_disability_insurance[3].face_amount) }
+      - "insurance_current_value4": ${ currency(life_and_disability_insurance[3].today_value) }
+      - "insurance_app_value5": ${ currency(life_and_disability_insurance[4].app_value) }
+      - "insurance_owner5": ${ life_and_disability_insurance[4].owner }
+      - "insurance_company_policy5": ${ life_and_disability_insurance[4].company }
+      - "insurance_type5": ${ life_and_disability_insurance[4].type }
+      - "insurance_beneficiary5": ${ life_and_disability_insurance[4].beneficiary }
+      - "insurance_amount5": ${ currency(life_and_disability_insurance[4].face_amount) }
+      - "insurance_current_value5": ${ currency(life_and_disability_insurance[4].today_value) }
+      - "total_insurance_app_value": ${ currency(sum_if_defined("life_and_disability_insurance[0].app_value", "life_and_disability_insurance[1].app_value", "life_and_disability_insurance[2].app_value", "life_and_disability_insurance[3].app_value", "life_and_disability_insurance[4].app_value")) }
+      - "total_insurance_app_value__2": ${ currency(sum_if_defined("life_and_disability_insurance[0].app_value", "life_and_disability_insurance[1].app_value", "life_and_disability_insurance[2].app_value", "life_and_disability_insurance[3].app_value", "life_and_disability_insurance[4].app_value")) }
+      - "total_insurance_current_value": ${ currency(sum_if_defined("life_and_disability_insurance[0].today_value", "life_and_disability_insurance[1].today_value", "life_and_disability_insurance[2].today_value", "life_and_disability_insurance[3].today_value", "life_and_disability_insurance[4].today_value")) }
+      - "other_property_current_value1": ${ currency(other_property[0].today_value) }
+      - "other_property_owner1": ${ other_property[0].owner }
+      - "other_property_category1": ${ other_property[0].category }
+      - "other_property_details1": ${ other_property[0].details }
+      - "other_property_app_value1": ${ currency(other_property[0].app_value) }
+      - "other_property_app_value2": ${ currency(other_property[1].app_value) }
+      - "other_property_current_value2": ${ currency(other_property[1].today_value) }
+      - "other_property_owner2": ${ other_property[1].owner }
+      - "other_property_category2": ${ other_property[1].category }
+      - "other_property_details2": ${ other_property[1].details }
+      - "other_property_app_value3": ${ currency(other_property[2].app_value) }
+      - "other_property_current_value3": ${ currency(other_property[2].today_value) }
+      - "other_property_owner3": ${ other_property[2].owner }
+      - "other_property_category3": ${ other_property[2].category }
+      - "other_property_details3": ${ other_property[2].details }
+      - "other_property_app_value4": ${ currency(other_property[3].app_value) }
+      - "other_property_current_value4": ${ currency(other_property[3].today_value) }
+      - "other_property_owner4": ${ other_property[3].owner }
+      - "other_property_category4": ${ other_property[3].category }
+      - "other_property_details4": ${ other_property[3].details }
+      - "other_property_app_value5": ${ currency(other_property[4].app_value) }
+      - "other_property_current_value5": ${ currency(other_property[4].today_value) }
+      - "other_property_owner5": ${ other_property[4].owner }
+      - "other_property_category5": ${ other_property[4].category }
+      - "other_property_details5": ${ other_property[4].details }
+      - "other_property_app_value6": ${ currency(other_property[5].app_value) }
+      - "other_property_current_value6": ${ currency(other_property[5].today_value) }
+      - "other_property_owner6": ${ other_property[5].owner }
+      - "other_property_category6": ${ other_property[5].category }
+      - "other_property_details6": ${ other_property[5].details }
+      - "total_other_property_app_value": ${ currency(sum_if_defined("other_property[0].app_value", "other_property[1].app_value", "other_property[2].app_value", "other_property[3].app_value", "other_property[4].app_value", "other_property[5].app_value")) }
+      - "total_other_property_app_value__2": ${ currency(sum_if_defined("other_property[0].app_value", "other_property[1].app_value", "other_property[2].app_value", "other_property[3].app_value", "other_property[4].app_value", "other_property[5].app_value")) }
+      - "total_other_property_current_value": ${ currency(sum_if_defined("other_property[0].today_value", "other_property[1].today_value", "other_property[2].today_value", "other_property[3].today_value", "other_property[4].today_value", "other_property[5].today_value")) }
+      - "total_all_assets_app_value": ${ currency(sum_if_defined("real_property[0].today_value", "real_property[1].today_value", "real_property[2].today_value", "household[0].today_value", "household[1].today_value", "household[2].today_value", "vehicle[0].today_value", "vehicle[1].today_value", "vehicle[2].today_value", "vehicle[3].today_value", "personal_item[0].today_value", "personal_item[1].today_value", "personal_item[2].today_value", "other_item[0].today_value", "other_item[1].today_value", "other_item[2].app_value", "savings_or_bank[0].app_value", "savings_or_bank[1].app_value", "savings_or_bank[2].app_value", "savings_or_bank[3].app_value", "savings_or_bank[4].app_value", "savings_or_bank[5].app_value", "savings_or_bank[6].app_value", "savings_or_bank[7].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "security[0].app_value", "security[1].app_value", "security[2].app_value", "security[3].app_value", "security[4].app_value", "business_interest[0].app_value", "business_interest[1].app_value", "business_interest[2].app_value", "business_interest[3].app_value", "business_interest[4].app_value", "life_and_disability_insurance[0].app_value", "life_and_disability_insurance[1].app_value", "life_and_disability_insurance[2].app_value", "life_and_disability_insurance[3].app_value", "life_and_disability_insurance[4].app_value", "other_property[0].app_value", "other_property[1].app_value", "other_property[2].app_value", "other_property[3].app_value", "other_property[4].app_value", "other_property[5].app_value")) }
+      - "total_all_assets_app_value__2": ${ currency(sum_if_defined("real_property[0].today_value", "real_property[1].today_value", "real_property[2].today_value", "household[0].today_value", "household[1].today_value", "household[2].today_value", "vehicle[0].today_value", "vehicle[1].today_value", "vehicle[2].today_value", "vehicle[3].today_value", "personal_item[0].today_value", "personal_item[1].today_value", "personal_item[2].today_value", "other_item[0].today_value", "other_item[1].today_value", "other_item[2].app_value", "savings_or_bank[0].app_value", "savings_or_bank[1].app_value", "savings_or_bank[2].app_value", "savings_or_bank[3].app_value", "savings_or_bank[4].app_value", "savings_or_bank[5].app_value", "savings_or_bank[6].app_value", "savings_or_bank[7].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "security[0].app_value", "security[1].app_value", "security[2].app_value", "security[3].app_value", "security[4].app_value", "business_interest[0].app_value", "business_interest[1].app_value", "business_interest[2].app_value", "business_interest[3].app_value", "business_interest[4].app_value", "life_and_disability_insurance[0].app_value", "life_and_disability_insurance[1].app_value", "life_and_disability_insurance[2].app_value", "life_and_disability_insurance[3].app_value", "life_and_disability_insurance[4].app_value", "other_property[0].app_value", "other_property[1].app_value", "other_property[2].app_value", "other_property[3].app_value", "other_property[4].app_value", "other_property[5].app_value")) }
+      - "secured_debt_institution1": ${ secured_debt[0].owed_to }
+      - "secured_debt_amount_owing1": ${ currency(secured_debt[0].amount_owing) }
+      - "secured_debt_monthly_payments1": ${ currency(secured_debt[0].monthly_payments) }
+      - "secured_debt_owner1": ${ secured_debt[0].owed_by }
+      - "secured_debt_payment_made1": ${ secured_debt[0].payment_made }
+      - "secured_debt_payment_made_by1": ${ secured_debt[0].payment_made_by }
+      - "secured_debt_institution2": ${ secured_debt[1].owed_to }
+      - "secured_debt_amount_owing2": ${ currency(secured_debt[1].amount_owing) }
+      - "secured_debt_monthly_payments2": ${ currency(secured_debt[1].monthly_payments) }
+      - "secured_debt_owner2": ${ secured_debt[1].owed_by }
+      - "secured_debt_payment_made2": ${ secured_debt[1].payment_made }
+      - "secured_debt_payment_made_by2": ${ secured_debt[1].payment_made_by }
+      - "secured_debt_institution3": ${ secured_debt[2].owed_to }
+      - "secured_debt_amount_owing3": ${ currency(secured_debt[2].amount_owing) }
+      - "secured_debt_monthly_payments3": ${ currency(secured_debt[2].monthly_payments) }
+      - "secured_debt_owner3": ${ secured_debt[2].owed_by }
+      - "secured_debt_payment_made3": ${ secured_debt[2].payment_made }
+      - "secured_debt_payment_made_by3": ${ secured_debt[2].payment_made_by }
+      - "secured_debt_institution4": ${ secured_debt[3].owed_to }
+      - "secured_debt_amount_owing4": ${ currency(secured_debt[3].amount_owing) }
+      - "secured_debt_monthly_payments4": ${ currency(secured_debt[3].monthly_payments) }
+      - "secured_debt_owner4": ${ secured_debt[3].owed_by }
+      - "secured_debt_payment_made4": ${ secured_debt[3].payment_made }
+      - "secured_debt_payment_made_by4": ${ secured_debt[3].payment_made_by }
+      - "secured_debt_institution5": ${ secured_debt[4].owed_to }
+      - "secured_debt_amount_owing5": ${ currency(secured_debt[4].amount_owing) }
+      - "secured_debt_monthly_payments5": ${ currency(secured_debt[4].monthly_payments) }
+      - "secured_debt_owner5": ${ secured_debt[4].owed_by }
+      - "secured_debt_payment_made5": ${ secured_debt[4].payment_made }
+      - "secured_debt_payment_made_by5": ${ secured_debt[4].payment_made_by }
+      - "secured_debt_institution6": ${ secured_debt[5].owed_to }
+      - "secured_debt_amount_owing6": ${ currency(secured_debt[5].amount_owing) }
+      - "secured_debt_monthly_payments6": ${ currency(secured_debt[5].monthly_payments) }
+      - "secured_debt_owner6": ${ secured_debt[5].owed_by }
+      - "secured_debt_payment_made6": ${ secured_debt[5].payment_made }
+      - "secured_debt_payment_made_by6": ${ secured_debt[5].payment_made_by }
+      - "loan_institution1": ${ loan[0].owed_to }
+      - "loan_amount_owing1": ${ currency(loan[0].amount_owing) }
+      - "loan_monthly_payment1": ${ currency(loan[0].monthly_payments) }
+      - "loan_owner1": ${ loan[0].owed_by }
+      - "loan_monthly_payment_made1": ${ loan[0].payment_made }
+      - "loan_monthly_payment_made_by1": ${ loan[0].payment_made_by }
+      - "loan_institution2": ${ loan[1].owed_to }
+      - "loan_amount_owing2": ${ currency(loan[1].amount_owing) }
+      - "loan_monthly_payment2": ${ currency(loan[1].monthly_payments) }
+      - "loan_owner2": ${ loan[1].owed_by }
+      - "loan_monthly_payment_made2": ${ loan[1].payment_made }
+      - "loan_monthly_payment_made_by2": ${ loan[1].payment_made_by }
+      - "loan_institution3": ${ loan[2].owed_to }
+      - "loan_amount_owing3": ${ currency(loan[2].amount_owing) }
+      - "loan_monthly_payment3": ${ currency(loan[2].monthly_payments) }
+      - "loan_owner3": ${ loan[2].owed_by }
+      - "loan_monthly_payment_made3": ${ loan[2].payment_made }
+      - "loan_monthly_payment_made_by3": ${ loan[2].payment_made_by }
+      - "loan_institution4": ${ loan[3].owed_to }
+      - "loan_amount_owing4": ${ currency(loan[3].amount_owing) }
+      - "loan_monthly_payment4": ${ currency(loan[3].monthly_payments) }
+      - "loan_owner4": ${ loan[3].owed_by }
+      - "loan_monthly_payment_made4": ${ loan[3].payment_made }
+      - "loan_monthly_payment_made_by4": ${ loan[3].payment_made_by }
+      - "loan_institution5": ${ loan[4].owed_to }
+      - "loan_amount_owing5": ${ currency(loan[4].amount_owing) }
+      - "loan_monthly_payment5": ${ currency(loan[4].monthly_payments) }
+      - "loan_owner5": ${ loan[4].owed_by }
+      - "loan_monthly_payment_made5": ${ loan[4].payment_made }
+      - "loan_monthly_payment_made_by5": ${ loan[4].payment_made_by }
+      - "loan_institution6": ${ loan[5].owed_to }
+      - "loan_amount_owing6": ${ currency(loan[5].amount_owing) }
+      - "loan_monthly_payment6": ${ currency(loan[5].monthly_payments) }
+      - "loan_owner6": ${ loan[5].owed_by }
+      - "loan_monthly_payment_made6": ${ loan[5].payment_made }
+      - "loan_monthly_payment_made_by6": ${ loan[5].payment_made_by }
+      - "cc_monthly_payments1": ${ currency(cc[0].monthly_payments) }
+      - "cc_amount_owing1": ${ currency(cc[0].amount_owing) }
+      - "cc_owner1": ${ cc[0].owed_by }
+      - "cc_institution1": ${ cc[0].owed_to }
+      - "cc_monthly_payments_made1": ${ cc[0].payment_made }
+      - "cc_monthly_payments_made_by1": ${ cc[0].payment_made_by }
+      - "cc_amount_owing2": ${ currency(cc[1].amount_owing) }
+      - "cc_owner2": ${ cc[1].owed_by }
+      - "cc_monthly_payments_made2": ${ cc[1].payment_made }
+      - "cc_monthly_payments_made_by2": ${ cc[1].payment_made_by }
+      - "cc_monthly_payments2": ${ currency(cc[1].monthly_payments) }
+      - "cc_institution2": ${ cc[1].owed_to }
+      - "cc_monthly_payments3": ${ currency(cc[2].monthly_payments) }
+      - "cc_amount_owing3": ${ currency(cc[2].amount_owing) }
+      - "cc_owner3": ${ cc[2].owed_by }
+      - "cc_institution3": ${ cc[2].owed_to }
+      - "cc_monthly_payments_made3": ${ cc[2].payment_made }
+      - "cc_monthly_payments_made_by3": ${ cc[2].payment_made_by }
+      - "cc_monthly_payments4": ${ currency(cc[3].monthly_payments) }
+      - "cc_amount_owing4": ${ currency(cc[3].amount_owing) }
+      - "cc_owner4": ${ cc[3].owed_by }
+      - "cc_institution4": ${ cc[3].owed_to }
+      - "cc_monthly_payments_made4": ${ cc[3].payment_made }
+      - "cc_monthly_payments_made_by4": ${ cc[3].payment_made_by }
+      - "cc_monthly_payments5": ${ currency(cc[4].monthly_payments) }
+      - "cc_amount_owing5": ${ currency(cc[4].amount_owing) }
+      - "cc_owner5": ${ cc[4].owed_by }
+      - "cc_institution5": ${ cc[4].owed_to }
+      - "cc_monthly_payments_made5": ${ cc[4].payment_made }
+      - "cc_monthly_payments_made_by5": ${ cc[4].payment_made_by }
+      - "unpaid_support_monthly_payment1": ${ currency(unpaid_support[0].monthly_payments) }
+      - "unpaid_support_amount_owed1": ${ currency(unpaid_support[0].amount_owing) }
+      - "unpaid_support_owner1": ${ unpaid_support[0].owed_by }
+      - "unpaid_support_owed_to1": ${ unpaid_support[0].owed_to }
+      - "unpaid_support_monthly_payment_made1": ${ unpaid_support[0].payment_made }
+      - "unpaid_support_monthly_payment_made_by1": ${ unpaid_support[0].payment_made_by }
+      - "unpaid_support_monthly_payment2": ${ currency(unpaid_support[1].monthly_payments) }
+      - "unpaid_support_amount_owed2": ${ currency(unpaid_support[1].amount_owing) }
+      - "unpaid_support_owner2": ${ unpaid_support[1].owed_by }
+      - "unpaid_support_owed_to2": ${ unpaid_support[1].owed_to }
+      - "unpaid_support_monthly_payment_made2": ${ unpaid_support[1].payment_made }
+      - "unpaid_support_monthly_payment_made_by2": ${ unpaid_support[1].payment_made_by }
+      - "unpaid_support_monthly_payment3": ${ currency(unpaid_support[2].monthly_payments) }
+      - "unpaid_support_amount_owed3": ${ currency(unpaid_support[2].amount_owing) }
+      - "unpaid_support_owner3": ${ unpaid_support[2].owed_by }
+      - "unpaid_support_owed_to3": ${ unpaid_support[2].owed_to }
+      - "unpaid_support_monthly_payment_made3": ${ unpaid_support[2].payment_made }
+      - "unpaid_support_monthly_payment_made_by3": ${ unpaid_support[2].payment_made_by }
+      - "other_debt_monthly_payment1": ${ currency(other_debt[0].monthly_payments) }
+      - "other_debt_amount_owed1": ${ currency(other_debt[0].amount_owing) }
+      - "other_debt1": ${ other_debt[0].owed_by }
+      - "other_debt_owed_to1": ${ other_debt[0].owed_to }
+      - "other_debt_monthly_payment_made1": ${ other_debt[0].payment_made }
+      - "other_debt_monthly_payment_made_by1": ${ other_debt[0].payment_made_by }
+      - "other_debt_monthly_payment2": ${ currency(other_debt[1].monthly_payments) }
+      - "other_debt_amount_owed2": ${ currency(other_debt[1].amount_owing) }
+      - "other_debt2": ${ other_debt[1].owed_by }
+      - "other_debt_owed_to2": ${ other_debt[1].owed_to }
+      - "other_debt_monthly_payment_made2": ${ other_debt[1].payment_made }
+      - "other_debt_monthly_payment_made_by2": ${ other_debt[1].payment_made_by }
+      - "other_debt_monthly_payment3": ${ currency(other_debt[2].monthly_payments) }
+      - "other_debt_amount_owed3": ${ currency(other_debt[2].amount_owing) }
+      - "other_debt3": ${ other_debt[2].owed_by }
+      - "other_debt_monthly_payment_made3": ${ other_debt[2].payment_made }
+      - "other_debt_monthly_payment_made_by3": ${ other_debt[2].payment_made_by }
+      - "other_debt_owed_to3": ${ other_debt[2].owed_to }
+      - "other_debt_monthly_payment4": ${ currency(other_debt[3].monthly_payments) }
+      - "other_debt_amount_owed4": ${ currency(other_debt[3].amount_owing) }
+      - "other_debt4": ${ other_debt[i].owed_by }
+      - "other_debt_owed_to4": ${ other_debt[3].owed_to }
+      - "other_debt_monthly_payment_made4": ${ other_debt[3].payment_made }
+      - "other_debt_monthly_payment_made_by4": ${ other_debt[3].payment_made_by }
+      - "other_debt_monthly_payment5": ${ currency(other_debt[4].monthly_payments) }
+      - "other_debt_amount_owed5": ${ currency(other_debt[4].amount_owing) }
+      - "other_debt5": ${ other_debt[4].owed_by }
+      - "other_debt_owed_to5": ${ other_debt[4].owed_to }
+      - "other_debt_monthly_payment_made5": ${ other_debt[4].payment_made }
+      - "other_debt_monthly_payment_made_by5": ${ other_debt[4].payment_made_by }
+      - "total_debt_and_liabilities": ${ currency(sum_if_defined("secured_debt[0].amount_owing", "secured_debt[1].amount_owing", "secured_debt[2].amount_owing", "secured_debt[3].amount_owing", "secured_debt[4].amount_owing", "secured_debt[5].amount_owing", "loan[0].amount_owing", "loan[1].amount_owing", "loan[2].amount_owing", "loan[3].amount_owing", "loan[4].amount_owing", "loan[5].amount_owing", "cc[0].amount_owing", "cc[1].amount_owing", "cc[2].amount_owing", "cc[3].amount_owing", "cc[4].amount_owing", "unpaid_support[0].amount_owing", "unpaid_support[1].amount_owing", "unpaid_support[2].amount_owing", "other_debt[0].amount_owing", "other_debt[1].amount_owing", "other_debt[2].amount_owing", "other_debt[3].amount_owing", "other_debt[4].amount_owing")) }
+      - "total_debt_and_liabilities__2": ${ currency(sum_if_defined("secured_debt[0].amount_owing", "secured_debt[1].amount_owing", "secured_debt[2].amount_owing", "secured_debt[3].amount_owing", "secured_debt[4].amount_owing", "secured_debt[5].amount_owing", "loan[0].amount_owing", "loan[1].amount_owing", "loan[2].amount_owing", "loan[3].amount_owing", "loan[4].amount_owing", "loan[5].amount_owing", "cc[0].amount_owing", "cc[1].amount_owing", "cc[2].amount_owing", "cc[3].amount_owing", "cc[4].amount_owing", "unpaid_support[0].amount_owing", "unpaid_support[1].amount_owing", "unpaid_support[2].amount_owing", "other_debt[0].amount_owing", "other_debt[1].amount_owing", "other_debt[2].amount_owing", "other_debt[3].amount_owing", "other_debt[4].amount_owing")) }
+      - "exempted_property_app_value1": ${ currency(exempted_property[0].app_value) }
+      - "exempted_property_category1": ${ exempted_property[0].category }
+      - "exempted_property_item_and_reason1": ${ exempted_property[0].item_and_reason }
+      - "exempted_property_current_value1": ${ currency(exempted_property[0].today_value) }
+      - "exempted_property_category2": ${ exempted_property[1].category }
+      - "exempted_property_item_and_reason2": ${ exempted_property[1].item_and_reason }
+      - "exempted_property_app_value2": ${ currency(exempted_property[1].app_value) }
+      - "exempted_property_current_value2": ${ currency(exempted_property[1].today_value) }
+      - "exempted_property_category3": ${ exempted_property[2].category }
+      - "exempted_property_item_and_reason3": ${ exempted_property[2].item_and_reason }
+      - "exempted_property_app_value3": ${ currency(exempted_property[2].app_value) }
+      - "exempted_property_current_value3": ${ currency(exempted_property[2].today_value) }
+      - "exempted_property_category4": ${ exempted_property[3].category }
+      - "exempted_property_item_and_reason4": ${ exempted_property[3].item_and_reason }
+      - "exempted_property_app_value4": ${ currency(exempted_property[3].app_value) }
+      - "exempted_property_current_value4": ${ currency(exempted_property[3].today_value) }
+      - "exempted_property_category5": ${ exempted_property[4].category }
+      - "exempted_property_item_and_reason5": ${ exempted_property[4].item_and_reason }
+      - "exempted_property_app_value5": ${ currency(exempted_property[4].app_value) }
+      - "exempted_property_current_value5": ${ currency(exempted_property[4].today_value) }
+      - "total_exempted_property": ${ currency(sum_if_defined("exempted_property[0].today_value", "exempted_property[1].today_value", "exempted_property[2].today_value", "exempted_property[3].today_value", "exempted_property[4].today_value")) }
+      - "total_exempted_property__2": ${ currency(sum_if_defined("exempted_property[0].today_value", "exempted_property[1].today_value", "exempted_property[2].today_value", "exempted_property[3].today_value", "exempted_property[4].today_value")) }
+      - "disposed_property_value1": ${ currency(disposed_property[0].today_value) }
+      - "disposed_property_description1": ${ disposed_property[0].description }
+      - "disposed_property_date1": ${ disposed_property[0].date }
+      - "disposed_property_value2": ${ currency(disposed_property[1].today_value) }
+      - "disposed_property_description2": ${ disposed_property[1].description }
+      - "disposed_property_date2": ${ disposed_property[1].date }
+      - "disposed_property_value3": ${ currency(disposed_property[2].today_value) }
+      - "disposed_property_description3": ${ disposed_property[2].description }
+      - "disposed_property_date3": ${ disposed_property[2].date }
+      - "disposed_property_value4": ${ currency(disposed_property[3].today_value) }
+      - "disposed_property_description4": ${ disposed_property[3].description }
+      - "disposed_property_date4": ${ disposed_property[3].date }
+      - "disposed_property_value5": ${ currency(disposed_property[4].today_value) }
+      - "disposed_property_description5": ${ disposed_property[4].description }
+      - "disposed_property_date5": ${ disposed_property[4].date }
+      - "disposed_property_value6": ${ currency(disposed_property[5].today_value) }
+      - "disposed_property_description6": ${ disposed_property[5].description }
+      - "disposed_property_date6": ${ disposed_property[5].date }
+      - "total_disposed_property_value": ${ currency(sum_if_defined("disposed_property[0].today_value", "disposed_property[1].today_value", "disposed_property[2].today_value", "disposed_property[3].today_value", "disposed_property[4].today_value", "disposed_property[5].today_value")) }
+      - "total_disposed_property_value__2": ${ currency(sum_if_defined("disposed_property[0].today_value", "disposed_property[1].today_value", "disposed_property[2].today_value", "disposed_property[3].today_value", "disposed_property[4].today_value", "disposed_property[5].today_value")) }
+  - name: SK_Property_Statement_watermarked
+    filename: SK_Property_Statement_watermarked
+    variable name: SK_Property_Statement_watermarked[i]        
+    skip undefined: True
+    pdf template file: SK_Property_Statement_watermarked.pdf
+    fields:
+      - "trial_court": ${ trial_court }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "real_property_total_value1": ${ currency(real_property[0].total_value) }
+      - "real_property1": ${ real_property[0].owner }
+      - "real_property_nature1": ${ real_property[0].ownership }
+      - "real_property_address1": ${ real_property[0].address }
+      - "real_property_interest_app_val1": ${ currency(real_property[0].app_value) }
+      - "real_property_interest_current_val1": ${ currency(real_property[0].today_value) }
+      - "real_property_total_value2": ${ currency(real_property[1].total_value) }
+      - "real_property_interest_app_val2": ${ currency(real_property[1].app_value) }
+      - "real_property2": ${ real_property[1].owner }
+      - "real_property_nature2": ${ real_property[1].ownership }
+      - "real_property_address2": ${ real_property[1].address }
+      - "real_property_interest_current_val2": ${ currency(real_property[1].today_value) }
+      - "real_property_total_value3": ${ currency(real_property[2].total_value) }
+      - "real_property3": ${ real_property[2].owner }
+      - "real_property_nature3": ${ real_property[2].ownership }
+      - "real_property_address3": ${ real_property[2].address }
+      - "real_property_interest_app_val3": ${ currency(real_property[2].app_value) }
+      - "real_property_interest_current_val3": ${ currency(real_property[2].today_value) }
+      - "real_property_interest_app_val_total": ${ currency(sum_if_defined("real_property[0].app_value", "real_property[1].app_value", "real_property[2].app_value")) }
+      - "real_property_interest_app_val_total__2": ${ currency(sum_if_defined("real_property[0].app_value", "real_property[1].app_value", "real_property[2].app_value")) }
+      - "real_property_interest_current_val_total": ${ currency(sum_if_defined("real_property[0].today_value", "real_property[1].today_value", "real_property[2].today_value")) }
+      - "householdgood_description1": ${ household[0].description }
+      - "householdgood_possession1": |
+          % if household[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "householdgood_value_app1": ${ currency(household[0].app_value) }
+      - "householdgood_current_value1": ${ currency(household[0].today_value) }
+      - "householdgood_description2": ${ household[1].description }
+      - "householdgood_possession2": |
+          % if household[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "householdgood_value_app2": ${ currency(household[1].app_value) }
+      - "householdgood_current_value2": ${ currency(household[1].today_value) }
+      - "householdgood_description3": ${ household[2].description }
+      - "householdgood_possession3": |
+          % if household[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "householdgood_value_app3": ${ currency(household[2].app_value) }
+      - "householdgood_current_value3": ${ currency(household[2].today_value) }
+      - "vehicles1": ${ vehicle[0].description }
+      - "vehicles_posession1": |
+          % if vehicle[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "vehicles_posession_app_value1": ${ currency(vehicle[0].app_value) }
+      - "vehicles_posession_current_value1": ${ currency(vehicle[0].today_value) }
+      - "vehicles2": ${ vehicle[1].description }
+      - "vehicles_posession2": |
+          % if vehicle[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "vehicles_posession_app_value2": ${ currency(vehicle[1].app_value) }
+      - "vehicles_posession_current_value2": ${ currency(vehicle[1].today_value) }
+      - "vehicles3": ${ vehicle[2].description }
+      - "vehicles_posession3": |
+          % if vehicle[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "vehicles_posession_current_value3": ${ currency(vehicle[2].today_value) }
+      - "vehicles_posession_app_value3": ${ currency(vehicle[2].app_value) }
+      - "vehicles4": ${ vehicle[3].description }
+      - "vehicles_posession4": |
+          % if vehicle[3].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "vehicles_posession_app_value4": ${ currency(vehicle[3].app_value) }
+      - "vehicles_posession_current_value4": ${ currency(vehicle[3].today_value) }
+      - "personal_item1": ${ personal_item[0].description }
+      - "personal_item_possession1": |
+          % if personal_item[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "personal_item_current_value1": ${ currency(personal_item[0].today_value) }
+      - "personal_item_app_value1": ${ currency(personal_item[0].app_value) }
+      - "personal_item2": ${ personal_item[1].description }
+      - "personal_item_possession2": |
+          % if personal_item[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "personal_item_app_value2": ${ currency(personal_item[1].app_value) }
+      - "personal_item_current_value2": ${ currency(personal_item[1].today_value) }
+      - "personal_item3": ${ personal_item[2].description }
+      - "personal_item_possession3": |
+          % if personal_item[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "personal_item_app_value3": ${ currency(personal_item[2].app_value) }
+      - "personal_item_current_value3": ${ currency(personal_item[2].today_value) }
+      - "other_item1": ${ other_item[0].description }
+      - "other_item_possession1": |
+          % if other_item[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "other_item_possession_app_value1": ${ currency(other_item[0].app_value) }
+      - "other_item_possession_current_value1": ${ currency(other_item[0].today_value) }
+      - "other_item2": ${ other_item[1].description }
+      - "other_item_possession2": |
+          % if other_item[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "other_item_possession_app_value2": ${ currency(other_item[1].app_value) }
+      - "other_item_possession_current_value2": ${ currency(other_item[1].today_value) }
+      - "other_item3": ${ other_item[2].description }
+      - "other_item_possession3": |
+          % if other_item[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] }
+          % endif
+      - "other_item_possession_app_value3": ${ currency(other_item[2].app_value) }
+      - "other_item_possession_current_value3": ${ currency(other_item[2].today_value) }
+      - "all_items_app_value": ${ currency(sum_if_defined("household[0].app_value", "household[1].app_value", "household[2].app_value", "vehicle[0].app_value", "vehicle[1].app_value", "vehicle[2].app_value", "vehicle[3].app_value", "personal_item[0].app_value", "personal_item[1].app_value", "personal_item[2].app_value", "other_item[0].app_value", "other_item[1].app_value", "other_item[2].app_value")) }
+      - "all_items_app_value__2": ${ currency(sum_if_defined("household[0].app_value", "household[1].app_value", "household[2].app_value", "vehicle[0].app_value", "vehicle[1].app_value", "vehicle[2].app_value", "vehicle[3].app_value", "personal_item[0].app_value", "personal_item[1].app_value", "personal_item[2].app_value", "other_item[0].app_value", "other_item[1].app_value", "other_item[2].app_value")) }
+      - "all_items_current_value": ${ currency(sum_if_defined("household[0].today_value", "household[1].today_value", "household[2].today_value", "vehicle[0].today_value", "vehicle[1].today_value", "vehicle[2].today_value", "vehicle[3].today_value", "personal_item[0].today_value", "personal_item[1].today_value", "personal_item[2].today_value", "other_item[0].today_value", "other_item[1].today_value", "other_item[2].app_value")) }
+      - "bank_or_saving_category1": ${ savings_or_bank[0].category }
+      - "bank_or_saving_owner1": ${ savings_or_bank[0].owner }
+      - "bank_or_saving_institution1": ${ savings_or_bank[0].institution }
+      - "bank_or_saving_acc1": ${ savings_or_bank[0].account_number }
+      - "bank_or_saving_current_value1": ${ currency(savings_or_bank[0].today_value) }
+      - "bank_or_saving_app_value1": ${ currency(savings_or_bank[0].app_value) }
+      - "bank_or_saving_category2": ${ savings_or_bank[1].category }
+      - "bank_or_saving_current_value2": ${ currency(savings_or_bank[1].today_value) }
+      - "bank_or_saving_owner2": ${ savings_or_bank[1].owner }
+      - "bank_or_saving_institution2": ${ savings_or_bank[1].institution }
+      - "bank_or_saving_acc2": ${ savings_or_bank[1].account_number }
+      - "bank_or_saving_app_value2": ${ currency(savings_or_bank[1].app_value) }
+      - "bank_or_saving_category3": ${ savings_or_bank[2].category }
+      - "bank_or_saving_owner3": ${ savings_or_bank[2].owner }
+      - "bank_or_saving_institution3": ${ savings_or_bank[2].institution }
+      - "bank_or_saving_acc3": ${ savings_or_bank[2].account_number }
+      - "bank_or_saving_app_value3": ${ currency(savings_or_bank[2].app_value) }
+      - "bank_or_saving_current_value3": ${ currency(savings_or_bank[2].today_value) }
+      - "bank_or_saving_category4": ${ savings_or_bank[3].category }
+      - "bank_or_saving_owner4": ${ savings_or_bank[3].owner }
+      - "bank_or_saving_institution4": ${ savings_or_bank[3].institution }
+      - "bank_or_saving_acc4": ${ savings_or_bank[3].account_number }
+      - "bank_or_saving_app_value4": ${ currency(savings_or_bank[3].app_value) }
+      - "bank_or_saving_current_value4": ${ currency(savings_or_bank[3].today_value) }
+      - "bank_or_saving_category5": ${ savings_or_bank[4].category }
+      - "bank_or_saving_owner5": ${ savings_or_bank[4].owner }
+      - "bank_or_saving_institution5": ${ savings_or_bank[4].institution }
+      - "bank_or_saving_acc5": ${ savings_or_bank[4].account_number }
+      - "bank_or_saving_app_value5": ${ currency(savings_or_bank[4].app_value) }
+      - "bank_or_saving_current_value5": ${ currency(savings_or_bank[4].today_value) }
+      - "bank_or_saving_category6": ${ savings_or_bank[5].category }
+      - "bank_or_saving_owner6": ${ savings_or_bank[5].owner }
+      - "bank_or_saving_institution6": ${ savings_or_bank[5].institution }
+      - "bank_or_saving_acc6": ${ savings_or_bank[5].account_number }
+      - "bank_or_saving_app_value6": ${ currency(savings_or_bank[5].app_value) }
+      - "bank_or_saving_current_value6": ${ currency(savings_or_bank[5].today_value) }
+      - "bank_or_saving_category7": ${ savings_or_bank[6].category }
+      - "bank_or_saving_owner7": ${ savings_or_bank[6].owner }
+      - "bank_or_saving_institution7": ${ savings_or_bank[6].institution }
+      - "bank_or_saving_acc7": ${ savings_or_bank[6].account_number }
+      - "bank_or_saving_app_value7": ${ currency(savings_or_bank[6].app_value) }
+      - "bank_or_saving_current_value7": ${ currency(savings_or_bank[6].today_value) }
+      - "bank_or_saving_category8": ${ savings_or_bank[7].category }
+      - "bank_or_saving_owner8": ${ savings_or_bank[7].owner }
+      - "bank_or_saving_institution8": ${ savings_or_bank[7].institution }
+      - "bank_or_saving_acc8": ${ savings_or_bank[7].account_number }
+      - "bank_or_saving_app_value8": ${ currency(savings_or_bank[7].app_value) }
+      - "bank_or_saving_current_value8": ${ currency(savings_or_bank[7].today_value) }
+      - "total_bank_or_saving_current_value": ${ currency(sum_if_defined("savings_or_bank[0].today_value", "savings_or_bank[1].today_value", "savings_or_bank[2].today_value", "savings_or_bank[3].today_value", "savings_or_bank[4].today_value", "savings_or_bank[5].today_value", "savings_or_bank[6].today_value", "savings_or_bank[7].today_value")) }
+      - "total_bank_or_saving_app_value__2": ${ currency(sum_if_defined("savings_or_bank[0].app_value", "savings_or_bank[1].app_value", "savings_or_bank[2].app_value", "savings_or_bank[3].app_value", "savings_or_bank[4].app_value", "savings_or_bank[5].app_value", "savings_or_bank[6].app_value", "savings_or_bank[7].app_value")) }
+      - "total_bank_or_saving_app_value": ${ currency(sum_if_defined("savings_or_bank[0].app_value", "savings_or_bank[1].app_value", "savings_or_bank[2].app_value", "savings_or_bank[3].app_value", "savings_or_bank[4].app_value", "savings_or_bank[5].app_value", "savings_or_bank[6].app_value", "savings_or_bank[7].app_value")) }
+      - "pension_or_retire_current_value1": ${ currency(pension_or_retire[0].today_value) }
+      - "pension_or_retire_app_value1": ${ currency(pension_or_retire[0].app_value) }
+      - "pension_or_retire_owner1": ${ pension_or_retire[0].owner }
+      - "pension_or_retire_category1": ${ pension_or_retire[0].category }
+      - "pension_or_retire_institution1": ${ pension_or_retire[0].institution }
+      - "pension_or_retire_acc1": ${ pension_or_retire[0].account_number }
+      - "pension_or_retire_current_value2": ${ currency(pension_or_retire[1].today_value) }
+      - "pension_or_retire_app_value2": ${ currency(pension_or_retire[1].app_value) }
+      - "pension_or_retire_owner2": ${ pension_or_retire[1].owner }
+      - "pension_or_retire_category2": ${ pension_or_retire[1].category }
+      - "pension_or_retire_institution2": ${ pension_or_retire[1].institution }
+      - "pension_or_retire_acc2": ${ pension_or_retire[1].account_number }
+      - "pension_or_retire_current_value3": ${ currency(pension_or_retire[2].today_value) }
+      - "pension_or_retire_app_value3": ${ currency(pension_or_retire[2].app_value) }
+      - "pension_or_retire_owner3": ${ pension_or_retire[2].owner }
+      - "pension_or_retire_category3": ${ pension_or_retire[2].category }
+      - "pension_or_retire_institution3": ${ pension_or_retire[2].institution }
+      - "pension_or_retire_acc3": ${ pension_or_retire[2].account_number }
+      - "pension_or_retire_current_value4": ${ currency(pension_or_retire[3].today_value) }
+      - "pension_or_retire_app_value4": ${ currency(pension_or_retire[3].app_value) }
+      - "pension_or_retire_owner4": ${ pension_or_retire[3].owner }
+      - "pension_or_retire_category4": ${ pension_or_retire[3].category }
+      - "pension_or_retire_institution4": ${ pension_or_retire[3].institution }
+      - "pension_or_retire_acc4": ${ pension_or_retire[3].account_number }
+      - "pension_or_retire_current_value5": ${ currency(pension_or_retire[4].today_value) }
+      - "pension_or_retire_app_value5": ${ currency(pension_or_retire[4].app_value) }
+      - "pension_or_retire_owner5": ${ pension_or_retire[4].owner }
+      - "pension_or_retire_category5": ${ pension_or_retire[4].category }
+      - "pension_or_retire_institution5": ${ pension_or_retire[4].institution }
+      - "pension_or_retire_acc5": ${ pension_or_retire[4].account_number }
+      - "total_pension_or_retire_app_value": ${ currency(sum_if_defined("pension_or_retire[0].app_value", "pension_or_retire[1].app_value", "pension_or_retire[2].app_value", "pension_or_retire[3].app_value", "pension_or_retire[4].app_value")) }
+      - "total_pension_or_retire_app_value__2": ${ currency(sum_if_defined("pension_or_retire[0].app_value", "pension_or_retire[1].app_value", "pension_or_retire[2].app_value", "pension_or_retire[3].app_value", "pension_or_retire[4].app_value")) }
+      - "total_pension_or_retire_current_value": ${ currency(sum_if_defined("pension_or_retire[0].today_value", "pension_or_retire[1].today_value", "pension_or_retire[2].today_value", "pension_or_retire[3].today_value", "pension_or_retire[4].today_value")) }
+      - "security_owner1": ${ security[0].owner }
+      - "security_category1": ${ security[0].category }
+      - "security_description1": ${ security[0].description }
+      - "security_number1": ${ security[0].number }
+      - "security_app_value1": ${ currency(security[0].app_value) }
+      - "security_current_value1": ${ currency(security[0].today_value) }
+      - "security_owner2": ${ security[1].owner }
+      - "security_category2": ${ security[1].category }
+      - "security_description2": ${ security[1].description }
+      - "security_number2": ${ security[1].number }
+      - "security_app_value2": ${ currency(security[1].app_value) }
+      - "security_current_value2": ${ currency(security[1].today_value) }
+      - "security_owner3": ${ security[2].owner }
+      - "security_category3": ${ security[2].category }
+      - "security_description3": ${ security[2].description }
+      - "security_number3": ${ security[2].number }
+      - "security_app_value3": ${ currency(security[2].app_value) }
+      - "security_current_value3": ${ currency(security[2].today_value) }
+      - "security_owner4": ${ security[3].owner }
+      - "security_category4": ${ security[3].category }
+      - "security_description4": ${ security[3].description }
+      - "security_number4": ${ security[3].number }
+      - "security_app_value4": ${ currency(security[3].app_value) }
+      - "security_current_value4": ${ currency(security[3].today_value) }
+      - "security_owner5": ${ security[4].owner }
+      - "security_category5": ${ security[4].category }
+      - "security_description5": ${ security[4].description }
+      - "security_number5": ${ security[4].number }
+      - "security_app_value5": ${ currency(security[4].app_value) }
+      - "security_current_value5": ${ currency(security[4].today_value) }
+      - "total_security_current_value": ${ currency(sum_if_defined("security[4].today_value", "security[4].today_value", "security[4].today_value", "security[4].today_value", "security[4].today_value")) }
+      - "total_security_app_value": ${ currency(sum_if_defined("security[0].app_value", "security[1].app_value", "security[2].app_value", "security[3].app_value", "security[4].app_value")) }
+      - "total_security_app_value__2": ${ currency(sum_if_defined("security[0].app_value", "security[1].app_value", "security[2].app_value", "security[3].app_value", "security[4].app_value")) }
+      - "business_interest1": ${ business_interest[0].interest }
+      - "business_current_value1": ${ currency(business_interest[0].today_value) }
+      - "business_owner1": ${ business_interest[0].owner }
+      - "business_name1": ${ business_interest[0].company }
+      - "business_app_value1": ${ currency(business_interest[0].app_value) }
+      - "business_current_value2": ${ currency(business_interest[1].today_value) }
+      - "business_owner2": ${ business_interest[1].owner }
+      - "business_name2": ${ business_interest[1].company }
+      - "business_interest2": ${ business_interest[1].interest }
+      - "business_app_value2": ${ currency(business_interest[1].app_value) }
+      - "business_current_value3": ${ currency(business_interest[2].today_value) }
+      - "business_owner3": ${ business_interest[2].owner }
+      - "business_name3": ${ business_interest[2].company }
+      - "business_interest3": ${ business_interest[2].interest }
+      - "business_app_value3": ${ currency(business_interest[2].app_value) }
+      - "business_current_value4": ${ currency(business_interest[3].today_value) }
+      - "business_owner4": ${ business_interest[3].owner }
+      - "business_name4": ${ business_interest[3].company }
+      - "business_interest4": ${ business_interest[3].interest }
+      - "business_app_value4": ${ currency(business_interest[3].app_value) }
+      - "business_current_value5": ${ currency(business_interest[4].today_value) }
+      - "business_owner5": ${ business_interest[4].owner }
+      - "business_name5": ${ business_interest[4].company }
+      - "business_interest5": ${ business_interest[4].interest }
+      - "business_app_value5": ${ currency(business_interest[4].app_value) }
+      - "total_business_app_value": ${ currency(sum_if_defined("business_interest[0].app_value", "business_interest[1].app_value", "business_interest[2].app_value", "business_interest[3].app_value", "business_interest[4].app_value")) }
+      - "total_business_app_value__2": ${ currency(sum_if_defined("business_interest[0].app_value", "business_interest[1].app_value", "business_interest[2].app_value", "business_interest[3].app_value", "business_interest[4].app_value")) }
+      - "total_business_current_value": ${ currency(sum_if_defined("business_interest[0].today_value", "business_interest[1].today_value", "business_interest[2].today_value", "business_interest[3].today_value", "business_interest[4].today_value")) }
+      - "insurance_owner1": ${ life_and_disability_insurance[0].owner }
+      - "insurance_company_policy1": ${ life_and_disability_insurance[0].company }
+      - "insurance_type1": ${ life_and_disability_insurance[0].type }
+      - "insurance_beneficiary1": ${ life_and_disability_insurance[0].beneficiary }
+      - "insurance_amount1": ${ currency(life_and_disability_insurance[0].face_amount) }
+      - "insurance_app_value1": ${ currency(life_and_disability_insurance[0].app_value) }
+      - "insurance_current_value1": ${ currency(life_and_disability_insurance[0].today_value) }
+      - "insurance_app_value2": ${ currency(life_and_disability_insurance[1].app_value) }
+      - "insurance_owner2": ${ life_and_disability_insurance[1].owner }
+      - "insurance_company_policy2": ${ life_and_disability_insurance[1].company }
+      - "insurance_type2": ${ life_and_disability_insurance[1].type }
+      - "insurance_beneficiary2": ${ life_and_disability_insurance[1].beneficiary }
+      - "insurance_amount2": ${ currency(life_and_disability_insurance[1].face_amount) }
+      - "insurance_current_value2": ${ currency(life_and_disability_insurance[1].today_value) }
+      - "insurance_app_value3": ${ currency(life_and_disability_insurance[2].app_value) }
+      - "insurance_owner3": ${ life_and_disability_insurance[2].owner }
+      - "insurance_company_policy3": ${ life_and_disability_insurance[2].company }
+      - "insurance_type3": ${ life_and_disability_insurance[2].type }
+      - "insurance_beneficiary3": ${ life_and_disability_insurance[2].beneficiary }
+      - "insurance_amount3": ${ currency(life_and_disability_insurance[2].face_amount) }
+      - "insurance_current_value3": ${ currency(life_and_disability_insurance[2].today_value) }
+      - "insurance_app_value4": ${ currency(life_and_disability_insurance[3].app_value) }
+      - "insurance_owner4": ${ life_and_disability_insurance[3].owner }
+      - "insurance_company_policy4": ${ life_and_disability_insurance[3].company }
+      - "insurance_type4": ${ life_and_disability_insurance[3].type }
+      - "insurance_beneficiary4": ${ life_and_disability_insurance[3].beneficiary }
+      - "insurance_amount4": ${ currency(life_and_disability_insurance[3].face_amount) }
+      - "insurance_current_value4": ${ currency(life_and_disability_insurance[3].today_value) }
+      - "insurance_app_value5": ${ currency(life_and_disability_insurance[4].app_value) }
+      - "insurance_owner5": ${ life_and_disability_insurance[4].owner }
+      - "insurance_company_policy5": ${ life_and_disability_insurance[4].company }
+      - "insurance_type5": ${ life_and_disability_insurance[4].type }
+      - "insurance_beneficiary5": ${ life_and_disability_insurance[4].beneficiary }
+      - "insurance_amount5": ${ currency(life_and_disability_insurance[4].face_amount) }
+      - "insurance_current_value5": ${ currency(life_and_disability_insurance[4].today_value) }
+      - "total_insurance_app_value": ${ currency(sum_if_defined("life_and_disability_insurance[0].app_value", "life_and_disability_insurance[1].app_value", "life_and_disability_insurance[2].app_value", "life_and_disability_insurance[3].app_value", "life_and_disability_insurance[4].app_value")) }
+      - "total_insurance_app_value__2": ${ currency(sum_if_defined("life_and_disability_insurance[0].app_value", "life_and_disability_insurance[1].app_value", "life_and_disability_insurance[2].app_value", "life_and_disability_insurance[3].app_value", "life_and_disability_insurance[4].app_value")) }
+      - "total_insurance_current_value": ${ currency(sum_if_defined("life_and_disability_insurance[0].today_value", "life_and_disability_insurance[1].today_value", "life_and_disability_insurance[2].today_value", "life_and_disability_insurance[3].today_value", "life_and_disability_insurance[4].today_value")) }
+      - "other_property_current_value1": ${ currency(other_property[0].today_value) }
+      - "other_property_owner1": ${ other_property[0].owner }
+      - "other_property_category1": ${ other_property[0].category }
+      - "other_property_details1": ${ other_property[0].details }
+      - "other_property_app_value1": ${ currency(other_property[0].app_value) }
+      - "other_property_app_value2": ${ currency(other_property[1].app_value) }
+      - "other_property_current_value2": ${ currency(other_property[1].today_value) }
+      - "other_property_owner2": ${ other_property[1].owner }
+      - "other_property_category2": ${ other_property[1].category }
+      - "other_property_details2": ${ other_property[1].details }
+      - "other_property_app_value3": ${ currency(other_property[2].app_value) }
+      - "other_property_current_value3": ${ currency(other_property[2].today_value) }
+      - "other_property_owner3": ${ other_property[2].owner }
+      - "other_property_category3": ${ other_property[2].category }
+      - "other_property_details3": ${ other_property[2].details }
+      - "other_property_app_value4": ${ currency(other_property[3].app_value) }
+      - "other_property_current_value4": ${ currency(other_property[3].today_value) }
+      - "other_property_owner4": ${ other_property[3].owner }
+      - "other_property_category4": ${ other_property[3].category }
+      - "other_property_details4": ${ other_property[3].details }
+      - "other_property_app_value5": ${ currency(other_property[4].app_value) }
+      - "other_property_current_value5": ${ currency(other_property[4].today_value) }
+      - "other_property_owner5": ${ other_property[4].owner }
+      - "other_property_category5": ${ other_property[4].category }
+      - "other_property_details5": ${ other_property[4].details }
+      - "other_property_app_value6": ${ currency(other_property[5].app_value) }
+      - "other_property_current_value6": ${ currency(other_property[5].today_value) }
+      - "other_property_owner6": ${ other_property[5].owner }
+      - "other_property_category6": ${ other_property[5].category }
+      - "other_property_details6": ${ other_property[5].details }
+      - "total_other_property_app_value": ${ currency(sum_if_defined("other_property[0].app_value", "other_property[1].app_value", "other_property[2].app_value", "other_property[3].app_value", "other_property[4].app_value", "other_property[5].app_value")) }
+      - "total_other_property_app_value__2": ${ currency(sum_if_defined("other_property[0].app_value", "other_property[1].app_value", "other_property[2].app_value", "other_property[3].app_value", "other_property[4].app_value", "other_property[5].app_value")) }
+      - "total_other_property_current_value": ${ currency(sum_if_defined("other_property[0].today_value", "other_property[1].today_value", "other_property[2].today_value", "other_property[3].today_value", "other_property[4].today_value", "other_property[5].today_value")) }
+      - "total_all_assets_app_value": ${ currency(sum_if_defined("real_property[0].today_value", "real_property[1].today_value", "real_property[2].today_value", "household[0].today_value", "household[1].today_value", "household[2].today_value", "vehicle[0].today_value", "vehicle[1].today_value", "vehicle[2].today_value", "vehicle[3].today_value", "personal_item[0].today_value", "personal_item[1].today_value", "personal_item[2].today_value", "other_item[0].today_value", "other_item[1].today_value", "other_item[2].app_value", "savings_or_bank[0].app_value", "savings_or_bank[1].app_value", "savings_or_bank[2].app_value", "savings_or_bank[3].app_value", "savings_or_bank[4].app_value", "savings_or_bank[5].app_value", "savings_or_bank[6].app_value", "savings_or_bank[7].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "security[0].app_value", "security[1].app_value", "security[2].app_value", "security[3].app_value", "security[4].app_value", "business_interest[0].app_value", "business_interest[1].app_value", "business_interest[2].app_value", "business_interest[3].app_value", "business_interest[4].app_value", "life_and_disability_insurance[0].app_value", "life_and_disability_insurance[1].app_value", "life_and_disability_insurance[2].app_value", "life_and_disability_insurance[3].app_value", "life_and_disability_insurance[4].app_value", "other_property[0].app_value", "other_property[1].app_value", "other_property[2].app_value", "other_property[3].app_value", "other_property[4].app_value", "other_property[5].app_value")) }
+      - "total_all_assets_app_value__2": ${ currency(sum_if_defined("real_property[0].today_value", "real_property[1].today_value", "real_property[2].today_value", "household[0].today_value", "household[1].today_value", "household[2].today_value", "vehicle[0].today_value", "vehicle[1].today_value", "vehicle[2].today_value", "vehicle[3].today_value", "personal_item[0].today_value", "personal_item[1].today_value", "personal_item[2].today_value", "other_item[0].today_value", "other_item[1].today_value", "other_item[2].app_value", "savings_or_bank[0].app_value", "savings_or_bank[1].app_value", "savings_or_bank[2].app_value", "savings_or_bank[3].app_value", "savings_or_bank[4].app_value", "savings_or_bank[5].app_value", "savings_or_bank[6].app_value", "savings_or_bank[7].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "pension_or_retire[4].app_value", "security[0].app_value", "security[1].app_value", "security[2].app_value", "security[3].app_value", "security[4].app_value", "business_interest[0].app_value", "business_interest[1].app_value", "business_interest[2].app_value", "business_interest[3].app_value", "business_interest[4].app_value", "life_and_disability_insurance[0].app_value", "life_and_disability_insurance[1].app_value", "life_and_disability_insurance[2].app_value", "life_and_disability_insurance[3].app_value", "life_and_disability_insurance[4].app_value", "other_property[0].app_value", "other_property[1].app_value", "other_property[2].app_value", "other_property[3].app_value", "other_property[4].app_value", "other_property[5].app_value")) }
+      - "secured_debt_institution1": ${ secured_debt[0].owed_to }
+      - "secured_debt_amount_owing1": ${ currency(secured_debt[0].amount_owing) }
+      - "secured_debt_monthly_payments1": ${ currency(secured_debt[0].monthly_payments) }
+      - "secured_debt_owner1": ${ secured_debt[0].owed_by }
+      - "secured_debt_payment_made1": ${ secured_debt[0].payment_made }
+      - "secured_debt_payment_made_by1": ${ secured_debt[0].payment_made_by }
+      - "secured_debt_institution2": ${ secured_debt[1].owed_to }
+      - "secured_debt_amount_owing2": ${ currency(secured_debt[1].amount_owing) }
+      - "secured_debt_monthly_payments2": ${ currency(secured_debt[1].monthly_payments) }
+      - "secured_debt_owner2": ${ secured_debt[1].owed_by }
+      - "secured_debt_payment_made2": ${ secured_debt[1].payment_made }
+      - "secured_debt_payment_made_by2": ${ secured_debt[1].payment_made_by }
+      - "secured_debt_institution3": ${ secured_debt[2].owed_to }
+      - "secured_debt_amount_owing3": ${ currency(secured_debt[2].amount_owing) }
+      - "secured_debt_monthly_payments3": ${ currency(secured_debt[2].monthly_payments) }
+      - "secured_debt_owner3": ${ secured_debt[2].owed_by }
+      - "secured_debt_payment_made3": ${ secured_debt[2].payment_made }
+      - "secured_debt_payment_made_by3": ${ secured_debt[2].payment_made_by }
+      - "secured_debt_institution4": ${ secured_debt[3].owed_to }
+      - "secured_debt_amount_owing4": ${ currency(secured_debt[3].amount_owing) }
+      - "secured_debt_monthly_payments4": ${ currency(secured_debt[3].monthly_payments) }
+      - "secured_debt_owner4": ${ secured_debt[3].owed_by }
+      - "secured_debt_payment_made4": ${ secured_debt[3].payment_made }
+      - "secured_debt_payment_made_by4": ${ secured_debt[3].payment_made_by }
+      - "secured_debt_institution5": ${ secured_debt[4].owed_to }
+      - "secured_debt_amount_owing5": ${ currency(secured_debt[4].amount_owing) }
+      - "secured_debt_monthly_payments5": ${ currency(secured_debt[4].monthly_payments) }
+      - "secured_debt_owner5": ${ secured_debt[4].owed_by }
+      - "secured_debt_payment_made5": ${ secured_debt[4].payment_made }
+      - "secured_debt_payment_made_by5": ${ secured_debt[4].payment_made_by }
+      - "secured_debt_institution6": ${ secured_debt[5].owed_to }
+      - "secured_debt_amount_owing6": ${ currency(secured_debt[5].amount_owing) }
+      - "secured_debt_monthly_payments6": ${ currency(secured_debt[5].monthly_payments) }
+      - "secured_debt_owner6": ${ secured_debt[5].owed_by }
+      - "secured_debt_payment_made6": ${ secured_debt[5].payment_made }
+      - "secured_debt_payment_made_by6": ${ secured_debt[5].payment_made_by }
+      - "loan_institution1": ${ loan[0].owed_to }
+      - "loan_amount_owing1": ${ currency(loan[0].amount_owing) }
+      - "loan_monthly_payment1": ${ currency(loan[0].monthly_payments) }
+      - "loan_owner1": ${ loan[0].owed_by }
+      - "loan_monthly_payment_made1": ${ loan[0].payment_made }
+      - "loan_monthly_payment_made_by1": ${ loan[0].payment_made_by }
+      - "loan_institution2": ${ loan[1].owed_to }
+      - "loan_amount_owing2": ${ currency(loan[1].amount_owing) }
+      - "loan_monthly_payment2": ${ currency(loan[1].monthly_payments) }
+      - "loan_owner2": ${ loan[1].owed_by }
+      - "loan_monthly_payment_made2": ${ loan[1].payment_made }
+      - "loan_monthly_payment_made_by2": ${ loan[1].payment_made_by }
+      - "loan_institution3": ${ loan[2].owed_to }
+      - "loan_amount_owing3": ${ currency(loan[2].amount_owing) }
+      - "loan_monthly_payment3": ${ currency(loan[2].monthly_payments) }
+      - "loan_owner3": ${ loan[2].owed_by }
+      - "loan_monthly_payment_made3": ${ loan[2].payment_made }
+      - "loan_monthly_payment_made_by3": ${ loan[2].payment_made_by }
+      - "loan_institution4": ${ loan[3].owed_to }
+      - "loan_amount_owing4": ${ currency(loan[3].amount_owing) }
+      - "loan_monthly_payment4": ${ currency(loan[3].monthly_payments) }
+      - "loan_owner4": ${ loan[3].owed_by }
+      - "loan_monthly_payment_made4": ${ loan[3].payment_made }
+      - "loan_monthly_payment_made_by4": ${ loan[3].payment_made_by }
+      - "loan_institution5": ${ loan[4].owed_to }
+      - "loan_amount_owing5": ${ currency(loan[4].amount_owing) }
+      - "loan_monthly_payment5": ${ currency(loan[4].monthly_payments) }
+      - "loan_owner5": ${ loan[4].owed_by }
+      - "loan_monthly_payment_made5": ${ loan[4].payment_made }
+      - "loan_monthly_payment_made_by5": ${ loan[4].payment_made_by }
+      - "loan_institution6": ${ loan[5].owed_to }
+      - "loan_amount_owing6": ${ currency(loan[5].amount_owing) }
+      - "loan_monthly_payment6": ${ currency(loan[5].monthly_payments) }
+      - "loan_owner6": ${ loan[5].owed_by }
+      - "loan_monthly_payment_made6": ${ loan[5].payment_made }
+      - "loan_monthly_payment_made_by6": ${ loan[5].payment_made_by }
+      - "cc_monthly_payments1": ${ currency(cc[0].monthly_payments) }
+      - "cc_amount_owing1": ${ currency(cc[0].amount_owing) }
+      - "cc_owner1": ${ cc[0].owed_by }
+      - "cc_institution1": ${ cc[0].owed_to }
+      - "cc_monthly_payments_made1": ${ cc[0].payment_made }
+      - "cc_monthly_payments_made_by1": ${ cc[0].payment_made_by }
+      - "cc_amount_owing2": ${ currency(cc[1].amount_owing) }
+      - "cc_owner2": ${ cc[1].owed_by }
+      - "cc_monthly_payments_made2": ${ cc[1].payment_made }
+      - "cc_monthly_payments_made_by2": ${ cc[1].payment_made_by }
+      - "cc_monthly_payments2": ${ currency(cc[1].monthly_payments) }
+      - "cc_institution2": ${ cc[1].owed_to }
+      - "cc_monthly_payments3": ${ currency(cc[2].monthly_payments) }
+      - "cc_amount_owing3": ${ currency(cc[2].amount_owing) }
+      - "cc_owner3": ${ cc[2].owed_by }
+      - "cc_institution3": ${ cc[2].owed_to }
+      - "cc_monthly_payments_made3": ${ cc[2].payment_made }
+      - "cc_monthly_payments_made_by3": ${ cc[2].payment_made_by }
+      - "cc_monthly_payments4": ${ currency(cc[3].monthly_payments) }
+      - "cc_amount_owing4": ${ currency(cc[3].amount_owing) }
+      - "cc_owner4": ${ cc[3].owed_by }
+      - "cc_institution4": ${ cc[3].owed_to }
+      - "cc_monthly_payments_made4": ${ cc[3].payment_made }
+      - "cc_monthly_payments_made_by4": ${ cc[3].payment_made_by }
+      - "cc_monthly_payments5": ${ currency(cc[4].monthly_payments) }
+      - "cc_amount_owing5": ${ currency(cc[4].amount_owing) }
+      - "cc_owner5": ${ cc[4].owed_by }
+      - "cc_institution5": ${ cc[4].owed_to }
+      - "cc_monthly_payments_made5": ${ cc[4].payment_made }
+      - "cc_monthly_payments_made_by5": ${ cc[4].payment_made_by }
+      - "unpaid_support_monthly_payment1": ${ currency(unpaid_support[0].monthly_payments) }
+      - "unpaid_support_amount_owed1": ${ currency(unpaid_support[0].amount_owing) }
+      - "unpaid_support_owner1": ${ unpaid_support[0].owed_by }
+      - "unpaid_support_owed_to1": ${ unpaid_support[0].owed_to }
+      - "unpaid_support_monthly_payment_made1": ${ unpaid_support[0].payment_made }
+      - "unpaid_support_monthly_payment_made_by1": ${ unpaid_support[0].payment_made_by }
+      - "unpaid_support_monthly_payment2": ${ currency(unpaid_support[1].monthly_payments) }
+      - "unpaid_support_amount_owed2": ${ currency(unpaid_support[1].amount_owing) }
+      - "unpaid_support_owner2": ${ unpaid_support[1].owed_by }
+      - "unpaid_support_owed_to2": ${ unpaid_support[1].owed_to }
+      - "unpaid_support_monthly_payment_made2": ${ unpaid_support[1].payment_made }
+      - "unpaid_support_monthly_payment_made_by2": ${ unpaid_support[1].payment_made_by }
+      - "unpaid_support_monthly_payment3": ${ currency(unpaid_support[2].monthly_payments) }
+      - "unpaid_support_amount_owed3": ${ currency(unpaid_support[2].amount_owing) }
+      - "unpaid_support_owner3": ${ unpaid_support[2].owed_by }
+      - "unpaid_support_owed_to3": ${ unpaid_support[2].owed_to }
+      - "unpaid_support_monthly_payment_made3": ${ unpaid_support[2].payment_made }
+      - "unpaid_support_monthly_payment_made_by3": ${ unpaid_support[2].payment_made_by }
+      - "other_debt_monthly_payment1": ${ currency(other_debt[0].monthly_payments) }
+      - "other_debt_amount_owed1": ${ currency(other_debt[0].amount_owing) }
+      - "other_debt1": ${ other_debt[0].owed_by }
+      - "other_debt_owed_to1": ${ other_debt[0].owed_to }
+      - "other_debt_monthly_payment_made1": ${ other_debt[0].payment_made }
+      - "other_debt_monthly_payment_made_by1": ${ other_debt[0].payment_made_by }
+      - "other_debt_monthly_payment2": ${ currency(other_debt[1].monthly_payments) }
+      - "other_debt_amount_owed2": ${ currency(other_debt[1].amount_owing) }
+      - "other_debt2": ${ other_debt[1].owed_by }
+      - "other_debt_owed_to2": ${ other_debt[1].owed_to }
+      - "other_debt_monthly_payment_made2": ${ other_debt[1].payment_made }
+      - "other_debt_monthly_payment_made_by2": ${ other_debt[1].payment_made_by }
+      - "other_debt_monthly_payment3": ${ currency(other_debt[2].monthly_payments) }
+      - "other_debt_amount_owed3": ${ currency(other_debt[2].amount_owing) }
+      - "other_debt3": ${ other_debt[2].owed_by }
+      - "other_debt_monthly_payment_made3": ${ other_debt[2].payment_made }
+      - "other_debt_monthly_payment_made_by3": ${ other_debt[2].payment_made_by }
+      - "other_debt_owed_to3": ${ other_debt[2].owed_to }
+      - "other_debt_monthly_payment4": ${ currency(other_debt[3].monthly_payments) }
+      - "other_debt_amount_owed4": ${ currency(other_debt[3].amount_owing) }
+      - "other_debt4": ${ other_debt[i].owed_by }
+      - "other_debt_owed_to4": ${ other_debt[3].owed_to }
+      - "other_debt_monthly_payment_made4": ${ other_debt[3].payment_made }
+      - "other_debt_monthly_payment_made_by4": ${ other_debt[3].payment_made_by }
+      - "other_debt_monthly_payment5": ${ currency(other_debt[4].monthly_payments) }
+      - "other_debt_amount_owed5": ${ currency(other_debt[4].amount_owing) }
+      - "other_debt5": ${ other_debt[4].owed_by }
+      - "other_debt_owed_to5": ${ other_debt[4].owed_to }
+      - "other_debt_monthly_payment_made5": ${ other_debt[4].payment_made }
+      - "other_debt_monthly_payment_made_by5": ${ other_debt[4].payment_made_by }
+      - "total_debt_and_liabilities": ${ currency(sum_if_defined("secured_debt[0].amount_owing", "secured_debt[1].amount_owing", "secured_debt[2].amount_owing", "secured_debt[3].amount_owing", "secured_debt[4].amount_owing", "secured_debt[5].amount_owing", "loan[0].amount_owing", "loan[1].amount_owing", "loan[2].amount_owing", "loan[3].amount_owing", "loan[4].amount_owing", "loan[5].amount_owing", "cc[0].amount_owing", "cc[1].amount_owing", "cc[2].amount_owing", "cc[3].amount_owing", "cc[4].amount_owing", "unpaid_support[0].amount_owing", "unpaid_support[1].amount_owing", "unpaid_support[2].amount_owing", "other_debt[0].amount_owing", "other_debt[1].amount_owing", "other_debt[2].amount_owing", "other_debt[3].amount_owing", "other_debt[4].amount_owing")) }
+      - "total_debt_and_liabilities__2": ${ currency(sum_if_defined("secured_debt[0].amount_owing", "secured_debt[1].amount_owing", "secured_debt[2].amount_owing", "secured_debt[3].amount_owing", "secured_debt[4].amount_owing", "secured_debt[5].amount_owing", "loan[0].amount_owing", "loan[1].amount_owing", "loan[2].amount_owing", "loan[3].amount_owing", "loan[4].amount_owing", "loan[5].amount_owing", "cc[0].amount_owing", "cc[1].amount_owing", "cc[2].amount_owing", "cc[3].amount_owing", "cc[4].amount_owing", "unpaid_support[0].amount_owing", "unpaid_support[1].amount_owing", "unpaid_support[2].amount_owing", "other_debt[0].amount_owing", "other_debt[1].amount_owing", "other_debt[2].amount_owing", "other_debt[3].amount_owing", "other_debt[4].amount_owing")) }
+      - "exempted_property_app_value1": ${ currency(exempted_property[0].app_value) }
+      - "exempted_property_category1": ${ exempted_property[0].category }
+      - "exempted_property_item_and_reason1": ${ exempted_property[0].item_and_reason }
+      - "exempted_property_current_value1": ${ currency(exempted_property[0].today_value) }
+      - "exempted_property_category2": ${ exempted_property[1].category }
+      - "exempted_property_item_and_reason2": ${ exempted_property[1].item_and_reason }
+      - "exempted_property_app_value2": ${ currency(exempted_property[1].app_value) }
+      - "exempted_property_current_value2": ${ currency(exempted_property[1].today_value) }
+      - "exempted_property_category3": ${ exempted_property[2].category }
+      - "exempted_property_item_and_reason3": ${ exempted_property[2].item_and_reason }
+      - "exempted_property_app_value3": ${ currency(exempted_property[2].app_value) }
+      - "exempted_property_current_value3": ${ currency(exempted_property[2].today_value) }
+      - "exempted_property_category4": ${ exempted_property[3].category }
+      - "exempted_property_item_and_reason4": ${ exempted_property[3].item_and_reason }
+      - "exempted_property_app_value4": ${ currency(exempted_property[3].app_value) }
+      - "exempted_property_current_value4": ${ currency(exempted_property[3].today_value) }
+      - "exempted_property_category5": ${ exempted_property[4].category }
+      - "exempted_property_item_and_reason5": ${ exempted_property[4].item_and_reason }
+      - "exempted_property_app_value5": ${ currency(exempted_property[4].app_value) }
+      - "exempted_property_current_value5": ${ currency(exempted_property[4].today_value) }
+      - "total_exempted_property": ${ currency(sum_if_defined("exempted_property[0].today_value", "exempted_property[1].today_value", "exempted_property[2].today_value", "exempted_property[3].today_value", "exempted_property[4].today_value")) }
+      - "total_exempted_property__2": ${ currency(sum_if_defined("exempted_property[0].today_value", "exempted_property[1].today_value", "exempted_property[2].today_value", "exempted_property[3].today_value", "exempted_property[4].today_value")) }
+      - "disposed_property_value1": ${ currency(disposed_property[0].today_value) }
+      - "disposed_property_description1": ${ disposed_property[0].description }
+      - "disposed_property_date1": ${ disposed_property[0].date }
+      - "disposed_property_value2": ${ currency(disposed_property[1].today_value) }
+      - "disposed_property_description2": ${ disposed_property[1].description }
+      - "disposed_property_date2": ${ disposed_property[1].date }
+      - "disposed_property_value3": ${ currency(disposed_property[2].today_value) }
+      - "disposed_property_description3": ${ disposed_property[2].description }
+      - "disposed_property_date3": ${ disposed_property[2].date }
+      - "disposed_property_value4": ${ currency(disposed_property[3].today_value) }
+      - "disposed_property_description4": ${ disposed_property[3].description }
+      - "disposed_property_date4": ${ disposed_property[3].date }
+      - "disposed_property_value5": ${ currency(disposed_property[4].today_value) }
+      - "disposed_property_description5": ${ disposed_property[4].description }
+      - "disposed_property_date5": ${ disposed_property[4].date }
+      - "disposed_property_value6": ${ currency(disposed_property[5].today_value) }
+      - "disposed_property_description6": ${ disposed_property[5].description }
+      - "disposed_property_date6": ${ disposed_property[5].date }
+      - "total_disposed_property_value": ${ currency(sum_if_defined("disposed_property[0].today_value", "disposed_property[1].today_value", "disposed_property[2].today_value", "disposed_property[3].today_value", "disposed_property[4].today_value", "disposed_property[5].today_value")) }
+      - "total_disposed_property_value__2": ${ currency(sum_if_defined("disposed_property[0].today_value", "disposed_property[1].today_value", "disposed_property[2].today_value", "disposed_property[3].today_value", "disposed_property[4].today_value", "disposed_property[5].today_value")) }

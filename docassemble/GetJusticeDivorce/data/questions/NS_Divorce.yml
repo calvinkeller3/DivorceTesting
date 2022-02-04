@@ -1,0 +1,889 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - NS_and_PEI_Property_Statement.yml
+  - NS_Parenting_Statement.yml
+  - NS_and_PEI_Statement_of_Expense.yml
+  - NS_and_PEI_Income_Statement.yml
+---
+mandatory: True
+code: |
+  interview_metadata
+  if not defined("interview_metadata['NS_Divorce']"):
+    interview_metadata.initializeObject("NS_Divorce")
+    interview_metadata["NS_Divorce"].update({
+      "al_weaver_version": "1.2.0",
+      "generated on": "2021-09-20",
+      "title": "Nova scotia form 59.09",
+      "short title": "Nova scotia form 59.09",
+      "description": "Nova scotia form 59.09",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_NS_Divorce",
+      "attachment block variable": "NS_Divorce_attachment",
+      "typical role": "plaintiff",
+    })
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+code: |
+  children[i].name.first
+  children[i].birthdate
+  children[i].gender
+  children[i].living_with
+  children[i].days
+  children[i].hours
+  children[i].location
+  children[i].complete = True
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_NS_Divorce
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["NS_Divorce"]["allowed courts"]
+  nav.set_section('review_NS_Divorce')
+  user_role = 'plaintiff'
+  province_choice
+  trial_court_index
+  users.gather()
+  set_parts(subtitle=str(users))
+  user_occupation
+  users[0].birthdate
+  users[0].address.address
+  user_different_name
+  respondents.gather()
+  other_parties[0].birthdate
+  respondent_occupation
+  respondents[0].address.address
+  respondent_different_name
+  claim_sought
+  basis_for_divorce
+  marriage_date
+  previous_court_proceedings
+  children.gather()
+  
+  if children.target_number > 0:
+    present_arrangements_decision_making
+  
+  if claim_sought["divorce_act_custody"] or claim_sought["divorce_act_access"]:
+    interview_order_NS_Parenting_Statement
+  
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    interview_order_NS_Income_Statement
+    
+  if claim_sought["property_claim_yes"]:
+    interview_order_NS_Property_Statement
+  
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    interview_order_NS_Statement_of_Expense
+    
+  NS_Divorce_preview_question
+  users[0].signature
+      
+  interview_order_NS_Divorce = True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: Screen seven
+question: |
+  Previous Court Cases
+subquestion: |
+  Have any parties involved in this case been involved in another case regarding marriage, custody, access, parenting arrangements, or support? If yes, please explain
+fields:
+  - no label: previous_court_proceedings
+    datatype: yesnoradio
+  - Type of proceeding & court file number: type_of_proceeding
+    show if: previous_court_proceedings
+  - Order or other measure: Orders_or_measures
+    show if: previous_court_proceedings  
+  - Circumstances: Circumstances
+    show if: previous_court_proceedings
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: how many children
+question: |
+  % if al_form_type in ['starts_case','existing_case','appeal']:
+  Are there any children from the marriage?
+  % else:
+  Are any children involved in this matter?
+  % endif  
+fields:
+  - no label: children.there_are_any
+    datatype: yesnoradio
+  - How many?: children.target_number
+    datatype: integer
+    show if: children.there_are_any
+validation code: |
+  if not children.there_are_any:
+    children.target_number = 0
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: children names without birthdate
+sets:
+  - children[0].name.first
+  - children[0].name.last
+question: |
+  % if hasattr(children, 'ask_number') and children.ask_number and children.target_number == 1:
+  Your Child's Name
+  % else:
+  Your Oldest Child's Name
+  % endif
+fields:
+  - code: |
+      children[0].name_fields()
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: children names without birthdate
+sets:
+  - children[i].name.first
+  - children[i].name.last
+question: |
+  Your ${ ordinal(i).capitalize() } Child's Name
+fields:
+  - code: |
+      children[i].name_fields()
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: children gender and lives with
+question: |
+  ${ children[i].familiar() } Additional Information
+fields:
+  - "Who does ${ children[i].familiar() } live with?": children[i].living_with
+    maxlength: 23
+  - What days will ${ children[i].familiar() } attend pre-school or school?: children[i].days
+  - What hours will ${ children[i].familiar() } attend pre-school or school?: children[i].hours
+  - Where will ${ children[i].familiar() } attend pre-school or school?: children[i].location
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: Screen one
+question: |
+  Parenting Arrangements
+fields:
+  - Outline the current decision making responsibility arrangements.: present_arrangements_decision_making
+    datatype: area
+  - Outline the current parenting time arrangements.: present_arrangements_pt
+    datatype: area
+  - Outline the current child support arrangements.: present_arrangements_cs
+    datatype: area
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: agreements
+question: |
+  Previous Agreement 
+fields:
+  - "Is there a agreement between the parties separation, custody, access, parenting arrangements, support of the children or support of each other?": parenting_agreement_yes
+    datatype: yesnoradio
+  - "Describe the agreement": agreement_details_sep_parent_property_etc
+    maxlength: 76
+    datatype: area
+    show if: parenting_agreement_yes
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: preview NS_Divorce
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ NS_preview_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. 
+continue button field: NS_Divorce_preview_question    
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+objects:
+  - NS_Divorce_attachment: ALDocument.using(title="Petition for Divorce (Form 59.09)", filename="Divorce Petition.pdf", has_addendum=False)
+  - Personal_Representation_Form: ALDocument.using(title="Personal Representation Form", filename="Personal Representation Form.pdf", enabled=True, has_addendum=False)
+  - Contact_Information_Sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet.pdf", enabled=True, has_addendum=False)
+  - NS_Divorce_attachment_62: ALDocument.using(title="Petition for Divorce (Form 62.09)", filename="Divorce Petition.pdf", has_addendum=False)
+  - Contact_Information_Sheet_watermarked: ALDocument.using(title="PREVIEW - Contact Information Sheet", filename="Contact Information Sheet.pdf", enabled=True, has_addendum=False)
+  - NS_Divorce_attachment_watermarked: ALDocument.using(title="Petition for Divorce (Form 59.09)", filename="Divorce Petition.pdf", has_addendum=False)
+  - NS_Divorce_attachment_62_watermarked: ALDocument.using(title="PREVIEW - Petition for Divorce (Form 62.09)", filename="Divorce Petition.pdf", has_addendum=False)
+  - Personal_Representation_Form_watermarked: ALDocument.using(title="PREVIEW - Personal Representation Form", filename="Personal Representation Form", enabled=True, has_addendum=False)
+  - Additional_Information: ALDocument.using(title="Additional Information", filename="Additional_Information.pdf", enabled=True, has_addendum=False)
+  - Key_Assumptions_NS: ALDocument.using(title="Important Key Assumptions", filename="Key_Assumptions.pdf", enabled=True, has_addendum=False)
+---
+objects:
+  - NS_user_bundle: ALDocumentBundle.using(elements=[NS_Divorce_attachment, NS_Divorce_attachment_62, Personal_Representation_Form, NS_Parenting_Statement_attachment, NS_Property_Statement_attachment, NS_Income_Statement_attachment, NS_Statement_of_Expense_attachment, Contact_Information_Sheet, Additional_Information, Key_Assumptions_NS], filename="NS_Divorce_package.pdf", title="All forms to download for your records", enabled=True)
+  - NS_GJ_bundle: ALDocumentBundle.using(elements=[NS_Divorce_attachment, NS_Divorce_attachment_62, Personal_Representation_Form, NS_Parenting_Statement_attachment, NS_Property_Statement_attachment, NS_Income_Statement_attachment, NS_Statement_of_Expense_attachment, Contact_Information_Sheet], filename="Divorce_package.pdf", title="All forms to download for your records", enabled=True)
+  - NS_preview_bundle: ALDocumentBundle.using(elements=[NS_Divorce_attachment_watermarked, NS_Divorce_attachment_62_watermarked, Personal_Representation_Form_watermarked, NS_Parenting_Statement_watermarked, NS_Property_Statement_watermarked, NS_Income_Statement_watermarked, NS_Statement_of_Expense_watermarked, Contact_Information_Sheet_watermarked], filename="Divorce_package.pdf", title="All forms to download for your records", enabled=True)
+---
+code: |
+  NS_Divorce_attachment.enabled=str(trial_court) in ["Halifax Courthouse","Port Hawkesbury Courthouse", "Sydney Courthouse"]
+---
+code: |
+  NS_Divorce_attachment_62.enabled=str(trial_court) not in ["Halifax Courthouse","Port Hawkesbury Courthouse", "Sydney Courthouse"]
+---
+code: |
+  NS_Divorce_attachment_watermarked.enabled=str(trial_court) in ["Halifax Courthouse","Port Hawkesbury Courthouse", "Sydney Courthouse"]
+---
+code: |
+  NS_Divorce_attachment_62_watermarked.enabled=str(trial_court) not in ["Halifax Courthouse","Port Hawkesbury Courthouse", "Sydney Courthouse"]
+---
+code: |
+  if claim_sought["property_claim_yes"]:
+    NS_Property_Statement_attachment.enabled=True
+  else:
+    NS_Property_Statement_attachment.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"]:
+    NS_Property_Statement_watermarked.enabled=True
+  else:
+    NS_Property_Statement_watermarked.enabled=False
+---
+code: |
+  if claim_sought["divorce_act_custody"] or claim_sought["divorce_act_access"]:
+    NS_Parenting_Statement_attachment.enabled=True
+  else:
+    NS_Parenting_Statement_attachment.enabled=False
+---
+code: |
+  if claim_sought["divorce_act_custody"] or claim_sought["divorce_act_access"]:
+    NS_Parenting_Statement_watermarked.enabled=True
+  else:
+    NS_Parenting_Statement_watermarked.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    NS_Statement_of_Expense_attachment.enabled=True
+  else:
+    NS_Statement_of_Expense_attachment.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    NS_Statement_of_Expense_watermarked.enabled=True
+  else:
+    NS_Statement_of_Expense_watermarked.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    NS_Income_Statement_attachment.enabled=True
+  else:
+    NS_Income_Statement_attachment.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    NS_Income_Statement_watermarked.enabled=True
+  else:
+    NS_Income_Statement_watermarked.enabled=False
+---
+attachments:
+  - name: NS Divorce attachment
+    filename: NS_Divorce     
+    variable name: NS_Divorce_attachment[i]        
+    skip undefined: True
+    pdf template file: Nova_Scotia_Form_59.09.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent__1": ${ respondents[0] }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format() }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format() }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format() }
+      - "child4": ${ children[3] }
+      - "child4_birthdate": ${ children[3].birthdate.format() }
+      - "child5_birthdate": ${ children[4].birthdate.format() }
+      - "child5": ${ children[4] }
+      - "trial_court": in ${ trial_court.address.city }
+      - "user_address_block": ${ users[0].address.block() }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "respondent_address_block": ${ respondents[0].address.block() }
+      - "decision_making_responsibility": ${ claim_sought["divorce_act_custody"] }
+      - "parenting_time": ${ claim_sought["divorce_act_access"] }
+      - "primary_care": ${ claim_sought["divorce_act_access"] }
+      - "shared_parenting": ${ shared_parenting }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other": ${ claim_other }
+      - "other_details": ${ other_details }
+      - "separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "separated_date": |
+          % if basis_for_divorce["basis_for_divorce_separation"]:
+          ${ separated_date }
+          % endif
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "marriage_date": ${ marriage_date }
+      - "marriage_place": ${ marriage_place }
+      - "user_full_name_before_marriage": |
+          % if user_different_name:
+          ${ user_full_name_before_marriage }
+          % else:
+          ${ users[0] }
+          % endif
+      - "respondent_full_name_before_marriage": |
+          % if respondent_different_name:
+          ${ respondent_full_name_before_marriage }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "user_full_name_at_birth":  |
+          % if user_different_name:
+          ${ user_name_full_at_birth }
+          % else:
+          ${ users[0] }
+          % endif
+      - "respondent_full_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_full_at_birth }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "user_male": ${ users[0].gender == 'male' }
+      - "user_other": ${ users[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "user_female": ${ users[0].gender == 'female' }
+      - "respondent_other": ${ respondents[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "respondent_male": ${ respondents[0].gender == 'male' }
+      - "respondent_female": ${ respondents[0].gender == 'female' }
+      - "user_divorced": ${ user_marital_status=="Divorced" }
+      - "user_single": ${ user_marital_status=="Never Married" }
+      - "respondent_divorced": ${ respondent_marital_status=="Divorced" }
+      - "respondent_single": ${ respondent_marital_status=="Never Married" }
+      - "user_place_and_dob": ${ users[0].birthdate } in ${ user_birthplace }
+      - "respondent_place_and_dob": ${ other_parties[0].birthdate } in ${ respondent_birthplace }
+      - "user_city": ${ users[0].address.city }
+      - "respondent_city": ${ respondents[0].address.city }
+      - "user_move_date": ${ user_move_date }
+      - "present_arrangements_decision_making": ${ present_arrangements_decision_making }
+      - "present_arrangements_pt": ${ present_arrangements_pt }
+      - "present_arrangements_cs": ${ present_arrangements_cs }
+      - "agreement_details_sep_parent_property_etc": ${ agreement_details_sep_parent_property_etc }
+      - "no_other_proceedings": ${ not previous_court_proceedings }
+      - "other_proceedings": ${ previous_court_proceedings }
+      - "type_of_proceeding": ${ type_of_proceeding }
+      - "Orders_or_measures": ${ Orders_or_measures }
+      - "Circumstances": ${ Circumstances }
+      - "trial_court_city": ${ trial_court.address.city }
+      - "today()": ${ today() }
+      - "property_claim_yes": ${ claim_sought["property_claim_yes"] }
+      - "property_exclusive_possession": ${ property_claim_sought["property_claim_exclusive_possession_home"] }
+      - "property_division_of_property": ${ property_claim_sought["property_claim_equalization"] }
+      - "parenting_statement_yes": ${ claim_sought["divorce_act_access"] or claim_sought["divorce_act_custody"] }
+      - "income_statement_yes": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "expense_statement_yes": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "property_statement_yes": ${ claim_sought["property_claim_yes"] }
+  - name: Nova_Scotia_Form_59.09_watermarked
+    filename: Nova_Scotia_Form_59.09_watermarked
+    variable name: NS_Divorce_attachment_watermarked[i]        
+    skip undefined: True
+    pdf template file: Nova_Scotia_Form_59.09_watermarked.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent__1": ${ respondents[0] }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format() }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format() }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format() }
+      - "child4": ${ children[3] }
+      - "child4_birthdate": ${ children[3].birthdate.format() }
+      - "child5_birthdate": ${ children[4].birthdate.format() }
+      - "child5": ${ children[4] }
+      - "trial_court": in ${ trial_court.address.city }
+      - "user_address_block": ${ users[0].address.block() }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "respondent_address_block": ${ respondents[0].address.block() }
+      - "decision_making_responsibility": ${ claim_sought["divorce_act_custody"] }
+      - "parenting_time": ${ claim_sought["divorce_act_access"] }
+      - "primary_care": ${ claim_sought["divorce_act_access"] }
+      - "shared_parenting": ${ shared_parenting }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other": ${ claim_other }
+      - "other_details": ${ other_details }
+      - "separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "separated_date": |
+          % if basis_for_divorce["basis_for_divorce_separation"]:
+          ${ separated_date }
+          % endif
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "marriage_date": ${ marriage_date }
+      - "marriage_place": ${ marriage_place }
+      - "user_full_name_before_marriage": |
+          % if user_different_name:
+          ${ user_full_name_before_marriage }
+          % else:
+          ${ users[0] }
+          % endif
+      - "respondent_full_name_before_marriage": |
+          % if respondent_different_name:
+          ${ respondent_full_name_before_marriage }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "user_full_name_at_birth":  |
+          % if user_different_name:
+          ${ user_name_full_at_birth }
+          % else:
+          ${ users[0] }
+          % endif
+      - "respondent_full_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_full_at_birth }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "user_male": ${ users[0].gender == 'male' }
+      - "user_other": ${ users[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "user_female": ${ users[0].gender == 'female' }
+      - "respondent_other": ${ respondents[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "respondent_male": ${ respondents[0].gender == 'male' }
+      - "respondent_female": ${ respondents[0].gender == 'female' }
+      - "user_divorced": ${ user_marital_status=="Divorced" }
+      - "user_single": ${ user_marital_status=="Never Married" }
+      - "respondent_divorced": ${ respondent_marital_status=="Divorced" }
+      - "respondent_single": ${ respondent_marital_status=="Never Married" }
+      - "user_place_and_dob": ${ users[0].birthdate } in ${ user_birthplace }
+      - "respondent_place_and_dob": ${ other_parties[0].birthdate } in ${ respondent_birthplace }
+      - "user_city": ${ users[0].address.city }
+      - "respondent_city": ${ respondents[0].address.city }
+      - "user_move_date": ${ user_move_date }
+      - "present_arrangements_decision_making": ${ present_arrangements_decision_making }
+      - "present_arrangements_pt": ${ present_arrangements_pt }
+      - "present_arrangements_cs": ${ present_arrangements_cs }
+      - "agreement_details_sep_parent_property_etc": ${ agreement_details_sep_parent_property_etc }
+      - "no_other_proceedings": ${ not previous_court_proceedings }
+      - "other_proceedings": ${ previous_court_proceedings }
+      - "type_of_proceeding": ${ type_of_proceeding }
+      - "Orders_or_measures": ${ Orders_or_measures }
+      - "Circumstances": ${ Circumstances }
+      - "trial_court_city": ${ trial_court.address.city }
+      - "today()": ${ today() }
+      - "property_claim_yes": ${ claim_sought["property_claim_yes"] }
+      - "property_exclusive_possession": ${ property_claim_sought["property_claim_exclusive_possession_home"] }
+      - "property_division_of_property": ${ property_claim_sought["property_claim_equalization"] }
+      - "parenting_statement_yes": ${ claim_sought["divorce_act_access"] or claim_sought["divorce_act_custody"] }
+      - "income_statement_yes": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "expense_statement_yes": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "property_statement_yes": ${ claim_sought["property_claim_yes"] }
+  - name: Personal Representation Form & attachment - Nova Scotia
+    filename: Personal Representation Form & attachment - Nova Scotia
+    variable name: Personal_Representation_Form[i]
+    skip undefined: True
+    pdf template file: Personal_Representation_Form.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user_address": ${ users[0].address.address }
+      - "city_province": ${ users[0].address.city }, ${ users[0].address.state } 
+      - "user_postal_code": ${ users[0].address.zip}
+      - "user_phone": ${ user_phone }
+      - "user_email": ${ user_email }
+      - "today()": ${ today() }
+      - "user_signature": |
+          ${ users[0].signature_if_final(i) }
+      - "today()__2": ${ today() }
+      - "user_signature__2": |
+          ${ users[0].signature_if_final(i) }
+      - "user__2": ${ users[0] }
+      - "today()__3": ${ today() }
+      - "user_signature__3": |
+          ${ users[0].signature_if_final(i) }
+      - "Initials": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_2": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_3": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_4": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_5": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_6": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+  - name: Personal_Representation_Form_watermarked
+    filename: Personal_Representation_Form_watermarked
+    variable name: Personal_Representation_Form_watermarked[i]
+    skip undefined: True
+    pdf template file: Personal_Representation_Form_watermarked.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user_address": ${ users[0].address.address }
+      - "city_province": ${ users[0].address.city }, ${ users[0].address.state } 
+      - "user_postal_code": ${ users[0].address.zip}
+      - "user_phone": ${ user_phone }
+      - "user_email": ${ user_email }
+      - "today()": ${ today() }
+      - "user_signature": |
+          ${ users[0].signature_if_final(i) }
+      - "today()__2": ${ today() }
+      - "user_signature__2": |
+          ${ users[0].signature_if_final(i) }
+      - "user__2": ${ users[0] }
+      - "today()__3": ${ today() }
+      - "user_signature__3": |
+          ${ users[0].signature_if_final(i) }
+      - "Initials": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_2": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_3": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_4": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_5": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+      - "Initials_6": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+  - name: Contact_Information_Sheet
+    filename: Contact_Information_Sheet
+    variable name: Contact_Information_Sheet[i]
+    skip undefined: True
+    pdf template file: Contact_Information_Sheet.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "user__2": ${ users[0] }
+      - "today": ${ today() }
+      - "user_last": ${ users[0].name.last }
+      - "respondent_last": ${ respondents[0].name.last }
+      - "user_first": ${ users[0].name.first }
+      - "respondent_first": ${ respondents[0].name.first }
+      - "user_middle": ${ users[0].name.middle }
+      - "respondent_middle": ${ respondents[0].name.middle }
+      - "user_previous": ${ user_name_full_at_birth }
+      - "respondent_previous": ${ respondent_name_full_at_birth }
+      - "respondent_ms": ${ respondents[0].gender == 'female' }
+      - "respondent_adress_other": ${ respondents[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "user_mr": ${ users[0].gender == 'male' }
+      - "user_ms": ${ users[0].gender == 'female' }
+      - "user_other_address": ${ users[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "respondent_mr": ${ respondents[0].gender == 'male' }
+      - "respondent_female": ${ respondents[0].gender == 'female' }
+      - "respondent_male": ${ respondents[0].gender == 'male' }
+      - "user_female": ${ users[0].gender == 'female' }
+      - "user_male": ${ users[0].gender == 'male' }
+      - "user_other": ${ users[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "respondent_other": ${ respondents[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "respondent_birthdate_year": ${ other_parties[0].birthdate.format('yyyy') }
+      - "respondent_birthdate_month": ${ other_parties[0].birthdate.format('MMMM') }
+      - "user_birthdate_year": ${ users[0].birthdate.format('yyyy') }
+      - "respondent_birthdate_day": ${ ordinal(other_parties[0].birthdate.format('d'), use_word=False) }
+      - "user_birthdate_month": ${ users[0].birthdate.format('MMMM') }
+      - "user_birthdate_day": ${ ordinal(users[0].birthdate.format('d'), use_word=False) }
+      - "user_phone": ${ user_phone }
+      - "respondent_phone": ${ respondent_phone }
+      - "user_email": ${ user_email }
+      - "respondent_email": ${ respondent_email }
+      - "user_street": ${ users[0].address.address }
+      - "respondent_street": ${ respondents[0].address.address }
+      - "user_city": ${ users[0].address.city }
+      - "respondent_city": ${ users[0].address.city }
+      - "user_province": ${ users[0].address.state }
+      - "respondent_province": ${ respondents[0].address.state }
+      - "user_postal_code": ${ users[0].address.zip }
+      - "respondent_postal_code": ${ respondents[0].address.zip }
+      - "respondent_occupation": ${ respondent_occupation }
+      - "user_occupation": ${ user_occupation }
+      - "respondent_occupation_name": ${ respondent_occupation_name }
+      - "user_occupation_name": ${ user_occupation_name }
+      - "respondent_occupation_address_block": ${ respondent_occupation_address_block }
+      - "user_occupation_address_block": ${ user_occupation_address_block }
+      - "respondent_occupation_phone": ${ respondent_occupation_phone }
+      - "user_occupation_phone": ${ user_occupation_phone }
+      - "marriage_date": ${ marriage_date }
+      - "separation_date": ${ separated_date }
+      - "child1": ${ children[0] }
+      - "child1_gender": ${ children.item(0).gender.capitalize().replace("-"," ") }
+      - "child1_living_with": ${ children.item(0).living_with }
+      - "child1_birthdate": ${ children[0].birthdate.format('MM/dd/yyyy') }
+      - "child2_birthdate": ${ children[1].birthdate.format('MM/dd/yyyy') }
+      - "child2_gender": ${ children.item(1).gender.capitalize().replace("-"," ") }
+      - "child2_living_with": ${ children.item(1).living_with }
+      - "child2": ${ children[1] }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format('MM/dd/yyyy') }
+      - "child3_gender": ${ children.item(2).gender.capitalize().replace("-"," ") }
+      - "child3_living_with": ${ children.item(2).living_with }
+      - "child4_birthdate": ${ children[3].birthdate.format('MM/dd/yyyy') }
+      - "child4": ${ children[3] }
+      - "child4_gender": ${ children.item(3).gender.capitalize().replace("-"," ") }
+      - "child4_living_with": ${ children.item(3).living_with }
+      - "child5_gender": ${ children.item(4).gender.capitalize().replace("-"," ") }
+      - "child5_living_with": ${ children.item(4).living_with }
+      - "child5_birthdate": ${ children[4].birthdate.format('MM/dd/yyyy') }
+      - "child5": ${ children[4] }
+      - "today__2": ${ today() }
+      - "user_signature": |
+          ${ users[0].signature_if_final(i) }      
+      - "user__4": ${ users[0] }
+  - name: Contact_Information_Sheet_watermarked
+    filename: Contact_Information_Sheet_watermarked
+    variable name: Contact_Information_Sheet_watermarked[i]
+    skip undefined: True
+    pdf template file: Contact_Information_Sheet_watermarked.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "user__2": ${ users[0] }
+      - "today": ${ today() }
+      - "user_last": ${ users[0].name.last }
+      - "respondent_last": ${ respondents[0].name.last }
+      - "user_first": ${ users[0].name.first }
+      - "respondent_first": ${ respondents[0].name.first }
+      - "user_middle": ${ users[0].name.middle }
+      - "respondent_middle": ${ respondents[0].name.middle }
+      - "user_previous": ${ user_name_full_at_birth }
+      - "respondent_previous": ${ respondent_name_full_at_birth }
+      - "respondent_ms": ${ respondents[0].gender == 'female' }
+      - "respondent_adress_other": ${ respondents[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "user_mr": ${ users[0].gender == 'male' }
+      - "user_ms": ${ users[0].gender == 'female' }
+      - "user_other_address": ${ users[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "respondent_mr": ${ respondents[0].gender == 'male' }
+      - "respondent_female": ${ respondents[0].gender == 'female' }
+      - "respondent_male": ${ respondents[0].gender == 'male' }
+      - "user_female": ${ users[0].gender == 'female' }
+      - "user_male": ${ users[0].gender == 'male' }
+      - "user_other": ${ users[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "respondent_other": ${ respondents[0].gender == 'nonbinary' or 'prefer-not-to-say' }
+      - "respondent_birthdate_year": ${ other_parties[0].birthdate.format('yyyy') }
+      - "respondent_birthdate_month": ${ other_parties[0].birthdate.format('MMMM') }
+      - "user_birthdate_year": ${ users[0].birthdate.format('yyyy') }
+      - "respondent_birthdate_day": ${ ordinal(other_parties[0].birthdate.format('d'), use_word=False) }
+      - "user_birthdate_month": ${ users[0].birthdate.format('MMMM') }
+      - "user_birthdate_day": ${ ordinal(users[0].birthdate.format('d'), use_word=False) }
+      - "user_phone": ${ user_phone }
+      - "respondent_phone": ${ respondent_phone }
+      - "user_email": ${ user_email }
+      - "respondent_email": ${ respondent_email }
+      - "user_street": ${ users[0].address.address }
+      - "respondent_street": ${ respondents[0].address.address }
+      - "user_city": ${ users[0].address.city }
+      - "respondent_city": ${ users[0].address.city }
+      - "user_province": ${ users[0].address.state }
+      - "respondent_province": ${ respondents[0].address.state }
+      - "user_postal_code": ${ users[0].address.zip }
+      - "respondent_postal_code": ${ respondents[0].address.zip }
+      - "respondent_occupation": ${ respondent_occupation }
+      - "user_occupation": ${ user_occupation }
+      - "respondent_occupation_name": ${ respondent_occupation_name }
+      - "user_occupation_name": ${ user_occupation_name }
+      - "respondent_occupation_address_block": ${ respondent_occupation_address_block }
+      - "user_occupation_address_block": ${ user_occupation_address_block }
+      - "respondent_occupation_phone": ${ respondent_occupation_phone }
+      - "user_occupation_phone": ${ user_occupation_phone }
+      - "marriage_date": ${ marriage_date }
+      - "separation_date": ${ separated_date }
+      - "child1": ${ children[0] }
+      - "child1_gender": ${ children.item(0).gender.capitalize().replace("-"," ") }
+      - "child1_living_with": ${ children.item(0).living_with }
+      - "child1_birthdate": ${ children[0].birthdate.format('MM/dd/yyyy') }
+      - "child2_birthdate": ${ children[1].birthdate.format('MM/dd/yyyy') }
+      - "child2_gender": ${ children.item(1).gender.capitalize().replace("-"," ") }
+      - "child2_living_with": ${ children.item(1).living_with }
+      - "child2": ${ children[1] }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format('MM/dd/yyyy') }
+      - "child3_gender": ${ children.item(2).gender.capitalize().replace("-"," ") }
+      - "child3_living_with": ${ children.item(2).living_with }
+      - "child4_birthdate": ${ children[3].birthdate.format('MM/dd/yyyy') }
+      - "child4": ${ children[3] }
+      - "child4_gender": ${ children.item(3).gender.capitalize().replace("-"," ") }
+      - "child4_living_with": ${ children.item(3).living_with }
+      - "child5_gender": ${ children.item(4).gender.capitalize().replace("-"," ") }
+      - "child5_living_with": ${ children.item(4).living_with }
+      - "child5_birthdate": ${ children[4].birthdate.format('MM/dd/yyyy') }
+      - "child5": ${ children[4] }
+      - "today__2": ${ today() }
+      - "user_signature": |
+          ${ users[0].signature_if_final(i) }      
+      - "user__4": ${ users[0] }
+  - name: NS_Divorce_Form_62.09
+    filename: NS_Divorce_Form_62.09
+    variable name: NS_Divorce_attachment_62[i]
+    skip undefined: True
+    pdf template file: NS_Divorce_Form_62.09.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent__1": ${ respondents[0] }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format() }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format() }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format() }
+      - "child4": ${ children[3] }
+      - "child4_birthdate": ${ children[3].birthdate.format() }
+      - "child5_birthdate": ${ children[4].birthdate.format() }
+      - "child5": ${ children[4] }      
+      - "decision_making_responsibility": ${ claim_sought["divorce_act_custody"] }
+      - "parenting_time": ${ claim_sought["divorce_act_access"] }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other": ${ claim_other }
+      - "other_details": ${ other_details }
+      - "separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "separated_date": |
+          % if basis_for_divorce["basis_for_divorce_separation"]:
+          ${ separated_date }
+          % endif      
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "marriage_date": ${ marriage_date }
+      - "marriage_place": ${ marriage_place }
+      - "user_full_name_before_marriage": |
+          % if user_different_name:
+          ${ user_full_name_before_marriage }
+          % else:
+          ${ users[0] }
+          % endif      
+      - "respondent_full_name_before_marriage": |
+          % if respondent_different_name:
+          ${ respondent_full_name_before_marriage }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "user_full_name_at_birth":  |
+          % if user_different_name:
+          ${ user_name_full_at_birth }
+          % else:
+          ${ users[0] }
+          % endif      
+      - "respondent_full_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_full_at_birth }
+          % else:
+          ${ respondents[0] }
+          % endif       
+      - "user_marital_status": ${ user_marital_status }
+      - "respondent_marital_status": ${ respondent_marital_status }
+      - "user_place_and_dob": ${ users[0].birthdate } in ${ user_birthplace }
+      - "respondent_place_and_dob": ${ other_parties[0].birthdate } in ${ respondent_birthplace }      
+      - "user_city": ${ users[0].address.city }
+      - "respondent_city": ${ respondents[0].address.city }
+      - "user_move_date": ${ user_move_date }
+      - "present_arrangements_decision_making": ${ present_arrangements_decision_making }
+      - "present_arrangements_cs": ${ present_arrangements_cs }
+      - "agreement_details_sep_parent_property_etc": ${ agreement_details_sep_parent_property_etc }
+      - "type_of_proceeding": ${ type_of_proceeding }
+      - "Orders_or_measures": ${ Orders_or_measures }
+      - "Circumstances": ${ Circumstances }
+      - "trial_court": at the ${ trial_court }
+      - "user_address_block": ${ users[0].address.block() }
+      - "trial_court_city": ${ trial_court.address.city }
+      - "today()": ${ today() }
+      - "user_signature": |
+          ${ users[0].signature_if_final(i) }
+      - "property_claim_yes": ${ claim_sought["property_claim_yes"] }
+      - "property_exclusive_possession": ${ property_claim_sought["property_claim_exclusive_possession_home"] }
+      - "property_division_of_property": ${ property_claim_sought["property_claim_equalization"] }
+      - "parenting_statement_yes": ${ claim_sought["divorce_act_access"] or claim_sought["divorce_act_custody"] }
+      - "income_statement_yes": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "expense_statement_yes": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "property_statement_yes": ${ claim_sought["property_claim_yes"] }
+      - "income_statement_yes__2": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "expense_statement_yes__2": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "property_statement_yes__2": ${ claim_sought["property_claim_yes"] }
+  - name: NS_Divorce_Form_62.09_watermarked
+    filename: NS_Divorce_Form_62.09_watermarked
+    variable name: NS_Divorce_attachment_62_watermarked[i]
+    skip undefined: True
+    pdf template file: NS_Divorce_Form_62.09_watermarked.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent__1": ${ respondents[0] }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format() }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format() }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format() }
+      - "child4": ${ children[3] }
+      - "child4_birthdate": ${ children[3].birthdate.format() }
+      - "child5_birthdate": ${ children[4].birthdate.format() }
+      - "child5": ${ children[4] }      
+      - "decision_making_responsibility": ${ claim_sought["divorce_act_custody"] }
+      - "parenting_time": ${ claim_sought["divorce_act_access"] }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other": ${ claim_other }
+      - "other_details": ${ other_details }
+      - "separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "separated_date": |
+          % if basis_for_divorce["basis_for_divorce_separation"]:
+          ${ separated_date }
+          % endif      
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "marriage_date": ${ marriage_date }
+      - "marriage_place": ${ marriage_place }
+      - "user_full_name_before_marriage": |
+          % if user_different_name:
+          ${ user_full_name_before_marriage }
+          % else:
+          ${ users[0] }
+          % endif      
+      - "respondent_full_name_before_marriage": |
+          % if respondent_different_name:
+          ${ respondent_full_name_before_marriage }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "user_full_name_at_birth":  |
+          % if user_different_name:
+          ${ user_name_full_at_birth }
+          % else:
+          ${ users[0] }
+          % endif      
+      - "respondent_full_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_full_at_birth }
+          % else:
+          ${ respondents[0] }
+          % endif       
+      - "user_marital_status": ${ user_marital_status }
+      - "respondent_marital_status": ${ respondent_marital_status }
+      - "user_place_and_dob": ${ users[0].birthdate } in ${ user_birthplace }
+      - "respondent_place_and_dob": ${ other_parties[0].birthdate } in ${ respondent_birthplace }      
+      - "user_city": ${ users[0].address.city }
+      - "respondent_city": ${ respondents[0].address.city }
+      - "user_move_date": ${ user_move_date }
+      - "present_arrangements_decision_making": ${ present_arrangements_decision_making }
+      - "present_arrangements_cs": ${ present_arrangements_cs }
+      - "agreement_details_sep_parent_property_etc": ${ agreement_details_sep_parent_property_etc }
+      - "type_of_proceeding": ${ type_of_proceeding }
+      - "Orders_or_measures": ${ Orders_or_measures }
+      - "Circumstances": ${ Circumstances }
+      - "trial_court": at the ${ trial_court }
+      - "user_address_block": ${ users[0].address.block() }
+      - "trial_court_city": ${ trial_court.address.city }
+      - "today()": ${ today() }
+      - "user_signature": |
+          ${ users[0].signature_if_final(i) }
+      - "property_claim_yes": ${ claim_sought["property_claim_yes"] }
+      - "property_exclusive_possession": ${ property_claim_sought["property_claim_exclusive_possession_home"] }
+      - "property_division_of_property": ${ property_claim_sought["property_claim_equalization"] }
+      - "parenting_statement_yes": ${ claim_sought["divorce_act_access"] or claim_sought["divorce_act_custody"] }
+      - "income_statement_yes": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "expense_statement_yes": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "property_statement_yes": ${ claim_sought["property_claim_yes"] }
+      - "income_statement_yes__2": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "expense_statement_yes__2": ${ claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"] }
+      - "property_statement_yes__2": ${ claim_sought["property_claim_yes"] }
+  - name: Additional_Information
+    filename: Additional_Information
+    variable name: Additional_Information[i]        
+    skip undefined: True
+    pdf template file: Additional_Information.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }
+  - name: Key_Assumptions_NS
+    filename: Key_Assumptions_NS
+    variable name: Key_Assumptions_NS[i]        
+    skip undefined: True
+    pdf template file: Key_Assumptions_NS.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }  

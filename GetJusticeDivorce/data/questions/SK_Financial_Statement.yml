@@ -1,0 +1,951 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+objects:
+  - debt_payment: DAList.using(object_type=DAObject, there_are_any=True)
+---
+mandatory: True
+code: |
+  interview_metadata
+  if not defined("interview_metadata['SK_Financial_Statement']"):
+    interview_metadata.initializeObject("SK_Financial_Statement")
+    interview_metadata["SK_Financial_Statement"].update({
+      "al_weaver_version": "1.3.0",
+      "generated on": "2021-10-25",
+      "title": "Sk financial statement",
+      "short title": "Sk financial statement",
+      "description": "Sk financial statement",
+      "original_form": "",
+      "allowed courts": [
+      ],
+      "categories": [
+      ],        
+      "logic block variable": "interview_order_SK_Financial_Statement",
+      "attachment block variable": "SK_Financial_Statement_attachment",
+      "typical role": "plaintiff",
+    })
+---
+code: |
+  interview_metadata['main_interview_key'] =  'SK_Financial_Statement'
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_SK_Financial_Statement
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["SK_Financial_Statement"]["allowed courts"]
+  nav.set_section('review_SK_Financial_Statement')
+  user_role = 'plaintiff'
+  user_situation
+  employment_income
+  net_partnership
+  gross_business_income
+  exemptions_indian_act
+  
+  if claim_sought["support_claim_yes"] and support_claim_sought["divorce_act_spousal_support"]:
+    CPP_contributions
+    rent_or_mortgage
+    food
+    public_transit
+    medical_dental_premiums
+    clothing
+    if len(children) > 0:
+      children_child_care_babysitting  
+    RRSP_expense
+    debt_payment[0].details
+    life_insurance
+    
+  interview_order_SK_Financial_Statement = True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: employer information
+question: |
+  Employment Information
+fields:
+  - What best describes you current situation?: user_situation
+    datatype: checkboxes
+    choices:
+      - Employed: employed
+      - Self-Employed (not incorporated): self_employed
+      - Controlling shareholder, director, or officer of a corporation: control_corporation
+      - Beneficiary under a trust: beneficiary_under_a_trust
+      - Unemployed or Retired: unemployed
+      - Receive income from employment insurance, social assistance, a pension, workers' compensation, or disability payments: other_income_source
+    none of the above: False
+  - What is your Job / Occupation?: user_occupation
+    show if: user_situation["employed"]
+  - Name of employer: name_of_employer
+    show if: user_situation["employed"]
+  - What best describes your employment?: work
+    datatype: checkboxes
+    choices:
+      - Full Time: work_full_time
+      - Part Time: work_part_time
+    none of the above: False
+    show if: user_situation["employed"]
+  - How many hours do you work per week?: hours_per_week
+    show if: work["work_part_time"]
+  - What is your pay schedule?: pay_schedule
+    datatype: checkboxes
+    choices:
+      - Weekly: pay_weekly
+      - Every two weeks: pay_every_two_weeks
+      - Twice per month: pay_twice_per_month
+      - Monthly: pay_monthly
+    none of the above: False
+    show if: user_situation["employed"]
+  - Self Employed Details: self_employed_occupation
+    help: Name and address of business, professional practice or farm
+    show if: user_situation["self_employed"]
+  - Name of corporation: Name_of_corporation
+    show if: user_situation["control_corporation"]
+  - Interest in corporation: Interest_in_corporation
+    show if: user_situation["control_corporation"]
+  - Date of unemployed: unemployed_date
+    datatype: date
+    show if: user_situation["unemployed"]
+  - Most recent job / occupation: last_occupation
+    show if: user_situation["unemployed"]
+  - What is your reason for unemployment?: reason_unemployed
+    datatype: checkboxes
+    choices:
+      - Retired: reason_retired
+      - Not currently searching for work outside of the home: reason_not_searching_for_work_outside_home
+      - Currently searching for work: reason_searching
+      - Medically unable to work: reason_unable_to_work
+    none of the above: False
+    show if: user_situation["unemployed"]
+  - Were you employed in past year?: employed_in_past_year
+    datatype: yesnoradio
+    show if: user_situation["unemployed"]
+  - Source of income: other_income
+    datatype: checkboxes
+    choices:
+      - Employment insurance: employment_insurance
+      - Social assistance: social_assistance
+      - Pension: pension
+      - Workers compensation benefit: workers_compensation_benefit
+      - Disability insurance: disability_insurance
+    none of the above: False
+    show if: user_situation["other_income_source"]
+  - Do you expect any significant changes that will effect the set out in this financial statement?: changes
+    datatype: yesnoradio
+  - Please explain these changes: changes_details
+    datatype: area
+    show if: changes    
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: detailed income
+question: |
+  Your Income Details
+fields:
+  - Employment income: employment_income
+    datatype: currency
+    help: wages, salaries, commissions, bonuses, overtime, etc.
+  - Other employment income: other_employment_income
+    datatype: currency
+    help: tips, foreign income, research grants, etc.
+  - Pension income: pension_income
+    datatype: currency
+    help: Old Age Security, CPP, superannuation, etc.
+  - Taxable disability income: taxable_disability_income
+    datatype: currency
+  - Employment insurance benefits: employment_insurance_benefit
+    datatype: currency
+  - Taxable amount of dividends from taxable Canadian corporations: taxable_dividends
+    datatype: currency
+  - Interest and other investment income: interest_and_investment_income
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: additional income
+question: |
+  Additional Income Details
+fields:
+  - Net partnership income (limited or non-active partners only): net_partnership
+    datatype: currency
+  - Gross rental income: gross_rental_income
+    datatype: currency
+  - Net rental income: net_rental
+    datatype: currency
+  - Taxable capital gains: taxable_capital_gains
+    datatype: currency
+  - Total spousal support received: total_spousal_support
+    datatype: currency
+  - Taxable spousal support received: taxable_spousal_support
+    datatype: currency
+  - RRSP Income: rrsp_income
+    datatype: currency
+  - Workers' compensation benefits: wcb_income
+    datatype: currency
+  - Social assistance income: social_assistance_income
+    datatype: currency
+  - Net taxable federal supplements: net_taxable_federal_supplements
+    datatype: currency
+  - Other taxable income: other_income
+    datatype: currency
+    help: e.g. scholarships, bursaries, study grants, certain lump sum payment or death benefits, severance pay, etc.
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: additional income
+question: |
+  Self Employment Income Details
+fields:
+  - Gross business income: gross_business_income
+    datatype: currency
+  - Net business income: net_business_income
+    datatype: currency
+  - Gross professional income: gross_professional_income
+    datatype: currency
+  - Net professional income: net_professional_income
+    datatype: currency
+  - Gross commission income: gross_commission_income
+    datatype: currency
+  - Net commission income: net_commission_income
+    datatype: currency
+  - Net farming income: net_farming_income
+    datatype: currency
+  - Gross farming income: gross_farming_income
+    datatype: currency
+  - Gross fishing income: gross_fishing_income
+    datatype: currency
+  - Net fishing income: net_fishing_income
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: Non-Taxable Income
+question: |
+  Non-Taxable Income
+fields:
+  - Exempt income due to status under the Indian Act: exemptions_indian_act
+    datatype: currency
+  - Child Tax Benefit: child_tax_benefit
+    datatype: currency
+  - GST benefit: gst_benefit
+    datatype: currency
+  - Child support: child_support
+    datatype: currency
+  - Band assistance payments: band_assistance_payments
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - Automatic Deductions
+question: |
+  Automatic Deductions
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - CPP contributions: CPP_contributions
+    datatype: currency
+  - EI premiums: El_premiums
+    datatype: currency
+  - Employee pension contributions: Employee_pension_contributions
+    datatype: currency
+  - Medical and dental insurance premiums: insurance_premiums
+    datatype: currency
+  - Income tax: income_tax
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - Housing
+question: |
+  Housing Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Rent or Mortgage: rent_or_mortgage
+    datatype: currency
+  - Property taxes: property_taxes
+    datatype: currency
+  - Property insurance: home_insurance
+    datatype: currency
+  - Water, Sewer, and Garbage: water_sewer_garbage
+    datatype: currency
+  - Condo Fees: condo_fees
+    datatype: currency
+  - House repairs, maintenance, yard care : house_maintenance
+    datatype: currency
+  - Heat, electricity: heat_electricity
+    datatype: currency
+  - Telephone, cable, internet: telephone_cable_internet
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - Household Expenses
+question: |
+  Household Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Food: food
+    datatype: currency
+  - General household supplies: general_household_supplies
+    datatype: currency
+  - Meals outside the home: meals_outside_home
+    datatype: currency
+  - Furnishings and equipment: furnishings_and_equipment
+    datatype: currency
+  - Hair care, toiletries, sundries: toiletries
+    datatype: currency
+  - Dry cleaning and laundry: dry_cleaning_and_laundry
+    datatype: currency
+  - Furnishings and equipment : furnishing
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - Transportation
+question: |
+  Transportation Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Public transit, taxis: public_transit
+    datatype: currency
+  - Gas and oil: gas_and_oil
+    datatype: currency
+  - Car insurance: car_insurance
+    datatype: currency
+  - Repairs and maintenance: car_repair_and_maintenance
+    datatype: currency
+  - Parking: parking
+    datatype: currency
+  - Lease Payments / Car Loan: car_loan
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - Health
+question: |
+  Health Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Medical / Dental insurance premiums: medical_dental_premiums
+    datatype: currency
+  - Health care (net of coverage): health_care
+    datatype: currency
+  - Dental Care (net of coverage): dental_care
+    datatype: currency
+  - Optical Care: optical_care
+    datatype: currency
+    help: eyeclasses, contal lenses
+  - Medicine and drugs: drugs_prescriptions
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - Personal 
+question: |
+  Personal Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Clothing: clothing
+    datatype: currency
+  - Education: educational_expense
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - Childcare Costs
+question: |
+  Childcare Costs
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Child Care: children_child_care_babysitting
+    datatype: currency
+  - Clothing: children_clothing
+    datatype: currency
+  - Hair Care: child_hair_care
+    datatype: currency
+  - School Fees and Supplies: children_school
+    datatype: currency
+  - School Activities: children_activities_school
+    datatype: currency
+  - Activities and lessons: children_activities_lessons
+    datatype: currency
+  - Gifts: child_gifts
+    datatype: currency
+  - Insurance: child_insurance
+    datatype: currency
+  - Allowance: children_allowance
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - Savings
+question: |
+  Debt Payments
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - RRSP: RRSP_expense
+    datatype: currency
+  - RESP: RESP_expense
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - debt
+question: |
+  Savings
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Details: debt_payment[i].details
+  - Amount: debt_payment[i].amount
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: expenses - other
+question: |
+  Other Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Life insurance: life_insurance
+    datatype: currency
+  - Banking, legal, accounting: banking
+    datatype: currency
+  - Church, charitable donations: church_charity
+    datatype: currency
+  - Entertainment and recreation: Entertainment_and_recreation
+    datatype: currency
+  - Vacation: vacation
+    datatype: currency
+  - Alcohol, tobacco, marijuana: alcohol_tabacco
+    datatype: currency
+---
+objects:
+  - SK_Financial_Statement_CS: ALDocument.using(title="Financial Statement (15-47)", filename="Financial_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - SK_Financial_Statement_SS: ALDocument.using(title="Financial Statement (15-47)", filename="Financial_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - SK_Financial_Statement_CS_watermarked: ALDocument.using(title="Financial Statement (15-47)", filename="Financial_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - SK_Financial_Statement_SS_watermarked: ALDocument.using(title="Financial Statement (15-47)", filename="Financial_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+attachments:      
+  - name: SK_Financial_Statement_CS
+    filename: SK_Financial_Statement_CS     
+    variable name: SK_Financial_Statement_CS[i]        
+    skip undefined: True
+    pdf template file: SK_Financial_Statement_CS.pdf
+    fields:
+      - "trial_court": ${ trial_court }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "no_changes": ${ not changes }
+      - "changes": ${ changes }
+      - "changes_details": ${ changes_details }
+      - "employed": ${ user_situation["employed"] }
+      - "user_occupation": ${ user_occupation }
+      - "name_of_employer": ${ name_of_employer }
+      - "work_full_time": ${ work["work_full_time"] }
+      - "work_part_time": ${ work["work_part_time"] }
+      - "hours_per_week": ${ hours_per_week }
+      - "pay_weekly": ${ pay_schedule["pay_weekly"] }
+      - "pay_every_two_weeks": ${ pay_schedule["pay_every_two_weeks"] }
+      - "pay_twice_per_month": ${ pay_schedule["pay_twice_per_month"] }
+      - "paw_monthly": ${ pay_schedule["pay_monthly"] }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "details_of_self_employed": ${ self_employed_occupation }
+      - "proof_employed__2": ${ user_situation["self_employed"] }
+      - "proof_self_employed": ${ user_situation["self_employed"] }
+      - "control_corporation": ${ user_situation["control_corporation"] }
+      - "Name_of_corporation": ${ Name_of_corporation }
+      - "Interest_in_corporation": ${ Interest_in_corporation }
+      - "proof_corporation": ${ user_situation["control_corporation"] }
+      - "proof_corporation__2": ${ user_situation["control_corporation"] }
+      - "beneficiary_under_a_trust": ${ user_situation["beneficiary_under_a_trust"] }
+      - "proof_beneficiary_under_a_trust": ${ user_situation["beneficiary_under_a_trust"] }
+      - "unemployed_or_retired": ${ user_situation["unemployed"] }
+      - "unemployed_date": ${ unemployed_date }
+      - "last_occupation": ${ last_occupation }
+      - "reason_retired": ${ reason_unemployed["reason_retired"] }
+      - "reason_not_searching_for_work_outside_home": ${ reason_unemployed["reason_not_searching_for_work_outside_home"] }
+      - "reason_searching": ${ reason_unemployed["reason_searching"] }
+      - "reason_unable_to_work": ${ reason_unemployed["reason_unable_to_work"] }
+      - "employed_in_past_year": ${ employed_in_past_year }
+      - "other_income_source": ${ user_situation["other_income_source"] }
+      - "employment_insurance": ${ other_income["employment_insurance"] }
+      - "social_assistance": ${ other_income["social_assistance"] }
+      - "pension": ${ other_income["pension"] }
+      - "workers_compensation_benefit": ${ other_income["workers_compensation_benefit"] }
+      - "disability_insurance": ${ other_income["disability_insurance"] }
+      - "checked_if_other_income": ${ user_situation["other_income_source"] }
+      - "employment_income": ${ currency(employment_income) }
+      - "other_employment_income": ${ currency(other_employment_income) }
+      - "pension_income": ${ currency(pension_income) }
+      - "taxable_disability_income": ${ currency(taxable_disability_income) }
+      - "employment_insurance_benefit": ${ currency(employment_insurance_benefit) }
+      - "taxable_dividends": ${ currency(taxable_dividends) }
+      - "interest_and_investment_income": ${ currency(interest_and_investment_income) }
+      - "net_partnership": ${ currency(net_partnership) }
+      - "gross_rental_income": ${ currency(gross_rental_income) }
+      - "net_rental": ${ currency(net_rental) }
+      - "taxable_capital_gains": ${ currency(taxable_capital_gains) }
+      - "total_spousal_support": ${ currency(total_spousal_support) }
+      - "taxable_spousal_support": ${ currency(taxable_spousal_support) }
+      - "rrsp_income": ${ currency(rrsp_income) }
+      - "gross_business_income": ${ currency(gross_business_income) }
+      - "net_business_income": ${ currency(net_business_income) }
+      - "gross_professional_income": ${ currency(gross_professional_income) }
+      - "net_professional_income": ${ currency(net_professional_income) }
+      - "gross_commission_income": ${ currency(gross_commission_income) }
+      - "net_commission_income": ${ currency(net_commission_income) }
+      - "net_farming_income": ${ currency(net_farming_income) }
+      - "gross_farming_income": ${ currency(gross_farming_income) }
+      - "gross_fishing_income": ${ currency(gross_fishing_income) }
+      - "net_fishing_income": ${ currency(net_fishing_income) }
+      - "wcb_income": ${ currency(wcb_income) }
+      - "social_assistance_income": ${ currency(social_assistance_income) }
+      - "net_taxable_federal_supplements": ${ currency(net_taxable_federal_supplements) }
+      - "other_income": ${ currency(other_income) }
+      - "total_annual_income": ${ currency(sum_if_defined("employment_income", "other_employment_income", "pension_income", "taxable_disability_income", "employment_insurance_benefit", "taxable_dividends", "interest_and_investment_income", "net_partnership", "net_rental", "taxable_capital_gains", "taxable_spousal_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "wcb_income", "social_assistance_income", "net_taxable_federal_supplements", "other_income")) }
+      - "exemptions_indian_act": ${ currency(exemptions_indian_act) }
+      - "child_tax_benefit": ${ currency(child_tax_benefit) }
+      - "gst_benefit": ${ currency(gst_benefit) }
+      - "child_support": ${ currency(child_support) }
+      - "band_assistance_payments": ${ currency(band_assistance_payments) }
+      - "total_non_taxable_income": ${ currency(sum_if_defined("exemptions_indian_act", "child_tax_benefit", "gst_benefit", "child_support", "band_assistance_payments")) }
+      - "checked__3": ${ user_situation["employed"] }
+  - name: SK_Financial_Statement_SS
+    filename: SK_Financial_Statement_SS     
+    variable name: SK_Financial_Statement_SS[i]        
+    skip undefined: True
+    pdf template file: SK_Financial_Statement_SS.pdf
+    fields:
+      - "trial_court": ${ trial_court }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "no_changes": ${ not changes }
+      - "changes": ${ changes }
+      - "changes_details": ${ changes_details }
+      - "employed": ${ user_situation["employed"] }
+      - "user_occupation": ${ user_occupation }
+      - "name_of_employer": ${ name_of_employer }
+      - "work_full_time": ${ work["work_full_time"] }
+      - "work_part_time": ${ work["work_part_time"] }
+      - "hours_per_week": ${ hours_per_week }
+      - "pay_weekly": ${ pay_schedule["pay_weekly"] }
+      - "pay_every_two_weeks": ${ pay_schedule["pay_every_two_weeks"] }
+      - "pay_twice_per_month": ${ pay_schedule["pay_twice_per_month"] }
+      - "paw_monthly": ${ pay_schedule["pay_monthly"] }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "details_of_self_employed": ${ self_employed_occupation }
+      - "proof_employed__2": ${ user_situation["self_employed"] }
+      - "proof_self_employed": ${ user_situation["self_employed"] }
+      - "control_corporation": ${ user_situation["control_corporation"] }
+      - "Name_of_corporation": ${ Name_of_corporation }
+      - "Interest_in_corporation": ${ Interest_in_corporation }
+      - "proof_corporation": ${ user_situation["control_corporation"] }
+      - "proof_corporation__2": ${ user_situation["control_corporation"] }
+      - "beneficiary_under_a_trust": ${ user_situation["beneficiary_under_a_trust"] }
+      - "proof_beneficiary_under_a_trust": ${ user_situation["beneficiary_under_a_trust"] }
+      - "unemployed_or_retired": ${ user_situation["unemployed"] }
+      - "unemployed_date": ${ unemployed_date }
+      - "last_occupation": ${ last_occupation }
+      - "reason_retired": ${ reason_unemployed["reason_retired"] }
+      - "reason_not_searching_for_work_outside_home": ${ reason_unemployed["reason_not_searching_for_work_outside_home"] }
+      - "reason_searching": ${ reason_unemployed["reason_searching"] }
+      - "reason_unable_to_work": ${ reason_unemployed["reason_unable_to_work"] }
+      - "employed_in_past_year": ${ employed_in_past_year }
+      - "other_income_source": ${ user_situation["other_income_source"] }
+      - "employment_insurance": ${ other_income["employment_insurance"] }
+      - "social_assistance": ${ other_income["social_assistance"] }
+      - "pension": ${ other_income["pension"] }
+      - "workers_compensation_benefit": ${ other_income["workers_compensation_benefit"] }
+      - "disability_insurance": ${ other_income["disability_insurance"] }
+      - "checked_if_other_income": ${ user_situation["other_income_source"] }
+      - "employment_income": ${ currency(employment_income) }
+      - "other_employment_income": ${ currency(other_employment_income) }
+      - "pension_income": ${ currency(pension_income) }
+      - "taxable_disability_income": ${ currency(taxable_disability_income) }
+      - "employment_insurance_benefit": ${ currency(employment_insurance_benefit) }
+      - "taxable_dividends": ${ currency(taxable_dividends) }
+      - "interest_and_investment_income": ${ currency(interest_and_investment_income) }
+      - "net_partnership": ${ currency(net_partnership) }
+      - "gross_rental_income": ${ currency(gross_rental_income) }
+      - "net_rental": ${ currency(net_rental) }
+      - "taxable_capital_gains": ${ currency(taxable_capital_gains) }
+      - "total_spousal_support": ${ currency(total_spousal_support) }
+      - "taxable_spousal_support": ${ currency(taxable_spousal_support) }
+      - "rrsp_income": ${ currency(rrsp_income) }
+      - "gross_business_income": ${ currency(gross_business_income) }
+      - "net_business_income": ${ currency(net_business_income) }
+      - "gross_professional_income": ${ currency(gross_professional_income) }
+      - "net_professional_income": ${ currency(net_professional_income) }
+      - "gross_commission_income": ${ currency(gross_commission_income) }
+      - "net_commission_income": ${ currency(net_commission_income) }
+      - "net_farming_income": ${ currency(net_farming_income) }
+      - "gross_farming_income": ${ currency(gross_farming_income) }
+      - "gross_fishing_income": ${ currency(gross_fishing_income) }
+      - "net_fishing_income": ${ currency(net_fishing_income) }
+      - "wcb_income": ${ currency(wcb_income) }
+      - "social_assistance_income": ${ currency(social_assistance_income) }
+      - "net_taxable_federal_supplements": ${ currency(net_taxable_federal_supplements) }
+      - "other_income": ${ currency(other_income) }
+      - "total_annual_income": ${ currency(sum_if_defined("employment_income", "other_employment_income", "pension_income", "taxable_disability_income", "employment_insurance_benefit", "taxable_dividends", "interest_and_investment_income", "net_partnership", "net_rental", "taxable_capital_gains", "taxable_spousal_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "wcb_income", "social_assistance_income", "net_taxable_federal_supplements", "other_income")) }
+      - "exemptions_indian_act": ${ currency(exemptions_indian_act) }
+      - "child_tax_benefit": ${ currency(child_tax_benefit) }
+      - "gst_benefit": ${ currency(gst_benefit) }
+      - "child_support": ${ currency(child_support) }
+      - "band_assistance_payments": ${ currency(band_assistance_payments) }
+      - "total_non_taxable_income": ${ currency(sum_if_defined("exemptions_indian_act", "child_tax_benefit", "gst_benefit", "child_support", "band_assistance_payments")) }
+      - "CPP_contributions": ${ currency(CPP_contributions) }
+      - "El_premiums": ${ currency(El_premiums) }
+      - "Employee_pension_contributions": ${ currency(Employee_pension_contributions) }
+      - "insurance_premiums": ${ currency(insurance_premiums) }
+      - "income_tax": ${ currency(income_tax) }
+      - "rent_or_mortgage": ${ currency(rent_or_mortgage) }
+      - "property_taxes": ${ currency(property_taxes) }
+      - "home_insurance": ${ currency(home_insurance) }
+      - "condo_fees": ${ currency(condo_fees) }
+      - "water_sewer_garbage": ${ currency(water_sewer_garbage) }
+      - "house_maintenance": ${ currency(house_maintenance) }
+      - "heat_electricity": ${ currency(heat_electricity) }
+      - "telephone_cable_internet": ${ currency(telephone_cable_internet) }
+      - "food": ${ currency(food) }
+      - "meals_outside_home": ${ currency(meals_outside_home) }
+      - "general_household_supplies": ${ currency(general_household_supplies) }
+      - "toiletries": ${ currency(toiletries) }
+      - "dry_cleaning_and_laundry": ${ currency(dry_cleaning_and_laundry) }
+      - "furnishing": ${ currency(furnishing) }
+      - "public_transit": ${ currency(public_transit) }
+      - "car_insurance": ${ currency(car_insurance) }
+      - "gas_and_oil": ${ currency(gas_and_oil) }
+      - "parking": ${ currency(parking) }
+      - "car_repair_and_maintenance": ${ currency(car_repair_and_maintenance) }
+      - "car_loan": ${ currency(car_loan) }
+      - "medical_dental_premiums": ${ currency(medical_dental_premiums) }
+      - "health_care": ${ currency(health_care) }
+      - "drugs_prescriptions": ${ currency(drugs_prescriptions) }
+      - "dental_care": ${ currency(dental_care) }
+      - "optical_care": ${ currency(optical_care) }
+      - "clothing": ${ currency(clothing) }
+      - "educational_expense": ${ currency(educational_expense) }
+      - "children_clothing": |
+          % if len(children) > 0:
+          ${ currency(children_clothing) }
+          % else:
+          $0.00
+          % endif
+      - "children_allowance": |
+          % if len(children) > 0:
+          ${ currency(children_allowance) }
+          % else:
+          $0.00
+          % endif
+      - "children_school": |
+          % if len(children) > 0:
+          ${ currency(children_school) }
+          % else:
+          $0.00
+          % endif
+      - "children_activities_school": |
+          % if len(children) > 0:
+          ${ currency(children_activities_school) }
+          % else:
+          $0.00
+          % endif
+      - "children_activities_lessons": |
+          % if len(children) > 0:
+          ${ currency(children_activities_lessons) }
+          % else:
+          $0.00
+          % endif
+      - "children_child_care_babysitting": |
+          % if len(children) > 0:
+          ${ currency(children_child_care_babysitting) }
+          % else:
+          $0.00
+          % endif
+      - "RRSP_expense": ${ currency(RRSP_expense) }
+      - "RESP_expense": ${ currency(RESP_expense) }
+      - "debt_payment1": ${ currency(debt_payment1) }
+      - "debt_payment_details1": ${ debt_payment_details1 }
+      - "debt_payment_details2": ${ debt_payment_details2 }
+      - "debt_payment2": ${ currency(debt_payment2) }
+      - "debt_payment_details3": ${ debt_payment_details3 }
+      - "debt_payment3": ${ currency(debt_payment3) }
+      - "life_insurance": ${ currency(life_insurance) }
+      - "banking": ${ currency(banking) }
+      - "church_charity": ${ currency(church_charity) }
+      - "Entertainment_and_recreation": ${ currency(Entertainment_and_recreation) }
+      - "vacation": ${ currency(vacation) }
+      - "alcohol_tabacco": ${ currency(alcohol_tabacco) }
+      - "subtotal_expenses": ${ currency(sum_if_defined("CPP_contributions", "El_premiums", "Employee_pension_contributions", "insurance_premiums", "income_tax", "rent_or_mortgage", "property_taxes", "home_insurance", "condo_fees", "water_sewer_garbage", "house_maintenance", "heat_electricity", "telephone_cable_internet", "food", "meals_outside_home", "general_household_supplies", "toiletries", "dry_cleaning_and_laundry", "furnishing", "public_transit", "car_insurance", "gas_and_oil", "parking", "car_repair_and_maintenance", "car_loan", "medical_dental_premiums", "health_care", "drugs_prescriptions", "dental_care", "optical_care", "clothing", "educational_expense", "children_clothing", "children_allowance", "children_school", "children_activities_school", "children_activities_lessons", "children_child_care_babysitting", "RRSP_expense", "RESP_expense", "debt_payment1", "debt_payment2", "debt_payment3", "life_insurance", "banking", "church_charity", "Entertainment_and_recreation", "vacation", "alcohol_tabacco")) }
+      - "subtotal_expenses__2": ${ currency(sum_if_defined("CPP_contributions", "El_premiums", "Employee_pension_contributions", "insurance_premiums", "income_tax", "rent_or_mortgage", "property_taxes", "home_insurance", "condo_fees", "water_sewer_garbage", "house_maintenance", "heat_electricity", "telephone_cable_internet", "food", "meals_outside_home", "general_household_supplies", "toiletries", "dry_cleaning_and_laundry", "furnishing", "public_transit", "car_insurance", "gas_and_oil", "parking", "car_repair_and_maintenance", "car_loan", "medical_dental_premiums", "health_care", "drugs_prescriptions", "dental_care", "optical_care", "clothing", "educational_expense", "children_clothing", "children_allowance", "children_school", "children_activities_school", "children_activities_lessons", "children_child_care_babysitting", "RRSP_expense", "RESP_expense", "debt_payment1", "debt_payment2", "debt_payment3", "life_insurance", "banking", "church_charity", "Entertainment_and_recreation", "vacation", "alcohol_tabacco")) }
+      - "annual_expenses": ${ currency(sum_if_defined("CPP_contributions", "El_premiums", "Employee_pension_contributions", "insurance_premiums", "income_tax", "rent_or_mortgage", "property_taxes", "home_insurance", "condo_fees", "water_sewer_garbage", "house_maintenance", "heat_electricity", "telephone_cable_internet", "food", "meals_outside_home", "general_household_supplies", "toiletries", "dry_cleaning_and_laundry", "furnishing", "public_transit", "car_insurance", "gas_and_oil", "parking", "car_repair_and_maintenance", "car_loan", "medical_dental_premiums", "health_care", "drugs_prescriptions", "dental_care", "optical_care", "clothing", "educational_expense", "children_clothing", "children_allowance", "children_school", "children_activities_school", "children_activities_lessons", "children_child_care_babysitting", "RRSP_expense", "RESP_expense", "debt_payment1", "debt_payment2", "debt_payment3", "life_insurance", "banking", "church_charity", "Entertainment_and_recreation", "vacation", "alcohol_tabacco") * 12) }
+      - "annual_expenses__2": ${ currency(sum_if_defined("CPP_contributions", "El_premiums", "Employee_pension_contributions", "insurance_premiums", "income_tax", "rent_or_mortgage", "property_taxes", "home_insurance", "condo_fees", "water_sewer_garbage", "house_maintenance", "heat_electricity", "telephone_cable_internet", "food", "meals_outside_home", "general_household_supplies", "toiletries", "dry_cleaning_and_laundry", "furnishing", "public_transit", "car_insurance", "gas_and_oil", "parking", "car_repair_and_maintenance", "car_loan", "medical_dental_premiums", "health_care", "drugs_prescriptions", "dental_care", "optical_care", "clothing", "educational_expense", "children_clothing", "children_allowance", "children_school", "children_activities_school", "children_activities_lessons", "children_child_care_babysitting", "RRSP_expense", "RESP_expense", "debt_payment1", "debt_payment2", "debt_payment3", "life_insurance", "banking", "church_charity", "Entertainment_and_recreation", "vacation", "alcohol_tabacco") * 12) }
+      - "checked__3": ${ user_situation["employed"] }
+  - name: SK_Financial_Statement_CS_watermarked
+    filename: SK_Financial_Statement_CS_watermarked     
+    variable name: SK_Financial_Statement_CS_watermarked[i]        
+    skip undefined: True
+    pdf template file: SK_Financial_Statement_CS_watermarked.pdf
+    fields:
+      - "trial_court": ${ trial_court }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "no_changes": ${ not changes }
+      - "changes": ${ changes }
+      - "changes_details": ${ changes_details }
+      - "employed": ${ user_situation["employed"] }
+      - "user_occupation": ${ user_occupation }
+      - "name_of_employer": ${ name_of_employer }
+      - "work_full_time": ${ work["work_full_time"] }
+      - "work_part_time": ${ work["work_part_time"] }
+      - "hours_per_week": ${ hours_per_week }
+      - "pay_weekly": ${ pay_schedule["pay_weekly"] }
+      - "pay_every_two_weeks": ${ pay_schedule["pay_every_two_weeks"] }
+      - "pay_twice_per_month": ${ pay_schedule["pay_twice_per_month"] }
+      - "paw_monthly": ${ pay_schedule["pay_monthly"] }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "details_of_self_employed": ${ self_employed_occupation }
+      - "proof_employed__2": ${ user_situation["self_employed"] }
+      - "proof_self_employed": ${ user_situation["self_employed"] }
+      - "control_corporation": ${ user_situation["control_corporation"] }
+      - "Name_of_corporation": ${ Name_of_corporation }
+      - "Interest_in_corporation": ${ Interest_in_corporation }
+      - "proof_corporation": ${ user_situation["control_corporation"] }
+      - "proof_corporation__2": ${ user_situation["control_corporation"] }
+      - "beneficiary_under_a_trust": ${ user_situation["beneficiary_under_a_trust"] }
+      - "proof_beneficiary_under_a_trust": ${ user_situation["beneficiary_under_a_trust"] }
+      - "unemployed_or_retired": ${ user_situation["unemployed"] }
+      - "unemployed_date": ${ unemployed_date }
+      - "last_occupation": ${ last_occupation }
+      - "reason_retired": ${ reason_unemployed["reason_retired"] }
+      - "reason_not_searching_for_work_outside_home": ${ reason_unemployed["reason_not_searching_for_work_outside_home"] }
+      - "reason_searching": ${ reason_unemployed["reason_searching"] }
+      - "reason_unable_to_work": ${ reason_unemployed["reason_unable_to_work"] }
+      - "employed_in_past_year": ${ employed_in_past_year }
+      - "other_income_source": ${ user_situation["other_income_source"] }
+      - "employment_insurance": ${ other_income["employment_insurance"] }
+      - "social_assistance": ${ other_income["social_assistance"] }
+      - "pension": ${ other_income["pension"] }
+      - "workers_compensation_benefit": ${ other_income["workers_compensation_benefit"] }
+      - "disability_insurance": ${ other_income["disability_insurance"] }
+      - "checked_if_other_income": ${ user_situation["other_income_source"] }
+      - "employment_income": ${ currency(employment_income) }
+      - "other_employment_income": ${ currency(other_employment_income) }
+      - "pension_income": ${ currency(pension_income) }
+      - "taxable_disability_income": ${ currency(taxable_disability_income) }
+      - "employment_insurance_benefit": ${ currency(employment_insurance_benefit) }
+      - "taxable_dividends": ${ currency(taxable_dividends) }
+      - "interest_and_investment_income": ${ currency(interest_and_investment_income) }
+      - "net_partnership": ${ currency(net_partnership) }
+      - "gross_rental_income": ${ currency(gross_rental_income) }
+      - "net_rental": ${ currency(net_rental) }
+      - "taxable_capital_gains": ${ currency(taxable_capital_gains) }
+      - "total_spousal_support": ${ currency(total_spousal_support) }
+      - "taxable_spousal_support": ${ currency(taxable_spousal_support) }
+      - "rrsp_income": ${ currency(rrsp_income) }
+      - "gross_business_income": ${ currency(gross_business_income) }
+      - "net_business_income": ${ currency(net_business_income) }
+      - "gross_professional_income": ${ currency(gross_professional_income) }
+      - "net_professional_income": ${ currency(net_professional_income) }
+      - "gross_commission_income": ${ currency(gross_commission_income) }
+      - "net_commission_income": ${ currency(net_commission_income) }
+      - "net_farming_income": ${ currency(net_farming_income) }
+      - "gross_farming_income": ${ currency(gross_farming_income) }
+      - "gross_fishing_income": ${ currency(gross_fishing_income) }
+      - "net_fishing_income": ${ currency(net_fishing_income) }
+      - "wcb_income": ${ currency(wcb_income) }
+      - "social_assistance_income": ${ currency(social_assistance_income) }
+      - "net_taxable_federal_supplements": ${ currency(net_taxable_federal_supplements) }
+      - "other_income": ${ currency(other_income) }
+      - "total_annual_income": ${ currency(sum_if_defined("employment_income", "other_employment_income", "pension_income", "taxable_disability_income", "employment_insurance_benefit", "taxable_dividends", "interest_and_investment_income", "net_partnership", "net_rental", "taxable_capital_gains", "taxable_spousal_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "wcb_income", "social_assistance_income", "net_taxable_federal_supplements", "other_income")) }
+      - "exemptions_indian_act": ${ currency(exemptions_indian_act) }
+      - "child_tax_benefit": ${ currency(child_tax_benefit) }
+      - "gst_benefit": ${ currency(gst_benefit) }
+      - "child_support": ${ currency(child_support) }
+      - "band_assistance_payments": ${ currency(band_assistance_payments) }
+      - "total_non_taxable_income": ${ currency(sum_if_defined("exemptions_indian_act", "child_tax_benefit", "gst_benefit", "child_support", "band_assistance_payments")) }
+      - "checked__3": ${ user_situation["employed"] }
+  - name: SK_Financial_Statement_SS_watermarked
+    filename: SK_Financial_Statement_SS_watermarked     
+    variable name: SK_Financial_Statement_SS_watermarked[i]        
+    skip undefined: True
+    pdf template file: SK_Financial_Statement_SS_watermarked.pdf
+    fields:
+      - "trial_court": ${ trial_court }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "no_changes": ${ not changes }
+      - "changes": ${ changes }
+      - "changes_details": ${ changes_details }
+      - "employed": ${ user_situation["employed"] }
+      - "user_occupation": ${ user_occupation }
+      - "name_of_employer": ${ name_of_employer }
+      - "work_full_time": ${ work["work_full_time"] }
+      - "work_part_time": ${ work["work_part_time"] }
+      - "hours_per_week": ${ hours_per_week }
+      - "pay_weekly": ${ pay_schedule["pay_weekly"] }
+      - "pay_every_two_weeks": ${ pay_schedule["pay_every_two_weeks"] }
+      - "pay_twice_per_month": ${ pay_schedule["pay_twice_per_month"] }
+      - "paw_monthly": ${ pay_schedule["pay_monthly"] }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "details_of_self_employed": ${ self_employed_occupation }
+      - "proof_employed__2": ${ user_situation["self_employed"] }
+      - "proof_self_employed": ${ user_situation["self_employed"] }
+      - "control_corporation": ${ user_situation["control_corporation"] }
+      - "Name_of_corporation": ${ Name_of_corporation }
+      - "Interest_in_corporation": ${ Interest_in_corporation }
+      - "proof_corporation": ${ user_situation["control_corporation"] }
+      - "proof_corporation__2": ${ user_situation["control_corporation"] }
+      - "beneficiary_under_a_trust": ${ user_situation["beneficiary_under_a_trust"] }
+      - "proof_beneficiary_under_a_trust": ${ user_situation["beneficiary_under_a_trust"] }
+      - "unemployed_or_retired": ${ user_situation["unemployed"] }
+      - "unemployed_date": ${ unemployed_date }
+      - "last_occupation": ${ last_occupation }
+      - "reason_retired": ${ reason_unemployed["reason_retired"] }
+      - "reason_not_searching_for_work_outside_home": ${ reason_unemployed["reason_not_searching_for_work_outside_home"] }
+      - "reason_searching": ${ reason_unemployed["reason_searching"] }
+      - "reason_unable_to_work": ${ reason_unemployed["reason_unable_to_work"] }
+      - "employed_in_past_year": ${ employed_in_past_year }
+      - "other_income_source": ${ user_situation["other_income_source"] }
+      - "employment_insurance": ${ other_income["employment_insurance"] }
+      - "social_assistance": ${ other_income["social_assistance"] }
+      - "pension": ${ other_income["pension"] }
+      - "workers_compensation_benefit": ${ other_income["workers_compensation_benefit"] }
+      - "disability_insurance": ${ other_income["disability_insurance"] }
+      - "checked_if_other_income": ${ user_situation["other_income_source"] }
+      - "employment_income": ${ currency(employment_income) }
+      - "other_employment_income": ${ currency(other_employment_income) }
+      - "pension_income": ${ currency(pension_income) }
+      - "taxable_disability_income": ${ currency(taxable_disability_income) }
+      - "employment_insurance_benefit": ${ currency(employment_insurance_benefit) }
+      - "taxable_dividends": ${ currency(taxable_dividends) }
+      - "interest_and_investment_income": ${ currency(interest_and_investment_income) }
+      - "net_partnership": ${ currency(net_partnership) }
+      - "gross_rental_income": ${ currency(gross_rental_income) }
+      - "net_rental": ${ currency(net_rental) }
+      - "taxable_capital_gains": ${ currency(taxable_capital_gains) }
+      - "total_spousal_support": ${ currency(total_spousal_support) }
+      - "taxable_spousal_support": ${ currency(taxable_spousal_support) }
+      - "rrsp_income": ${ currency(rrsp_income) }
+      - "gross_business_income": ${ currency(gross_business_income) }
+      - "net_business_income": ${ currency(net_business_income) }
+      - "gross_professional_income": ${ currency(gross_professional_income) }
+      - "net_professional_income": ${ currency(net_professional_income) }
+      - "gross_commission_income": ${ currency(gross_commission_income) }
+      - "net_commission_income": ${ currency(net_commission_income) }
+      - "net_farming_income": ${ currency(net_farming_income) }
+      - "gross_farming_income": ${ currency(gross_farming_income) }
+      - "gross_fishing_income": ${ currency(gross_fishing_income) }
+      - "net_fishing_income": ${ currency(net_fishing_income) }
+      - "wcb_income": ${ currency(wcb_income) }
+      - "social_assistance_income": ${ currency(social_assistance_income) }
+      - "net_taxable_federal_supplements": ${ currency(net_taxable_federal_supplements) }
+      - "other_income": ${ currency(other_income) }
+      - "total_annual_income": ${ currency(sum_if_defined("employment_income", "other_employment_income", "pension_income", "taxable_disability_income", "employment_insurance_benefit", "taxable_dividends", "interest_and_investment_income", "net_partnership", "net_rental", "taxable_capital_gains", "taxable_spousal_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "wcb_income", "social_assistance_income", "net_taxable_federal_supplements", "other_income")) }
+      - "exemptions_indian_act": ${ currency(exemptions_indian_act) }
+      - "child_tax_benefit": ${ currency(child_tax_benefit) }
+      - "gst_benefit": ${ currency(gst_benefit) }
+      - "child_support": ${ currency(child_support) }
+      - "band_assistance_payments": ${ currency(band_assistance_payments) }
+      - "total_non_taxable_income": ${ currency(sum_if_defined("exemptions_indian_act", "child_tax_benefit", "gst_benefit", "child_support", "band_assistance_payments")) }
+      - "CPP_contributions": ${ currency(CPP_contributions) }
+      - "El_premiums": ${ currency(El_premiums) }
+      - "Employee_pension_contributions": ${ currency(Employee_pension_contributions) }
+      - "insurance_premiums": ${ currency(insurance_premiums) }
+      - "income_tax": ${ currency(income_tax) }
+      - "rent_or_mortgage": ${ currency(rent_or_mortgage) }
+      - "property_taxes": ${ currency(property_taxes) }
+      - "home_insurance": ${ currency(home_insurance) }
+      - "condo_fees": ${ currency(condo_fees) }
+      - "water_sewer_garbage": ${ currency(water_sewer_garbage) }
+      - "house_maintenance": ${ currency(house_maintenance) }
+      - "heat_electricity": ${ currency(heat_electricity) }
+      - "telephone_cable_internet": ${ currency(telephone_cable_internet) }
+      - "food": ${ currency(food) }
+      - "meals_outside_home": ${ currency(meals_outside_home) }
+      - "general_household_supplies": ${ currency(general_household_supplies) }
+      - "toiletries": ${ currency(toiletries) }
+      - "dry_cleaning_and_laundry": ${ currency(dry_cleaning_and_laundry) }
+      - "furnishing": ${ currency(furnishing) }
+      - "public_transit": ${ currency(public_transit) }
+      - "car_insurance": ${ currency(car_insurance) }
+      - "gas_and_oil": ${ currency(gas_and_oil) }
+      - "parking": ${ currency(parking) }
+      - "car_repair_and_maintenance": ${ currency(car_repair_and_maintenance) }
+      - "car_loan": ${ currency(car_loan) }
+      - "medical_dental_premiums": ${ currency(medical_dental_premiums) }
+      - "health_care": ${ currency(health_care) }
+      - "drugs_prescriptions": ${ currency(drugs_prescriptions) }
+      - "dental_care": ${ currency(dental_care) }
+      - "optical_care": ${ currency(optical_care) }
+      - "clothing": ${ currency(clothing) }
+      - "educational_expense": ${ currency(educational_expense) }
+      - "children_clothing": |
+          % if len(children) > 0:
+          ${ currency(children_clothing) }
+          % else:
+          $0.00
+          % endif
+      - "children_allowance": |
+          % if len(children) > 0:
+          ${ currency(children_allowance) }
+          % else:
+          $0.00
+          % endif
+      - "children_school": |
+          % if len(children) > 0:
+          ${ currency(children_school) }
+          % else:
+          $0.00
+          % endif
+      - "children_activities_school": |
+          % if len(children) > 0:
+          ${ currency(children_activities_school) }
+          % else:
+          $0.00
+          % endif
+      - "children_activities_lessons": |
+          % if len(children) > 0:
+          ${ currency(children_activities_lessons) }
+          % else:
+          $0.00
+          % endif
+      - "children_child_care_babysitting": |
+          % if len(children) > 0:
+          ${ currency(children_child_care_babysitting) }
+          % else:
+          $0.00
+          % endif
+      - "RRSP_expense": ${ currency(RRSP_expense) }
+      - "RESP_expense": ${ currency(RESP_expense) }
+      - "debt_payment1": ${ currency(debt_payment1) }
+      - "debt_payment_details1": ${ debt_payment_details1 }
+      - "debt_payment_details2": ${ debt_payment_details2 }
+      - "debt_payment2": ${ currency(debt_payment2) }
+      - "debt_payment_details3": ${ debt_payment_details3 }
+      - "debt_payment3": ${ currency(debt_payment3) }
+      - "life_insurance": ${ currency(life_insurance) }
+      - "banking": ${ currency(banking) }
+      - "church_charity": ${ currency(church_charity) }
+      - "Entertainment_and_recreation": ${ currency(Entertainment_and_recreation) }
+      - "vacation": ${ currency(vacation) }
+      - "alcohol_tabacco": ${ currency(alcohol_tabacco) }
+      - "subtotal_expenses": ${ currency(sum_if_defined("CPP_contributions", "El_premiums", "Employee_pension_contributions", "insurance_premiums", "income_tax", "rent_or_mortgage", "property_taxes", "home_insurance", "condo_fees", "water_sewer_garbage", "house_maintenance", "heat_electricity", "telephone_cable_internet", "food", "meals_outside_home", "general_household_supplies", "toiletries", "dry_cleaning_and_laundry", "furnishing", "public_transit", "car_insurance", "gas_and_oil", "parking", "car_repair_and_maintenance", "car_loan", "medical_dental_premiums", "health_care", "drugs_prescriptions", "dental_care", "optical_care", "clothing", "educational_expense", "children_clothing", "children_allowance", "children_school", "children_activities_school", "children_activities_lessons", "children_child_care_babysitting", "RRSP_expense", "RESP_expense", "debt_payment1", "debt_payment2", "debt_payment3", "life_insurance", "banking", "church_charity", "Entertainment_and_recreation", "vacation", "alcohol_tabacco")) }
+      - "subtotal_expenses__2": ${ currency(sum_if_defined("CPP_contributions", "El_premiums", "Employee_pension_contributions", "insurance_premiums", "income_tax", "rent_or_mortgage", "property_taxes", "home_insurance", "condo_fees", "water_sewer_garbage", "house_maintenance", "heat_electricity", "telephone_cable_internet", "food", "meals_outside_home", "general_household_supplies", "toiletries", "dry_cleaning_and_laundry", "furnishing", "public_transit", "car_insurance", "gas_and_oil", "parking", "car_repair_and_maintenance", "car_loan", "medical_dental_premiums", "health_care", "drugs_prescriptions", "dental_care", "optical_care", "clothing", "educational_expense", "children_clothing", "children_allowance", "children_school", "children_activities_school", "children_activities_lessons", "children_child_care_babysitting", "RRSP_expense", "RESP_expense", "debt_payment1", "debt_payment2", "debt_payment3", "life_insurance", "banking", "church_charity", "Entertainment_and_recreation", "vacation", "alcohol_tabacco")) }
+      - "annual_expenses": ${ currency(sum_if_defined("CPP_contributions", "El_premiums", "Employee_pension_contributions", "insurance_premiums", "income_tax", "rent_or_mortgage", "property_taxes", "home_insurance", "condo_fees", "water_sewer_garbage", "house_maintenance", "heat_electricity", "telephone_cable_internet", "food", "meals_outside_home", "general_household_supplies", "toiletries", "dry_cleaning_and_laundry", "furnishing", "public_transit", "car_insurance", "gas_and_oil", "parking", "car_repair_and_maintenance", "car_loan", "medical_dental_premiums", "health_care", "drugs_prescriptions", "dental_care", "optical_care", "clothing", "educational_expense", "children_clothing", "children_allowance", "children_school", "children_activities_school", "children_activities_lessons", "children_child_care_babysitting", "RRSP_expense", "RESP_expense", "debt_payment1", "debt_payment2", "debt_payment3", "life_insurance", "banking", "church_charity", "Entertainment_and_recreation", "vacation", "alcohol_tabacco") * 12) }
+      - "annual_expenses__2": ${ currency(sum_if_defined("CPP_contributions", "El_premiums", "Employee_pension_contributions", "insurance_premiums", "income_tax", "rent_or_mortgage", "property_taxes", "home_insurance", "condo_fees", "water_sewer_garbage", "house_maintenance", "heat_electricity", "telephone_cable_internet", "food", "meals_outside_home", "general_household_supplies", "toiletries", "dry_cleaning_and_laundry", "furnishing", "public_transit", "car_insurance", "gas_and_oil", "parking", "car_repair_and_maintenance", "car_loan", "medical_dental_premiums", "health_care", "drugs_prescriptions", "dental_care", "optical_care", "clothing", "educational_expense", "children_clothing", "children_allowance", "children_school", "children_activities_school", "children_activities_lessons", "children_child_care_babysitting", "RRSP_expense", "RESP_expense", "debt_payment1", "debt_payment2", "debt_payment3", "life_insurance", "banking", "church_charity", "Entertainment_and_recreation", "vacation", "alcohol_tabacco") * 12) }
+      - "checked__3": ${ user_situation["employed"] }

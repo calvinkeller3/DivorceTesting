@@ -1,0 +1,285 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+objects:
+  - debt_expense: DAList.using(object_type=DAObject, there_are_any=True)
+---
+mandatory: True
+code: |
+  interview_metadata
+  if not defined("interview_metadata['NS_Statement_of_Expense']"):
+    interview_metadata.initializeObject("NS_Statement_of_Expense")
+    interview_metadata["NS_Statement_of_Expense"].update({
+      "al_weaver_version": "1.3.0",
+      "generated on": "2021-10-15",
+      "title": "Ns statement of expense",
+      "short title": "Ns statement of expense",
+      "description": "Ns statement of expense",
+      "original_form": "",
+      "allowed courts": [
+      ],
+      "categories": [
+      ],        
+      "logic block variable": "interview_order_NS_Statement_of_Expense",
+      "attachment block variable": "NS_Statement_of_Expense_attachment",
+      "typical role": "plaintiff",
+    })
+---
+code: |
+  interview_metadata['main_interview_key'] =  'NS_Statement_of_Expense'
+---
+#################### Interview order #####################
+id: interview_order_NS_Statement_of_Expense
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["NS_Statement_of_Expense"]["allowed courts"]
+  nav.set_section('review_NS_Statement_of_Expense')
+  user_role = 'plaintiff'
+  rent_or_mortgage
+  food
+  car_payments
+  
+  if len(children) > 0: 
+    child_care_expenses
+    
+  child_support_paid
+  debt_expense[0].description
+  cpp_deductions
+  interview_order_NS_Statement_of_Expense = True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: Expenses - housing
+question: |
+  Housing Expenses 
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Rent or Mortgage: rent_or_mortgage
+    datatype: currency
+  - Municipal Taxes: municipal_taxes
+    datatype: currency
+  - Property/Fire Insurance": property_and_fire_insurance
+    datatype: currency
+  - Heat: heat
+    datatype: currency
+  - Electricity: electricity
+    datatype: currency
+  - Water: water
+    datatype: currency
+  - Telephone: telephone_postage
+    datatype: currency
+  - Cable: cable
+    datatype: currency
+  - House Maintenance & Repairs: house_maintenance
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: Expenses - personal
+question: |
+  Personal Expenses 
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Food: food
+    datatype: currency
+  - Toiletries: toiletries_supplies
+    datatype: currency
+  - Clothing: clothing
+    datatype: currency
+  - Laundry/Dry Cleaning": laundry_dry_cleaning
+    datatype: currency
+  - School Supplies": adult_school_supplies
+    datatype: currency
+  - Hair Care: hair_grooming
+    datatype: currency
+  - Life Insurance: life_insurance
+    datatype: currency
+  - Medicine/Drugs: drugs
+    datatype: currency
+  - Dental: dental
+    datatype: currency
+  - Glasses: glasses
+    datatype: currency
+  - Gifts for others: gifts
+    datatype: currency
+  - Newspapers or Magazines: newspapers_magazine
+    datatype: currency
+  - Charitable Donations: charitable_donations
+    datatype: currency
+  - Holidays: holidays
+    datatype: currency
+  - Entertainment: entertainment
+    datatype: currency
+  - Savings: savings
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: Expenses - vehicle
+question: |
+  Vehicle Expenses 
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Car Payments: car_payments
+    datatype: currency
+  - Gasoline: gas_expense
+    datatype: currency
+  - Car Maintenance: car_maintenance
+    datatype: currency
+  - Car Insurance or Fees: car_insurance_license
+    datatype: currency
+  - Parking/Tolls: parking_tolls
+    datatype: currency
+  - Taxis & Public Transport: taxis_public_transport
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: Expenses - children
+question: |
+  Children Expenses 
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Child care: child_care_expenses
+    datatype: currency
+  - Insurance for Children: children_insurance
+    datatype: currency
+  - Health Costs: children_health
+    datatype: currency
+  - School Supplies: children_school_expense
+    datatype: currency
+  - Post Secondary Expenses: children_post_secondary_expense
+    datatype: currency
+  - Extr-curricular Activities: extra_curricular_activities
+    datatype: currency
+  - Activities": children_allowance_Activities
+    datatype: currency
+  - Other Costs": other_children_costs
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: Expenses - other
+question: |
+  Other Expenses 
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Child support paid: child_support_paid
+    datatype: currency
+  - Spousal support paid: spousal_support_paid
+    datatype: currency
+  - Miscellaneous: miscellaneous
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: Expenses - debt
+question: |
+  Debt Payments 
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Debt Description: debt_expense[i].description
+  - Debt Payment Amount: debt_expense[i].amount
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: Expenses - automatic deductions
+question: |
+  Automatic Deductions from Income
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Canadian Pension Plan: cpp_deductions
+    datatype: currency
+  - Employment Insurance: EI_deductions
+    datatype: currency
+  - Other Pension: pension
+    datatype: currency
+  - Union Dues: union_dues
+    datatype: currency
+  - Medical Plan: medical_plan
+    datatype: currency
+---
+objects:
+  - NS_Statement_of_Expense_attachment: ALDocument.using(title="Ns statement of expense", filename="NS_Statement_of_Expense.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+attachments:
+  - name: NS Statement of Expense attachment
+    filename: NS_Statement_of_Expense     
+    variable name: NS_Statement_of_Expense_attachment[i]        
+    skip undefined: True
+    pdf template file: NS_Statement_of_Expense.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "today()": ${ today }
+      - "rent_or_mortgage": ${ currency(rent_or_mortgage) }
+      - "municipal_taxes": ${ currency(municipal_taxes) }
+      - "property_and_fire_insurance": ${ currency(property_and_fire_insurance) }
+      - "heat": ${ currency(heat) }
+      - "electricity": ${ currency(electricity) }
+      - "water": ${ currency(water) }
+      - "telephone_postage": ${ currency(telephone_postage) }
+      - "cable": ${ currency(cable) }
+      - "house_maintenance": ${ currency(house_maintenance) }
+      - "food": ${ currency(food) }
+      - "toiletries_supplies": ${ currency(toiletries_supplies) }
+      - "clothing": ${ currency(clothing) }
+      - "laundry_dry_cleaning": ${ currency(laundry_dry_cleaning) }
+      - "car_payments": ${ currency(car_payments) }
+      - "gas_expense": ${ currency(gas_expense) }
+      - "car_maintenance": ${ currency(car_maintenance) }
+      - "car_insurance_license": ${ currency(car_insurance_license) }
+      - "parking_tolls": ${ currency(parking_tolls) }
+      - "taxis_public_transport": ${ currency(taxis_public_transport) }
+      - "child_care_expenses": ${ currency(child_care_expenses) }
+      - "children_insurance": ${ currency(children_insurance) }
+      - "children_health": ${ currency(children_health) }
+      - "children_school_expense": ${ currency(children_school_expense) }
+      - "children_post_secondary_expense": ${ currency(children_post_secondary_expense) }
+      - "extra_curricular_activities": ${ currency(extra_curricular_activities) }
+      - "adult_school_supplies": ${ currency(adult_school_supplies) }
+      - "children_allowance_Activities": ${ currency(children_allowance_Activities) }
+      - "other_children_costs": ${ currency(other_children_costs) }
+      - "hair_grooming": ${ currency(hair_grooming) }
+      - "life_insurance": ${ currency(life_insurance) }
+      - "drugs": ${ currency(drugs) }
+      - "dental": ${ currency(dental) }
+      - "glasses": ${ currency(glasses) }
+      - "gifts": ${ currency(gifts) }
+      - "newspapers_magazine": ${ currency(newspapers_magazine) }
+      - "charitable_donations": ${ currency(charitable_donations) }
+      - "holidays": ${ currency(holidays) }
+      - "entertainment": ${ currency(entertainment) }
+      - "savings": ${ currency(savings) }
+      - "child_support_paid": ${ currency(child_support_paid) }
+      - "spousal_support_paid": ${ currency(spousal_support_paid) }
+      - "miscellaneous": ${ currency(miscellaneous) }
+      - "debt_payment1": ${ debt_expense[0].description }
+      - "debt_payment_amount1": ${ currency(debt_expense[0].amount) }
+      - "debt_payment2": ${ debt_expense[1].description }
+      - "debt_payment_amount2": ${ currency(debt_expense[1].amount) }
+      - "debt_payment3": ${ debt_expense[2].description }
+      - "debt_payment_amount3": ${ currency(debt_expense[2].amount) }
+      - "expense_subtotal": ${ currency(expense_subtotal) }
+      - "cpp_deductions": ${ currency(cpp_deductions) }
+      - "EI_deductions": ${ currency(EI_deductions) }
+      - "pension": ${ currency(pension) }
+      - "union_dues": ${ currency(union_dues) }
+      - "medical_plan": ${ currency(medical_plan) }
+      - "expenses_total": ${ currency(expenses_total) }
+      - "expenses_total__2": ${ currency(expenses_total) }
+      - "total_income_before_tax": ${ currency(total_income_before_tax) }
+      - "income_minus_expenses": ${ currency(income_minus_expenses) }
+      - "income_tax": ${ currency(income_tax) }
+      - "full_total": ${ currency(full_total) }

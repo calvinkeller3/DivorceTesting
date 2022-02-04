@@ -1,0 +1,475 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - MB_Financial_Statement.yml
+---
+mandatory: True
+code: |
+  interview_metadata
+  if not defined("interview_metadata['Form_70A__Petition_for_Divorce']"):
+    interview_metadata.initializeObject("Form_70A__Petition_for_Divorce")
+    interview_metadata["Form_70A__Petition_for_Divorce"].update({
+      "al_weaver_version": "1.2.0",
+      "generated on": "2021-09-15",
+      "title": "Petition for divorce",
+      "short title": "Manitoba Divorce",
+      "description": "Form 70a - petition for divorce",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_Form_70A__Petition_for_Divorce",
+      "attachment block variable": "Form_70A__Petition_for_Divorce_attachment",
+      "typical role": "plaintiff",
+    })
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+code: |
+  children[i].name.first
+  children[i].birthdate
+  children[i].where_lives
+  children[i].complete = True
+---
+#################### Interview order #####################
+id: interview_order_Form_70A__Petition_for_Divorce
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["Form_70A__Petition_for_Divorce"]["allowed courts"]
+  nav.set_section('review_Form_70A__Petition_for_Divorce')
+  user_role = 'plaintiff'
+  province_choice
+  trial_court_index
+  users.gather()
+  users[0].address.address
+  users[0].birthdate
+  user_different_name
+  set_parts(subtitle=str(users))
+  respondents.gather()
+  respondents.gather()
+  other_parties[0].birthdate
+  respondents[0].address.address
+  respondent_different_name
+  claim_sought
+  basis_for_divorce
+  lived_together
+  order_proceeding_about_parenting_arrangements
+  civil_protection_order
+  child_protection_order
+  order_proceeding_criminal_nature
+  children.gather()
+  
+  if children.target_number > 0:
+    proposed_parenting_arrangements
+   
+  if claim_sought["support_claim_yes"] and children.target_number > 0:
+    child_support_for
+  
+  if claim_sought["support_claim_yes"] or claim_sought["property_claim_yes"]:
+    interview_order_MB_Financial_Statement
+  
+  Form_70A__Petition_for_Divorce_preview_question
+  users[0].signature
+  
+  interview_order_Form_70A__Petition_for_Divorce = True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: Screen seven
+question: |
+  Previous Court Cases
+subquestion: |
+  Have any parties involved in this case been involved in another case regarding marriage, custody, access, parenting arrangements, or support? If yes, please explain
+fields:
+  - no label: order_proceeding_about_parenting_arrangements
+    datatype: area
+    required: False
+    rows: 5
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: Screen seven
+question: |
+  Other Proceedings
+subquestion: |
+  Have any parties involved in this case been involved in another case regarding civil protection order? If yes, please explain
+fields:
+  - no label: civil_protection_order
+    datatype: area
+    required: False
+    rows: 5
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: Screen seven
+question: |
+  Child Protection Order
+subquestion: |
+  Have any parties involved in this case been involved in another case in relation to any matter of a criminal nature? If yes, please explain
+fields:
+  - no label: child_protection_order
+    datatype: area
+    required: False
+    rows: 5
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: Screen seven
+question: |
+  Other Criminal Proceedings
+subquestion: |
+  Have any parties involved in this case been involved in another case regarding child protection order, proceeding, agreement, or measure? If yes, please explain
+fields:
+  - no label: order_proceeding_criminal_nature
+    datatype: area
+    required: False
+    rows: 5
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: how many children
+question: |
+  % if al_form_type in ['starts_case','existing_case','appeal']:
+  Are there any children from the marriage?
+  % else:
+  Are any children involved in this matter?
+  % endif  
+fields:
+  - no label: children.there_are_any
+    datatype: yesnoradio
+  - How many?: children.target_number
+    datatype: integer
+    show if: children.there_are_any
+validation code: |
+  if not children.there_are_any:
+    children.target_number = 0
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: children names without birthdate
+sets:
+  - children[0].name.first
+  - children[0].name.last
+question: |
+  % if hasattr(children, 'ask_number') and children.ask_number and children.target_number == 1:
+  Your Child's Name
+  % else:
+  Your Oldest Child's Name
+  % endif
+fields:
+  - code: |
+      children[0].name_fields()
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: children names without birthdate
+sets:
+  - children[i].name.first
+  - children[i].name.last
+question: |
+  Your ${ ordinal(i).capitalize() } Child's Name
+fields:
+  - code: |
+      children[i].name_fields()
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: children lives
+question: |
+  Additional Information about ${ children[i].familiar() }
+fields:
+  - Where does ${ children[i].familiar() } live?: children[i].where_lives
+    hint: City, Province
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: Screen one
+question: |
+  Parenting Arrangements
+fields:
+  - Outline your proposed parenting arrangements.: proposed_parenting_arrangements
+    datatype: area
+  - "Is there a agreement between the parties custody, access, parenting arrangements, support of the children or support of each other?": parenting_agreement_yes
+    datatype: yesnoradio
+  - "What are the dates of the agreements?": parenting_agreement
+    show if: parenting_agreement_yes
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: child support
+question: |
+  Child Support 
+fields:
+  - List the children you would like to claim child support for: child_support_for
+    datatype: area 
+    rows: 3
+  - Outline your proposed child support arrangements.: proposed_child_support_arrangements
+    datatype: area
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: preview Form_70A__Petition_for_Divorce
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ MB_preview_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. 
+continue button field: Form_70A__Petition_for_Divorce_preview_question    
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+objects:
+  - Form_70A__Petition_for_Divorce_attachment: ALDocument.using(title="Petition for Divorce", filename="Petition_for_Divorce.pdf", enabled=True, has_addendum=False)
+  - Form_70A__Petition_for_Divorce_watermarked: ALDocument.using(title="PREVIEW - Petition for Divorce", filename="Petition_for_Divorce.pdf", enabled=True, has_addendum=False)
+  - Additional_Information: ALDocument.using(title="Additional Information", filename="Additional_Information.pdf", enabled=True, has_addendum=False)
+  - Key_Assumptions_MB: ALDocument.using(title="Important Key Assumptions", filename="Key_Assumptions.pdf", enabled=True, has_addendum=False)
+---
+objects:
+  - MB_user_bundle: ALDocumentBundle.using(elements=[Form_70A__Petition_for_Divorce_attachment, MB_Financial_Statement_attachment, Additional_Information, Key_Assumptions_MB], filename="GetJustice_Divorce_package.pdf", title="All forms to download for your records", enabled=True)
+  - MB_GJ_bundle: ALDocumentBundle.using(elements=[Form_70A__Petition_for_Divorce_attachment, MB_Financial_Statement_attachment], filename="GetJustice_Divorce_package.pdf", title="All forms to download for your records", enabled=True)
+  - MB_preview_bundle: ALDocumentBundle.using(elements=[Form_70A__Petition_for_Divorce_watermarked, MB_Financial_Statement_watermarked], filename="PREVIEW_GetJustice_Divorce_package.pdf", title="All forms to download for your records", enabled=True)
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    MB_Financial_Statement_attachment.enabled=True
+  else:
+    MB_Financial_Statement_attachment.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    MB_Financial_Statement_watermarked.enabled=True
+  else:
+    MB_Financial_Statement_watermarked.enabled=False
+---
+attachments:
+  - name: Form 70A  Petition for Divorce attachment
+    filename: Form_70A__Petition_for_Divorce     
+    variable name: Form_70A__Petition_for_Divorce_attachment[i]   
+    skip undefined: True
+    pdf template file: Form_70A_-_Petition_for_Divorce.pdf
+    fields:
+      - "trial_court": ${ trial_court.address.city }
+      - "trial_court__2": ${ trial_court.address.city }
+      - "user": ${ users[0] }
+      - "user": ${ users[0] }
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent": ${ respondents[0] }
+      - "user_phone": ${ user_phone }
+      - "user_address_on_one_line": ${ users[0].address.on_one_line() }
+      - "respondent_address_on_one_line": ${ respondents[0].address.on_one_line() }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "File  FD":
+      - "user_address": ${ users[0].address.address } ${ users[0].address.city }, ${ users[0].address.state }
+      - "user_city_province_postal_code": ${ users[0].address.zip }
+      - "File  FD_2":
+      - "File  FD_3":
+      - "File  FD_4":
+      - "divorce_act_divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "child_support_table": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "parenting_claim": ${ access_or_parenting_time }
+      - "Check Box1":
+      - "Check Box1":
+      - "parenting_time": ${ parenting_time }
+      - "decision_making": ${ decision_making }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other": ${ claim_other }
+      - "costs": ${ claim_costs }
+      - "relief_claimed_details": ${ relief_claimed_details }
+      - "File  FD_5": ${ File_FD_5 }
+      - "adultery_paragraph": |
+          % if basis_for_divorce["basis_for_divorce_adultery"]:
+          There has been no condonation of or connivance at the grounds for divorce set out in this petition. 
+          %endif 
+      - "marriage_day": ${ ordinal(marriage_date.format('d'), use_word=False) }
+      - "marriage_month": ${ marriage_date.format('MMMM') }
+      - "marriage_year": ${ marriage_date.format('yyyy') }
+      - "marriage_place": ${ marriage_place }
+      - "living_start_day": ${ ordinal(started_living_together_date.format('d'), use_word=False) }
+      - "living_start_month": ${ started_living_together_date.format('MMMM') }
+      - "living_start_year": ${ started_living_together_date.format('yyyy') }
+      - "separated_day": ${ ordinal(separated_date.format('d'), use_word=False) }
+      - "separated_month": ${ separated_date.format('MMMM') }
+      - "separated_year": ${ separated_date.format('yyyy') }
+      - "user_same_name": ${ not user_different_name }
+      - "user_last_name_before_marriage": ${ user_name_last_before_marriage }
+      - "user_different_name": ${ user_different_name }
+      - "respondent_same_name": ${ not respondent_different_name }
+      - "respondent_last_name_before_marriage": ${ respondent_name_last_before_marriage }
+      - "respondent_different_name": ${ respondent_different_name }
+      - "user_full_name_at_birth": |
+          % if user_different_name:
+          ${ user_name_full_at_birth }
+          % else:
+          ${ users[0] }
+          % endif
+      - "respondent_full_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_full_at_birth }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "respondent_never_married": ${ respondent_marital_status=="Never Married" }
+      - "user_never_married": ${ user_marital_status=="Never Married" }
+      - "user_divorced": ${ user_marital_status=="Divorced" }
+      - "respondent_divorced": ${ respondent_marital_status=="Divorced" }
+      - "respondent_widowed": ${ respondent_marital_status=="Widowed" }
+      - "user_widowed": ${ user_marital_status=="Widowed" }
+      - "user_birthplace": ${ user_birthplace }
+      - "user_birthdate_year": ${ users[0].birthdate.format('yyyy') }
+      - "user_birthdate_month": ${ users[0].birthdate.format('MMMM') }
+      - "user_birthdate_day": ${ ordinal(users[0].birthdate.format('d'), use_word=False) }
+      - "respondent_birthplace": ${ respondent_birthplace }
+      - "respondent_birthdate_year": ${ other_parties[0].birthdate.format('yyyy') }
+      - "respondent_birthdate_month": ${ other_parties[0].birthdate.format('MMMM') }
+      - "respondent_birthdate_day": ${ ordinal(other_parties[0].birthdate.format('d'), use_word=False) }
+      - "names_and_birthdates_of_children": |
+          % if len(children) == 1:
+          ${ children[0] } born ${ children[0].birthdate.format() } living in ${ children[0].where_lives }.
+          % elif len(children) == 2:
+          ${ children[0] } born ${ children[0].birthdate.format() } living in ${ children[0].where_lives } and ${ children[1] } born ${ children[1].birthdate.format() } living in ${ children[1].where_lives }.
+          % elif len(children) == 3:
+          ${ children[0] } born ${ children[0].birthdate.format() } living in ${ children[0].where_lives}, ${ children[1] } born ${ children[1].birthdate.format() } living in ${ children[1].where_lives }, and ${ children[2] } born ${ children[2].birthdate.format() } living in ${ children[2].where_lives}.
+          % elif len(children) == 4:
+          ${ children[0] } born ${ children[0].birthdate.format() } living in ${ children[0].where_lives }, ${ children[1] } born ${ children[1].birthdate.format() } living in ${ children[1].where_lives }, and ${ children[2] } born ${ children[2].birthdate.format() } living in ${ children[2].where_lives}, and ${ children[3] } born ${ children[3].birthdate.format() } living in ${ children[3].where_lives }.
+          % endif
+      - "proposed_parenting_arrangements": ${ proposed_parenting_arrangements }
+      - "child_support_for": ${ child_support_for }
+      - "proposed_child_support_arrangements": ${ proposed_child_support_arrangements }
+      - "dates_of_agreements": ${ dates_of_agreements }
+      - "order_proceeding_about_parenting_arrangements": ${ order_proceeding_about_parenting_arrangements }
+      - "civil_protection_order": ${ civil_protection_order }
+      - "child_protection_order": ${ child_protection_order }
+      - "order_proceeding_criminal_nature": ${ order_proceeding_criminal_nature }
+      - "user_city": ${ users[0].address.city }
+      - "today_date": ${ ordinal(today().format('d'), use_word=False) }
+      - "today_month": ${ today().format('MMMM') }
+      - "today_year": ${ today().format('yyyy') }
+  - name: Form_70A_-_Petition_for_Divorce_watermarked
+    filename: Form_70A_-_Petition_for_Divorce_watermarked
+    variable name: Form_70A__Petition_for_Divorce_watermarked[i]        
+    skip undefined: True
+    pdf template file: Form_70A_-_Petition_for_Divorce_watermarked.pdf
+    fields:
+      - "trial_court": ${ trial_court.address.city }
+      - "trial_court__2": ${ trial_court.address.city }
+      - "user": ${ users[0] }
+      - "user": ${ users[0] }
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent": ${ respondents[0] }
+      - "user_phone": ${ user_phone }
+      - "user_address_on_one_line": ${ users[0].address.on_one_line() }
+      - "respondent_address_on_one_line": ${ respondents[0].address.on_one_line() }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "File  FD":
+      - "user_address": ${ users[0].address.address } ${ users[0].address.city }, ${ users[0].address.state }
+      - "user_city_province_postal_code": ${ users[0].address.zip }
+      - "File  FD_2":
+      - "File  FD_3":
+      - "File  FD_4":
+      - "divorce_act_divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "child_support_table": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "parenting_claim": ${ access_or_parenting_time }
+      - "Check Box1":
+      - "Check Box1":
+      - "parenting_time": ${ parenting_time }
+      - "decision_making": ${ decision_making }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other": ${ claim_other }
+      - "costs": ${ claim_costs }
+      - "relief_claimed_details": ${ relief_claimed_details }
+      - "File  FD_5": ${ File_FD_5 }
+      - "adultery_paragraph": |
+          % if basis_for_divorce["basis_for_divorce_adultery"]:
+          There has been no condonation of or connivance at the grounds for divorce set out in this petition. 
+          %endif 
+      - "marriage_day": ${ ordinal(marriage_date.format('d'), use_word=False) }
+      - "marriage_month": ${ marriage_date.format('MMMM') }
+      - "marriage_year": ${ marriage_date.format('yyyy') }
+      - "marriage_place": ${ marriage_place }
+      - "living_start_day": ${ ordinal(started_living_together_date.format('d'), use_word=False) }
+      - "living_start_month": ${ started_living_together_date.format('MMMM') }
+      - "living_start_year": ${ started_living_together_date.format('yyyy') }
+      - "separated_day": ${ ordinal(separated_date.format('d'), use_word=False) }
+      - "separated_month": ${ separated_date.format('MMMM') }
+      - "separated_year": ${ separated_date.format('yyyy') }
+      - "user_same_name": ${ not user_different_name }
+      - "user_last_name_before_marriage": ${ user_name_last_before_marriage }
+      - "user_different_name": ${ user_different_name }
+      - "respondent_same_name": ${ not respondent_different_name }
+      - "respondent_last_name_before_marriage": ${ respondent_name_last_before_marriage }
+      - "respondent_different_name": ${ respondent_different_name }
+      - "user_full_name_at_birth": |
+          % if user_different_name:
+          ${ user_name_full_at_birth }
+          % else:
+          ${ users[0] }
+          % endif
+      - "respondent_full_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_full_at_birth }
+          % else:
+          ${ respondents[0] }
+          % endif 
+      - "respondent_never_married": ${ respondent_marital_status=="Never Married" }
+      - "user_never_married": ${ user_marital_status=="Never Married" }
+      - "user_divorced": ${ user_marital_status=="Divorced" }
+      - "respondent_divorced": ${ respondent_marital_status=="Divorced" }
+      - "respondent_widowed": ${ respondent_marital_status=="Widowed" }
+      - "user_widowed": ${ user_marital_status=="Widowed" }
+      - "user_birthplace": ${ user_birthplace }
+      - "user_birthdate_year": ${ users[0].birthdate.format('yyyy') }
+      - "user_birthdate_month": ${ users[0].birthdate.format('MMMM') }
+      - "user_birthdate_day": ${ ordinal(users[0].birthdate.format('d'), use_word=False) }
+      - "respondent_birthplace": ${ respondent_birthplace }
+      - "respondent_birthdate_year": ${ other_parties[0].birthdate.format('yyyy') }
+      - "respondent_birthdate_month": ${ other_parties[0].birthdate.format('MMMM') }
+      - "respondent_birthdate_day": ${ ordinal(other_parties[0].birthdate.format('d'), use_word=False) }
+      - "names_and_birthdates_of_children": |
+          % if len(children) == 1:
+          ${ children[0] } born ${ children[0].birthdate.format() } living in ${ children[0].where_lives }.
+          % elif len(children) == 2:
+          ${ children[0] } born ${ children[0].birthdate.format() } living in ${ children[0].where_lives } and ${ children[1] } born ${ children[1].birthdate.format() } living in ${ children[1].where_lives }.
+          % elif len(children) == 3:
+          ${ children[0] } born ${ children[0].birthdate.format() } living in ${ children[0].where_lives}, ${ children[1] } born ${ children[1].birthdate.format() } living in ${ children[1].where_lives }, and ${ children[2] } born ${ children[2].birthdate.format() } living in ${ children[2].where_lives}.
+          % elif len(children) == 4:
+          ${ children[0] } born ${ children[0].birthdate.format() } living in ${ children[0].where_lives }, ${ children[1] } born ${ children[1].birthdate.format() } living in ${ children[1].where_lives }, and ${ children[2] } born ${ children[2].birthdate.format() } living in ${ children[2].where_lives}, and ${ children[3] } born ${ children[3].birthdate.format() } living in ${ children[3].where_lives }.
+          % endif
+      - "proposed_parenting_arrangements": ${ proposed_parenting_arrangements }
+      - "child_support_for": ${ child_support_for }
+      - "proposed_child_support_arrangements": ${ proposed_child_support_arrangements }
+      - "dates_of_agreements": ${ dates_of_agreements }
+      - "order_proceeding_about_parenting_arrangements": ${ order_proceeding_about_parenting_arrangements }
+      - "civil_protection_order": ${ civil_protection_order }
+      - "child_protection_order": ${ child_protection_order }
+      - "order_proceeding_criminal_nature": ${ order_proceeding_criminal_nature }
+      - "user_city": ${ users[0].address.city }
+      - "today_date": ${ ordinal(today().format('d'), use_word=False) }
+      - "today_month": ${ today().format('MMMM') }
+      - "today_year": ${ today().format('yyyy') }
+  - name: Additional_Information
+    filename: Additional_Information
+    variable name: Additional_Information[i]        
+    skip undefined: True
+    pdf template file: Additional_Information.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }
+  - name: Key_Assumptions_MB
+    filename: Key_Assumptions_MB
+    variable name: Key_Assumptions_MB[i]        
+    skip undefined: True
+    pdf template file: Key_Assumptions_MB.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }      

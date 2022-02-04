@@ -1,0 +1,710 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - BC_Property_and_Support_Claim.yml
+---
+mandatory: True
+comment: |
+  This contains metadata that will not be overwritten if this YAML file is included in another
+  file. Each file gets its own key in the interview_metadata dictionary.
+  Most keys are not currently used at runtime, other than "allowed courts".
+code: |
+  interview_metadata
+  if not defined("interview_metadata['BC_Divorce_Petition']"):
+    interview_metadata.initializeObject("BC_Divorce_Petition")
+    interview_metadata["BC_Divorce_Petition"].update({
+      "al_weaver_version": "1.2.0",
+      "generated on": "2021-09-23",
+      "title": "Bc divorce petition",
+      "short title": "Bc divorce petition",
+      "description": "Bc divorce petition",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_BC_Divorce_Petition",
+      "attachment block variable": "BC_Divorce_Petition_attachment",
+      "typical role": "plaintiff",
+    })
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+code: |
+  children[i].name.first
+  children[i].birthdate
+  children[i].living_with
+  children[i].user_relationship
+  children[i].respondent_relationship
+  children[i].move_date
+  children[i].complete = True
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_BC_Divorce_Petition
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["BC_Divorce_Petition"]["allowed courts"]
+  nav.set_section('review_BC_Divorce_Petition')
+  user_role = 'plaintiff'
+  province_choice
+  trial_court_index
+  users.gather()
+  set_parts(subtitle=str(users))
+  users[0].birthdate
+  users[0].address.address
+  user_different_name
+  respondents.gather()
+  other_parties[0].birthdate
+  respondents[0].address.address
+  respondent_different_name
+  claim_sought
+  basis_for_divorce
+  marriage_date
+  prior_agreements_or_cases
+  children.gather()
+  
+  if claim_sought["support_claim_yes"] and support_claim_sought["divorce_act_spousal_support"]:
+    current_spousal_support 
+    knows_income
+    
+  if claim_sought["support_claim_yes"] and support_claim_sought["divorce_act_table_child_support"]: 
+    current_parenting_arrangements
+    knows_income
+    
+  if claim_sought["divorce_act_custody"] or claim_sought["divorce_act_access"]:
+    current_parenting_arrangements
+    knows_income
+  
+  if claim_sought["support_claim_yes"] or claim_sought["property_claim_yes"]:
+    interview_order_f8
+  
+  BC_Divorce_Petition_preview_question
+  users[0].signature
+    
+  interview_order_BC_Divorce_Petition = True 
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: Screen seven
+question: |
+  Previous Court Cases or Agreements
+subquestion: |
+  Is there an prior agreement, court order, or court proceeding relating to this divorce claim?
+fields:
+  - no label: prior_agreements_or_cases
+    datatype: yesnoradio
+  - Which of the following applies to you: legal_proceedings
+    datatype: checkboxes
+    choices:
+      - Written Agreement: written_agreement_yes
+      - Court Order: court_order_yes
+      - Court Proceeding: prior_court_proceeding
+    none of the above: False  
+    show if: prior_agreements_or_cases
+  - Agreement Date: written_agreement_date
+    datatype: date
+    show if: legal_proceedings["written_agreement_yes"]    
+  - Court Order Date: court_order_dated
+    datatype: date
+    show if: legal_proceedings["court_order_yes"]
+  - Court File Number: file_number_prior
+    show if: legal_proceedings["prior_court_proceeding"]  
+  - Court Registry: court_registry_prior
+    show if: legal_proceedings["prior_court_proceeding"]  
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: Screen seven
+question: |
+  Agreements
+subquestion: |
+  Is there an existing agreement between you and your spouse?
+fields:
+  - no label: previous_agreements
+    datatype: yesnoradio
+  - Type of agreement: agree_type
+    hint: Oral or Written 
+    show if: previous_agreements
+  - Nature of agreement: agree_nature
+    hint: Separation, Financial, or Parenting agreement
+    show if: previous_agreements    
+  - Date agreed upon: agree_date
+    datatype: date
+    show if: previous_agreements
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: how many children
+question: |
+  % if al_form_type in ['starts_case','existing_case','appeal']:
+  Are there any children from the marriage?
+  % else:
+  Are any children involved in this matter?
+  % endif  
+fields:
+  - no label: children.there_are_any
+    datatype: yesnoradio
+  - How many?: children.target_number
+    datatype: integer
+    show if: children.there_are_any
+validation code: |
+  if not children.there_are_any:
+    children.target_number = 0
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: children names without birthdate
+sets:
+  - children[0].name.first
+  - children[0].name.last
+question: |
+  % if hasattr(children, 'ask_number') and children.ask_number and children.target_number == 1:
+  Your Child's Name
+  % else:
+  Your Oldest Child's Name
+  % endif
+fields:
+  - code: |
+      children[0].name_fields()
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: children names without birthdate
+sets:
+  - children[i].name.first
+  - children[i].name.last
+question: |
+  Your ${ ordinal(i).capitalize() } Child's Name
+fields:
+  - code: |
+      children[i].name_fields()
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: children gender and lives with
+question: |
+  Additional Information about ${ children[i].familiar() }
+fields:
+  - "Who does ${ children[i].familiar() } live with?": children[i].living_with
+    hint: Last Name, First Name
+  - What is your relationship to ${ children[i].familiar() }?: children[i].user_relationship
+  - What is your spouse's relationship to ${ children[i].familiar() }?: children[i].respondent_relationship
+  - Since when has ${ children[i].familiar() } resided in British Columbia?: children[i].move_date
+    datatype: date
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: spousal support arrangements
+question: |
+  Spousal Support Details
+fields:
+  - What are the current spousal support arrangements?: current_spousal_support
+    datatype: area
+  - What are your proposed spousal support arrangements?: proposed_spousal_support
+    datatype: area
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: parenting arrangements
+question: |
+  Parenting Details
+fields:
+  - What are the current parenting arrangements?: current_parenting_arrangements
+    datatype: area
+  - What are your proposed parenting arrangements?: proposed_parenting_arrangements
+    datatype: area
+  - What are the current child support arrangements?: current_child_support_arrangements
+    datatype: area
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: respondent income
+question: |
+  Your Spouse's Income Details
+fields:
+  - Do you know your Spouse's annual income?: knows_income
+    datatype: yesnoradio
+  - What is your Spouse's income?: respondent_income
+    datatype: currency
+    show if: knows_income
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: preview BC_Divorce_Petition
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ BC_preview_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. 
+continue button field: BC_Divorce_Petition_preview_question    
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+objects:
+  - BC_Divorce_Petition_attachment: ALDocument.using(title="Notice of Family Claim", filename="BC_Divorce_Petition.pdf", enabled=True, has_addendum=False)
+  - BC_Divorce_Petition_watermarked: ALDocument.using(title="PREVIEW - Notice of Family Claim", filename="BC_Divorce_Petition.pdf", enabled=True, has_addendum=False)
+  - Order_for_Spousal_Support: ALDocument.using(title="Order for Spousal Support", filename="Spousal_Support_attachment.pdf", has_addendum=False)
+  - Order_involving_children: ALDocument.using(title="Order involving Children", filename="Order_involving_children_attachment.pdf", has_addendum=False)
+  - Order_for_Property: ALDocument.using(title="Property Order", filename="Property_Order_attachment.pdf", has_addendum=False)
+  - Order_for_Spousal_Support_watermarked: ALDocument.using(title="PREVIEW - Order for Spousal Support", filename="Spousal_Support_attachment.pdf", has_addendum=False)
+  - Order_involving_children_watermarked: ALDocument.using(title="PREVIEW - Order involving Children", filename="Order_involving_children_attachment.pdf", has_addendum=False)
+  - Order_for_Property_watermarked: ALDocument.using(title="PREVIEW - Property Order", filename="Property_Order_attachment.pdf", has_addendum=False)
+  - Additional_Information: ALDocument.using(title="Additional Information", filename="Additional_Information.pdf", enabled=True, has_addendum=False)
+  - Key_Assumptions_BC: ALDocument.using(title="Important Key Assumptions", filename="Key_Assumptions.pdf", enabled=True, has_addendum=False)
+---
+objects:
+  - BC_user_bundle: ALDocumentBundle.using(elements=[BC_Divorce_Petition_attachment, Order_involving_children, Order_for_Spousal_Support, Order_for_Property, BC_Financial_Statement_attachment, Additional_Information, Key_Assumptions_BC], filename="BC_Divorce_Petition_package.pdf", title="All forms to download for your records", enabled=True)
+  - BC_GJ_bundle: ALDocumentBundle.using(elements=[BC_Divorce_Petition_attachment, Order_involving_children, Order_for_Spousal_Support, Order_for_Property, BC_Financial_Statement_attachment], filename="BC_Divorce_Petition_package.pdf", title="All forms to download for your records", enabled=True)
+  - BC_preview_bundle: ALDocumentBundle.using(elements=[BC_Divorce_Petition_watermarked, Order_involving_children_watermarked, Order_for_Spousal_Support_watermarked, Order_for_Property_watermarked, BC_Financial_Statement_Form_8_watermarked], filename="BC_Divorce_Petition_package.pdf", title="All forms to download for your records", enabled=True)
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    BC_Financial_Statement_attachment.enabled=True
+  else:
+    BC_Financial_Statement_attachment.enabled=False
+---
+code: |
+  if claim_sought["support_claim_yes"] and support_claim_sought["divorce_act_spousal_support"]:
+    Order_for_Spousal_Support.enabled=True
+  else:
+    Order_for_Spousal_Support.enabled=False
+---
+code: |
+  if claim_sought["support_claim_yes"] and support_claim_sought["divorce_act_table_child_support"]:
+    Order_involving_children.enabled=True
+  elif claim_sought["divorce_act_access"] or claim_sought["divorce_act_custody"]:
+    Order_involving_children.enabled=True
+  else: 
+    Order_involving_children.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"]:
+    Order_for_Property.enabled=True
+  else:
+    Order_for_Property.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    BC_Financial_Statement_Form_8_watermarked.enabled=True
+  else:
+    BC_Financial_Statement_Form_8_watermarked.enabled=False
+---
+code: |
+  if claim_sought["support_claim_yes"] and support_claim_sought["divorce_act_spousal_support"]:
+    Order_for_Spousal_Support_watermarked.enabled=True
+  else:
+    Order_for_Spousal_Support_watermarked.enabled=False
+---
+code: |
+  if claim_sought["support_claim_yes"] and support_claim_sought["divorce_act_table_child_support"]:
+    Order_involving_children_watermarked.enabled=True
+  elif claim_sought["divorce_act_access"] or claim_sought["divorce_act_custody"]:
+    Order_involving_children_watermarked.enabled=True
+  else: 
+    Order_involving_children_watermarked.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"]:
+    Order_for_Property_watermarked.enabled=True
+  else:
+    Order_for_Property_watermarked.enabled=False
+---
+attachments:
+  - name: BC Divorce Petition attachment
+    filename: BC_Divorce_Petition     
+    variable name: BC_Divorce_Petition_attachment[i]        
+    skip undefined: True
+    pdf template file: BC_Divorce_Petition.pdf
+    fields:
+      - "trial_court": ${ trial_court.address.city }
+      - "trial_court__2": ${ trial_court }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "user__3": ${ users[0] }
+      - "user__4": ${ users[0] }
+      - "user__5": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent__2": ${ respondents[0] }
+      - "respondent__3": ${ respondents[0] }
+      - "trial_court_address_block": ${ trial_court.address.block() }
+      - "user_address_block": ${ users[0].address.block() }
+      - "user_email": ${ user_email }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "user_birthdate": ${ users[0].birthdate.format('dd/MMM/yyyy') }
+      - "respondent_birthdate": ${ other_parties[0].birthdate.format('dd/MMM/yyyy') }
+      - "children": ${ len(children) > 0 }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format('dd/MMM/yyyy') }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format('dd/MMM/yyyy') }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format('dd/MMM/yyyy') }
+      - "relationship": Spouse
+      - "relationship__2": Spouse
+      - "lived_together": ${ lived_together }
+      - "started_living_together": ${ started_living_together_date.format('dd/MMM/yyyy') }
+      - "marriage_date": ${ marriage_date.format('dd/MMM/yyyy') }
+      - "marriage_place": ${ marriage_place_city }, ${ marriage_place_province }
+      - "separated_date": |
+          % if lived_together:
+          ${ separated_date.format('dd/MMM/yyyy') }
+          % endif
+      - "no_agreement_or_order": ${ not prior_agreements_or_cases }
+      - "previous_agreement_or_order": ${ prior_agreements_or_cases }
+      - "written_agreement_yes": ${ legal_proceedings["written_agreement_yes"]    }
+      - "written_agreement_date": ${ written_agreement_date }
+      - "court_order_yes": ${ legal_proceedings["court_order_yes"] }
+      - "court_order_dated": ${ court_order_dated }
+      - "prior_court_proceeding": ${ legal_proceedings["prior_court_proceeding"] }
+      - "file_number_prior": ${ file_number_prior }
+      - "court_registry_prior": ${ court_registry_prior }
+      - "divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "order_children": ${ claim_sought["divorce_act_custody"] or claim_sought["divorce_act_access"] or support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "family_property": ${ claim_sought["property_claim_yes"] }
+      - "other_order": ${ claim_other }
+      - "costs": ${ claim_costs }
+      - "today()": ${ today().format('dd/MMM/yyyy') }
+      - "user_resident_in_BC_since": ${ user_move_date.format('dd/MMM/yyyy') }
+      - "respondent_resident_in_BC_since": ${ respondent_move_date.format('dd/MMM/yyyy') }
+      - "respondent_last_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_last_at_birth }
+          % else:
+          ${ respondents[0].name.last }
+          % endif
+      - "respondent_name_last_before_marriage": |
+          % if respondent_different_name:
+          ${ respondent_name_last_before_marriage }
+          % else:
+          ${ respondents[0].name.last }
+          % endif  
+      - "user_last_name_at_birth": |
+          % if user_different_name:
+          ${ user_name_last_at_birth }
+          % else:
+          ${ users[0].name.last }
+          % endif      
+      - "user_last_name_at_marriage": |
+          % if user_different_name:
+          ${ user_name_last_before_marriage }
+          % else:
+          ${ users[0].name.last }
+          % endif
+      - "user_never_married": ${ user_marital_status == 'Never Married' }
+      - "respondent_never_married": ${ respondent_marital_status == 'Never Married' }
+      - "respondent_divorced": ${ respondent_marital_status == 'Divorced' }
+      - "user_divorced": ${ user_marital_status == 'Divorced' }
+      - "user_widowed": ${ user_marital_status == 'Widowed' }
+      - "respondent_widowed": ${ respondent_marital_status == 'Widowed' }
+      - "marriage_place_city": ${ marriage_place_city }
+      - "marriage_place_province": ${ marriage_place_province }
+      - "marriage_place_country": Canada
+      - "basis_of_divorce_separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "basis_of_divorce_separation__2": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "not_basis_of_divorce_separation": ${ not basis_for_divorce["basis_for_divorce_separation"] }
+      - "not_basis_of_divorce_separation__2": ${ not basis_for_divorce["basis_for_divorce_separation"] }
+      - "separation_date": |
+          % if basis_for_divorce["basis_for_divorce_separation"]:
+          ${ separated_date.format('dd/MMM/yyyy') }
+          % endif
+      - "separation_not_lived_together": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "adultery_or_cruelt": ${ basis_for_divorce["basis_for_divorce_adultery"] or basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "no_children": ${ len(children) < 1 }
+      - "child1_living_with": ${ children[0].living_with}
+      - "child2_living_with": ${ children[1].living_with}
+      - "child3_living_with": ${ children[2].living_with}
+  - name: BC_Divorce_Petition_watermarked
+    filename: BC_Divorce_Petition_watermarked
+    variable name: BC_Divorce_Petition_watermarked[i]        
+    skip undefined: True
+    pdf template file: BC_Divorce_Petition_watermarked.pdf
+    fields:
+      - "trial_court": ${ trial_court.address.city }
+      - "trial_court__2": ${ trial_court }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "user__3": ${ users[0] }
+      - "user__4": ${ users[0] }
+      - "user__5": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent__2": ${ respondents[0] }
+      - "respondent__3": ${ respondents[0] }
+      - "trial_court_address_block": ${ trial_court.address.block() }
+      - "user_address_block": ${ users[0].address.block() }
+      - "user_email": ${ user_email }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "user_birthdate": ${ users[0].birthdate.format('dd/MMM/yyyy') }
+      - "respondent_birthdate": ${ other_parties[0].birthdate.format('dd/MMM/yyyy') }
+      - "children": ${ len(children) > 0 }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format('dd/MMM/yyyy') }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format('dd/MMM/yyyy') }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format('dd/MMM/yyyy') }
+      - "relationship": Spouse
+      - "relationship__2": Spouse
+      - "lived_together": ${ lived_together }
+      - "started_living_together": ${ started_living_together_date.format('dd/MMM/yyyy') }
+      - "marriage_date": ${ marriage_date.format('dd/MMM/yyyy') }
+      - "marriage_place": ${ marriage_place_city }, ${ marriage_place_province }
+      - "separated_date": |
+          % if lived_together:
+          ${ separated_date.format('dd/MMM/yyyy') }
+          % endif
+      - "no_agreement_or_order": ${ not prior_agreements_or_cases }
+      - "previous_agreement_or_order": ${ prior_agreements_or_cases }
+      - "written_agreement_yes": ${ legal_proceedings["written_agreement_yes"]    }
+      - "written_agreement_date": ${ written_agreement_date }
+      - "court_order_yes": ${ legal_proceedings["court_order_yes"] }
+      - "court_order_dated": ${ court_order_dated }
+      - "prior_court_proceeding": ${ legal_proceedings["prior_court_proceeding"] }
+      - "file_number_prior": ${ file_number_prior }
+      - "court_registry_prior": ${ court_registry_prior }
+      - "divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "order_children": ${ claim_sought["divorce_act_custody"] or claim_sought["divorce_act_access"] or support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "family_property": ${ claim_sought["property_claim_yes"] }
+      - "other_order": ${ claim_other }
+      - "costs": ${ claim_costs }
+      - "today()": ${ today().format('dd/MMM/yyyy') }
+      - "user_resident_in_BC_since": ${ user_move_date.format('dd/MMM/yyyy') }
+      - "respondent_resident_in_BC_since": ${ respondent_move_date.format('dd/MMM/yyyy') }
+      - "respondent_last_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_last_at_birth }
+          % else:
+          ${ respondents[0].name.last }
+          % endif
+      - "respondent_name_last_before_marriage": |
+          % if respondent_different_name:
+          ${ respondent_name_last_before_marriage }
+          % else:
+          ${ respondents[0].name.last }
+          % endif  
+      - "user_last_name_at_birth": |
+          % if user_different_name:
+          ${ user_name_last_at_birth }
+          % else:
+          ${ users[0].name.last }
+          % endif      
+      - "user_last_name_at_marriage": |
+          % if user_different_name:
+          ${ user_name_last_before_marriage }
+          % else:
+          ${ users[0].name.last }
+          % endif
+      - "user_never_married": ${ user_marital_status == 'Never Married' }
+      - "respondent_never_married": ${ respondent_marital_status == 'Never Married' }
+      - "respondent_divorced": ${ respondent_marital_status == 'Divorced' }
+      - "user_divorced": ${ user_marital_status == 'Divorced' }
+      - "user_widowed": ${ user_marital_status == 'Widowed' }
+      - "respondent_widowed": ${ respondent_marital_status == 'Widowed' }
+      - "marriage_place_city": ${ marriage_place_city }
+      - "marriage_place_province": ${ marriage_place_province }
+      - "marriage_place_country": Canada
+      - "basis_of_divorce_separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "basis_of_divorce_separation__2": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "not_basis_of_divorce_separation": ${ not basis_for_divorce["basis_for_divorce_separation"] }
+      - "not_basis_of_divorce_separation__2": ${ not basis_for_divorce["basis_for_divorce_separation"] }
+      - "separation_date": |
+          % if basis_for_divorce["basis_for_divorce_separation"]:
+          ${ separated_date.format('dd/MMM/yyyy') }
+          % endif
+      - "separation_not_lived_together": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "adultery_or_cruelt": ${ basis_for_divorce["basis_for_divorce_adultery"] or basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "no_children": ${ len(children) < 1 }
+      - "child1_living_with": ${ children[0].living_with}
+      - "child2_living_with": ${ children[1].living_with}
+      - "child3_living_with": ${ children[2].living_with}
+  - name: Order_for_Spousal_Support
+    filename: Order_for_Spousal_Support
+    variable name: Order_for_Spousal_Support[i]        
+    skip undefined: True
+    pdf template file: Order_for_Spousal_Support.pdf
+    fields:
+      - "current_spousal_support": ${ current_spousal_support }
+      - "proposed_spousal_support": ${ proposed_spousal_support }
+      - "user_income": ${ currency(employment_income) }
+      - "does_not_know_income": ${ not knows_income }
+      - "respondent_income": ${ currency(respondent_income) }
+      - "knows_income": ${ knows_income }
+      - "know_because_text": |
+          % if knows_income: 
+          I am aware of the respondent’s monthly income through financial information that I reviewed during the marriage as well as conversations with the respondent.
+          % endif
+  - name: Order_for_Spousal_Support_watermarked
+    filename: Order_for_Spousal_Support_watermarked
+    variable name: Order_for_Spousal_Support_watermarked[i]        
+    skip undefined: True
+    pdf template file: Order_for_Spousal_Support_watermarked.pdf
+    fields:
+      - "current_spousal_support": ${ current_spousal_support }
+      - "proposed_spousal_support": ${ proposed_spousal_support }
+      - "user_income": ${ currency(employment_income) }
+      - "does_not_know_income": ${ not knows_income }
+      - "respondent_income": ${ currency(respondent_income) }
+      - "knows_income": ${ knows_income }
+      - "know_because_text": |
+          % if knows_income: 
+          I am aware of the respondent’s monthly income through financial information that I reviewed during the marriage as well as conversations with the respondent.
+          % endif
+  - name: Order_involving_children
+    filename: Order_involving_children
+    variable name: Order_involving_children[i]        
+    skip undefined: True
+    pdf template file: Order_involving_children.pdf
+    fields:
+      - "child1_respondent_rela": ${ children[0].respondent_relationship }
+      - "child1_claimant_rela": ${ children[0].user_relationship }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format('dd/MMM/yyyy') }
+      - "child1_living_with": ${ children[0].living_with }
+      - "child1_bc_resident_date": ${ children[0].move_date.format('dd/MMM/yyyy') }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format('dd/MMM/yyyy') }
+      - "child2_living_with": ${ children[1].living_with }
+      - "child2_bc_resident_date": ${ children[1].move_date.format('dd/MMM/yyyy') }
+      - "child2_claimant_rela": ${ children[1].user_relationship }
+      - "child2_respondent_rela": ${ children[1].respondent_relationship }
+      - "child3_birthdate": ${ children[2].birthdate.format('dd/MMM/yyyy') }
+      - "child3_respondent_rela": ${ children[2].respondent_relationship }
+      - "child3_claimant_rela": ${ children[2].user_relationship }
+      - "child3_bc_resident_date": ${ children[2].move_date.format('dd/MMM/yyyy') }
+      - "child3": ${ children[2] }
+      - "child3_living_with": ${ children[2].living_with }
+      - "parenting_time_or_access": ${ claim_sought["divorce_act_custody"] or claim_sought["divorce_act_access"] }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "current_parenting_arrangements": ${ current_parenting_arrangements }
+      - "proposed_parenting_arrangements": ${ proposed_parenting_arrangements }
+      - "current_child_support_arrangements": ${ current_child_support_arrangements }
+      - "does_not_know_income": ${ not knows_income }
+      - "respondent_income": ${ currency(respondent_income) }
+      - "knows_income": ${ knows_income }
+      - "know_because_text": |
+          % if knows_income: 
+          I am aware of the respondent’s monthly income through financial information that I reviewed during the marriage as well as conversations with the respondent.
+          % endif
+      - "child_support__2": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "today()": |
+          % if support_claim_sought["divorce_act_table_child_support"]:
+          ${ today().format('dd/MMM/yyyy') }
+          % endif
+      - "children_list": |
+          % if len(children = 1):
+          ${ children[0] }
+          % elif len(children = 2):
+          ${ children[0] } and ${ children[1] }
+          % elif len(children = 3):
+          ${ children[0] }, ${ children[1] } and ${ children[2] }
+          % endif
+  - name: Order_involving_children_watermarked
+    filename: Order_involving_children_watermarked
+    variable name: Order_involving_children_watermarked[i]        
+    skip undefined: True
+    pdf template file: Order_involving_children_watermarked.pdf
+    fields:
+      - "child1_respondent_rela": ${ children[0].respondent_relationship }
+      - "child1_claimant_rela": ${ children[0].user_relationship }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format('dd/MMM/yyyy') }
+      - "child1_living_with": ${ children[0].living_with }
+      - "child1_bc_resident_date": ${ children[0].move_date.format('dd/MMM/yyyy') }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format('dd/MMM/yyyy') }
+      - "child2_living_with": ${ children[1].living_with }
+      - "child2_bc_resident_date": ${ children[1].move_date.format('dd/MMM/yyyy') }
+      - "child2_claimant_rela": ${ children[1].user_relationship }
+      - "child2_respondent_rela": ${ children[1].respondent_relationship }
+      - "child3_birthdate": ${ children[2].birthdate.format('dd/MMM/yyyy') }
+      - "child3_respondent_rela": ${ children[2].respondent_relationship }
+      - "child3_claimant_rela": ${ children[2].user_relationship }
+      - "child3_bc_resident_date": ${ children[2].move_date.format('dd/MMM/yyyy') }
+      - "child3": ${ children[2] }
+      - "child3_living_with": ${ children[2].living_with }
+      - "parenting_time_or_access": ${ claim_sought["divorce_act_custody"] or claim_sought["divorce_act_access"] }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "current_parenting_arrangements": ${ current_parenting_arrangements }
+      - "proposed_parenting_arrangements": ${ proposed_parenting_arrangements }
+      - "current_child_support_arrangements": ${ current_child_support_arrangements }
+      - "does_not_know_income": ${ not knows_income }
+      - "respondent_income": ${ currency(respondent_income) }
+      - "knows_income": ${ knows_income }
+      - "know_because_text": |
+          % if knows_income: 
+          I am aware of the respondent’s monthly income through financial information that I reviewed during the marriage as well as conversations with the respondent.
+          % endif
+      - "child_support__2": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "today()": |
+          % if support_claim_sought["divorce_act_table_child_support"]:
+          ${ today().format('dd/MMM/yyyy') }
+          % endif
+      - "children_list": |
+          % if len(children = 1):
+          ${ children[0] }
+          % elif len(children = 2):
+          ${ children[0] } and ${ children[1] }
+          % elif len(children = 3):
+          ${ children[0] }, ${ children[1] } and ${ children[2] }
+          % endif
+  - name: Order_for_Property
+    filename: Order_for_Property
+    variable name: Order_for_Property[i]        
+    skip undefined: True
+    pdf template file: Order_for_Property.pdf
+    fields:
+      - "secured_debt1": ${ secured_debt[0].details }
+      - "secured_debt2": ${ secured_debt[1].details }
+      - "secured_debt3": ${ secured_debt[2].details }
+      - "unsecured_debt1": ${ unsecured_debt[0].details }
+      - "unsecured_debt2": ${ unsecured_debt[1].details }
+      - "unsecured_debt3": ${ unsecured_debt[2].details }
+      - "real_estate_details1": ${ real_property[0].details }
+      - "real_estate_details2": ${ real_property[1].details }
+      - "real_estate_details3": ${ real_property[2].details }
+      - "excluded_property1": ${ excluded_property[0].category }
+      - "excluded_property2": ${ excluded_property[1].category }
+  - name: Order_for_Property_watermarked
+    filename: Order_for_Property_watermarked
+    variable name: Order_for_Property_watermarked[i]        
+    skip undefined: True
+    pdf template file: Order_for_Property_watermarked.pdf
+    fields:
+      - "secured_debt1": ${ secured_debt[0].details }
+      - "secured_debt2": ${ secured_debt[1].details }
+      - "secured_debt3": ${ secured_debt[2].details }
+      - "unsecured_debt1": ${ unsecured_debt[0].details }
+      - "unsecured_debt2": ${ unsecured_debt[1].details }
+      - "unsecured_debt3": ${ unsecured_debt[2].details }
+      - "real_estate_details1": ${ real_property[0].details }
+      - "real_estate_details2": ${ real_property[1].details }
+      - "real_estate_details3": ${ real_property[2].details }
+      - "excluded_property1": ${ excluded_property[0].category }
+      - "excluded_property2": ${ excluded_property[1].category }
+  - name: Additional_Information
+    filename: Additional_Information
+    variable name: Additional_Information[i]        
+    skip undefined: True
+    pdf template file: Additional_Information.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }
+  - name: Key_Assumptions_BC
+    filename: Key_Assumptions_BC
+    variable name: Key_Assumptions_BC[i]        
+    skip undefined: True
+    pdf template file: Key_Assumptions_BC.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }

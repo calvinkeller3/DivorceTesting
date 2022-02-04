@@ -1,0 +1,317 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+objects:
+  - other_income: DAList.using(object_type=DAObject, there_are_any=True)
+---
+mandatory: True
+code: |
+  interview_metadata
+  if not defined("interview_metadata['NS_Income_Statement']"):
+    interview_metadata.initializeObject("NS_Income_Statement")
+    interview_metadata["NS_Income_Statement"].update({
+      "al_weaver_version": "1.3.0",
+      "generated on": "2021-10-18",
+      "title": "Ns income statement",
+      "short title": "Ns income statement",
+      "description": "Ns income statement",
+      "original_form": "",
+      "allowed courts": [
+      ],
+      "categories": [
+      ],        
+      "logic block variable": "interview_order_NS_Income_Statement",
+      "attachment block variable": "NS_Income_Statement_attachment",
+      "typical role": "plaintiff",
+    })
+---
+code: |
+  interview_metadata['main_interview_key'] =  'NS_Income_Statement'
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_NS_Income_Statement
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["NS_Income_Statement"]["allowed courts"]
+  nav.set_section('review_NS_Income_Statement')
+  user_role = 'plaintiff'
+  user_situation
+  gross_salary
+  
+  if other_income_yes == "Yes":
+    other_income[0].description
+  
+  union_dues
+  interview_order_NS_Income_Statement = True
+---
+if: |
+  str(province_choice) in ["Nova Scotia", "Prince Edward Island"]
+id: employer information
+question: |
+  Employment Information
+fields:
+  - What best describes you current situation?: user_situation
+    datatype: checkboxes
+    choices:
+      - Employed: employee
+      - Self-Employed: self_employed
+      - Unemployed: unemployed
+      - Member of a Partnership: partnership
+      - Control a Corporation: control_corporation
+      - Beneficiary under Trust: benficiary_under_trust
+      - Administrator or Trustee of a Trust: administrator_under_trust
+  - What is the name of your partnership?: partnership_name
+    show if: user_situation["partnership"]
+  - What is the name of your corporation?: corporation_name
+    show if: user_situation["control_corporation"]
+  - What proof of income will you file with this claim?: proof_of_income
+    help: pay stub, employment insurance stub etc.
+  - What is your main source of income?: income_source
+---
+if: |
+  str(province_choice) in ["Nova Scotia", "Prince Edward Island"]
+id: income
+question: |
+  Your Income Details
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Gross Salary: gross_salary
+    datatype: currency
+  - Overtime, Commission, and Bonus: overtime_commissions_bonus
+    datatype: currency
+  - Employment Insurnace Benefit: employment_insurance_benefit
+    datatype: currency
+  - Social assistance: social_Assistance
+    datatype: currency
+  - Pension income: pension_income
+    datatype: currency
+  - Actual dividends received before Gross-up: actual_dividends
+    datatype: currency
+  - Income from trust: income_from_trust
+    datatype: currency
+  - Investment income: investment_income
+    datatype: currency
+  - Do you have any other sources of income?: other_income_yes
+    datatype: radio
+    choices:
+      - No: No
+      - Yes: Yes
+    help: (e.g. RRSP withdrawals, capital gains)    
+---
+if: |
+  str(province_choice) in ["Nova Scotia", "Prince Edward Island"]
+id: income
+question: |
+  Other Income Details
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Description: other_income[i].description
+  - Income Amount: other_income[i].amount
+    datatype: currency
+list collect: True
+---   
+if: |
+  str(province_choice) in ["Nova Scotia", "Prince Edward Island"]
+id: income
+question: |
+  Other Income Statement Details
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Union Dues: union_dues
+    datatype: currency
+  - Child Tax Benefit: Child_Tax_Benefit
+    datatype: currency
+  - GST Credit": GST_Credit
+    datatype: currency
+---
+objects:
+  - NS_Income_Statement_attachment: ALDocument.using(title="Income Statement (Form FD3)", filename="Income_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - NS_Income_Statement_watermarked: ALDocument.using(title="Income Statement", filename="Income_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - PEI_Statement_of_Income: ALDocument.using(title="Income Statement (Form 70 I(A))", filename="Income_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - PEI_Statement_of_Income_watermarked: ALDocument.using(title="Income Statement", filename="Income_Statement.pdf", has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+attachments:
+  - name: NS Income Statement attachment
+    filename: NS_Income_Statement     
+    variable name: NS_Income_Statement_attachment[i]        
+    skip undefined: True
+    pdf template file: NS_Income_Statement.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "today()": ${ today().format() }
+      - "proof_of_income": ${ proof_of_income }
+      - "income_source": ${ income_source }
+      - "total_monthly_income__3": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "total_monthly_income": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "total_monthly_income__2": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "gross_salary__2": ${ currency(gross_salary) }      
+      - "gross_salary": ${ currency(gross_salary) }
+      - "overtime_commissions_bonus": ${ currency(overtime_commissions_bonus) }
+      - "employment_insurance_benefit": ${ currency(employment_insurance_benefit) }
+      - "social_Assistance": ${ currency(social_Assistance) }
+      - "pension_income": ${ currency(pension_income) }
+      - "actual_dividends": ${ currency(actual_dividends) }
+      - "income_from_trust": ${ currency(income_from_trust) }
+      - "investment_income": ${ currency(investment_income) }
+      - "other_income1": ${ currency(other_income[0].amount) }
+      - "other_income2": ${ currency(other_income[1].amount) }
+      - "other_income3": ${ currency(other_income[2].amount) }
+      - "other_income_details1": ${ currency(other_income[0].description) }
+      - "other_income_details2": ${ currency(other_income[1].description) }
+      - "other_income_details3": ${ currency(other_income[2].description) }
+      - "income_subtotal1": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount")) }
+      - "union_dues": ${ currency(union_dues) }
+      - "income_subtotal_minus_dues": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "Child_Tax_Benefit": ${ currency(Child_Tax_Benefit) }
+      - "GST_Credit": ${ currency(GST_Credit) }
+      - "total_annual_income": ${ currency((sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) * 12) }
+      - "employee": ${ user_situation["employee"] }
+      - "unemployed": ${ user_situation["unemployed"] }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "partnership": ${ user_situation["partnership"] }
+      - "partnership_name": ${ partnership_name }
+      - "control_corporation": ${ user_situation["control_corporation"] }
+      - "corporation_name": ${ corporation_name }
+      - "benficiary_under_trust": ${ user_situation["benficiary_under_trust"] }
+      - "administrator_under_trust": ${ user_situation["administrator_under_trust"] }
+  - name: NS_Income_Statement_watermarked
+    filename: NS_Income_Statement_watermarked
+    variable name: NS_Income_Statement_watermarked[i]        
+    skip undefined: True
+    pdf template file: NS_Income_Statement_watermarked.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "today()": ${ today().format() }
+      - "proof_of_income": ${ proof_of_income }
+      - "income_source": ${ income_source }
+      - "total_monthly_income__3": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "total_monthly_income": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "total_monthly_income__2": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "gross_salary__2": ${ currency(gross_salary) }      
+      - "gross_salary": ${ currency(gross_salary) }
+      - "overtime_commissions_bonus": ${ currency(overtime_commissions_bonus) }
+      - "employment_insurance_benefit": ${ currency(employment_insurance_benefit) }
+      - "social_Assistance": ${ currency(social_Assistance) }
+      - "pension_income": ${ currency(pension_income) }
+      - "actual_dividends": ${ currency(actual_dividends) }
+      - "income_from_trust": ${ currency(income_from_trust) }
+      - "investment_income": ${ currency(investment_income) }
+      - "other_income1": ${ currency(other_income[0].amount) }
+      - "other_income2": ${ currency(other_income[1].amount) }
+      - "other_income3": ${ currency(other_income[2].amount) }
+      - "other_income_details1": ${ currency(other_income[0].description) }
+      - "other_income_details2": ${ currency(other_income[1].description) }
+      - "other_income_details3": ${ currency(other_income[2].description) }
+      - "income_subtotal1": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount")) }
+      - "union_dues": ${ currency(union_dues) }
+      - "income_subtotal_minus_dues": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "Child_Tax_Benefit": ${ currency(Child_Tax_Benefit) }
+      - "GST_Credit": ${ currency(GST_Credit) }
+      - "total_annual_income": ${ currency((sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) * 12) }
+      - "employee": ${ user_situation["employee"] }
+      - "unemployed": ${ user_situation["unemployed"] }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "partnership": ${ user_situation["partnership"] }
+      - "partnership_name": ${ partnership_name }
+      - "control_corporation": ${ user_situation["control_corporation"] }
+      - "corporation_name": ${ corporation_name }
+      - "benficiary_under_trust": ${ user_situation["benficiary_under_trust"] }
+      - "administrator_under_trust": ${ user_situation["administrator_under_trust"] }
+  - name: PEI_Statement_of_Income
+    filename: PEI_Statement_of_Income
+    variable name: PEI_Statement_of_Income[i]        
+    skip undefined: True
+    pdf template file: PEI_Statement_of_Income.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "proof_of_income": ${ proof_of_income }
+      - "income_source": ${ income_source }
+      - "total_monthly_income__3": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "total_monthly_income": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "total_monthly_income__2": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "gross_salary__2": ${ currency(gross_salary) }      
+      - "gross_salary": ${ currency(gross_salary) }
+      - "overtime_commissions_bonus": ${ currency(overtime_commissions_bonus) }
+      - "employment_insurance_benefit": ${ currency(employment_insurance_benefit) }
+      - "social_Assistance": ${ currency(social_Assistance) }
+      - "pension_income": ${ currency(pension_income) }
+      - "actual_dividends": ${ currency(actual_dividends) }
+      - "income_from_trust": ${ currency(income_from_trust) }
+      - "investment_income": ${ currency(investment_income) }
+      - "other_income1": ${ currency(other_income[0].amount) }
+      - "other_income2": ${ currency(other_income[1].amount) }
+      - "other_income3": ${ currency(other_income[2].amount) }
+      - "other_income_details1": ${ currency(other_income[0].description) }
+      - "other_income_details2": ${ currency(other_income[1].description) }
+      - "other_income_details3": ${ currency(other_income[2].description) }
+      - "income_subtotal1": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount")) }
+      - "union_dues": ${ currency(union_dues) }
+      - "income_subtotal_minus_dues": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "Child_Tax_Benefit": ${ currency(Child_Tax_Benefit) }
+      - "GST_Credit": ${ currency(GST_Credit) }
+      - "total_annual_income": ${ currency((sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) * 12) }
+      - "employee": ${ user_situation["employee"] }
+      - "unemployed": ${ user_situation["unemployed"] }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "partnership": ${ user_situation["partnership"] }
+      - "partnership_name": ${ partnership_name }
+      - "control_corporation": ${ user_situation["control_corporation"] }
+      - "corporation_name": ${ corporation_name }
+      - "benficiary_under_trust": ${ user_situation["benficiary_under_trust"] }
+      - "administrator_under_trust": ${ user_situation["administrator_under_trust"] }
+  - name: PEI_Statement_of_Income_watermarked
+    filename: PEI_Statement_of_Income_watermarked
+    variable name: PEI_Statement_of_Income_watermarked[i]        
+    skip undefined: True
+    pdf template file: PEI_Statement_of_Income_watermarked.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "proof_of_income": ${ proof_of_income }
+      - "income_source": ${ income_source }
+      - "total_monthly_income__3": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "total_monthly_income": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "total_monthly_income__2": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "gross_salary__2": ${ currency(gross_salary) }      
+      - "gross_salary": ${ currency(gross_salary) }
+      - "overtime_commissions_bonus": ${ currency(overtime_commissions_bonus) }
+      - "employment_insurance_benefit": ${ currency(employment_insurance_benefit) }
+      - "social_Assistance": ${ currency(social_Assistance) }
+      - "pension_income": ${ currency(pension_income) }
+      - "actual_dividends": ${ currency(actual_dividends) }
+      - "income_from_trust": ${ currency(income_from_trust) }
+      - "investment_income": ${ currency(investment_income) }
+      - "other_income1": ${ currency(other_income[0].amount) }
+      - "other_income2": ${ currency(other_income[1].amount) }
+      - "other_income3": ${ currency(other_income[2].amount) }
+      - "other_income_details1": ${ currency(other_income[0].description) }
+      - "other_income_details2": ${ currency(other_income[1].description) }
+      - "other_income_details3": ${ currency(other_income[2].description) }
+      - "income_subtotal1": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount")) }
+      - "union_dues": ${ currency(union_dues) }
+      - "income_subtotal_minus_dues": ${ currency(sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) }
+      - "Child_Tax_Benefit": ${ currency(Child_Tax_Benefit) }
+      - "GST_Credit": ${ currency(GST_Credit) }
+      - "total_annual_income": ${ currency((sum_if_defined("gross_salary", "overtime_commissions_bonus", "employment_insurance_benefit", "social_Assistance", "pension_income", "actual_dividends", "income_from_trust", "investment_income", "other_income[0].amount", "other_income[1].amount", "other_income[2].amount") - union_dues) * 12) }
+      - "employee": ${ user_situation["employee"] }
+      - "unemployed": ${ user_situation["unemployed"] }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "partnership": ${ user_situation["partnership"] }
+      - "partnership_name": ${ partnership_name }
+      - "control_corporation": ${ user_situation["control_corporation"] }
+      - "corporation_name": ${ corporation_name }
+      - "benficiary_under_trust": ${ user_situation["benficiary_under_trust"] }
+      - "administrator_under_trust": ${ user_situation["administrator_under_trust"] }

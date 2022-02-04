@@ -1,0 +1,789 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+mandatory: True
+comment: |
+  This contains metadata that will not be overwritten if this YAML file is included in another
+  file. Each file gets its own key in the interview_metadata dictionary.
+  Most keys are not currently used at runtime, other than "allowed courts".
+code: |
+  interview_metadata
+  if not defined("interview_metadata['Form_351__Parenting_Claim_']"):
+    interview_metadata.initializeObject("Form_351__Parenting_Claim_")
+    interview_metadata["Form_351__Parenting_Claim_"].update({
+      "al_weaver_version": "1.1.0",
+      "generated on": "2021-08-24",
+      "title": "Form 35.1 - Parenting Claim",
+      "short title": "Parenting Claim",
+      "description": "This will help you fill out a Parenting Claim for Ontario",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_Form_351__Parenting_Claim_",
+      "attachment block variable": "Form_351__Parenting_Claim__attachment",
+      "typical role": "plaintiff",
+    })
+---
+objects:
+  - previous_family_case: DAList.using(object_type=DAObject, there_are_any=True)
+  - previous_child_protection_case:  DAList.using(object_type=DAObject, there_are_any=True)
+  - guilt_charge: DAList.using(object_type=DAObject, there_are_any=True)
+  - criminal_charge: DAList.using(object_type=DAObject, there_are_any=True)
+  - child_special_needs: DAList.using(object_type=DAObject, there_are_any=True)
+---
+objects:
+  - users: ALPeopleList.using(ask_number=True,target_number=1)
+  - other_parties: ALPeopleList.using(ask_number=True,target_number=1)
+  - children: ALPeopleList.using(ask_number=True,complete_attribute='complete')
+  - other_child: ALPeopleList.using(ask_number=True,complete_attribute='complete')
+  - cohabitor: ALPeopleList.using(ask_number=True,complete_attribute='complete')
+---
+if: |
+  str(province_choice) in ["Ontario"]
+code: |
+  children[i].name.first
+  children[i].birthdate
+  children[i].parents_name
+  children[i].relationship_to_user
+  children[i].complete = True
+---
+if: |
+  str(province_choice) in ["Ontario"]
+code: |
+  other_child[i].name.first
+  other_child[i].birthdate
+  other_child[i].relationship_to_user
+  other_child[i].lives_with_now
+  other_child[i].complete = True
+---
+if: |
+  str(province_choice) in ["Ontario"]
+code: |
+  cohabitor[i].name.first
+  cohabitor[i].birthdate
+  cohabitor[i].relationship_to_user
+  cohabitor[i].childrensaid_details
+  cohabitor[i].criminality
+  cohabitor[i].complete = True
+---
+code: |
+  user_started_case = True
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_Form_351__Parenting_Claim_
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["Form_351__Parenting_Claim_"]["allowed courts"]
+  nav.set_section('review_Form_351__Parenting_Claim_')
+  user_role = 'plaintiff'
+  province_choice
+  trial_court_index
+  users.gather()
+  set_parts(subtitle=str(users))
+  users[0].address.address
+  users[0].birthdate
+  user_different_name
+  current_situation
+  respondents.gather()
+  respondents[0].address.address
+  children[0].birthdate
+  children.gather()
+  children[0].parents_name
+  other_child.gather()
+  family_court_case
+  
+  if family_court_case == "Yes":
+    previous_family_case[0].location
+  
+  if civil_protection_proceeding == "Yes":       
+    previous_child_protection_case[0].location
+    
+  if criminal_offence_no_pardon == "Yes":
+    guilt_charge[0].charge
+    
+  if criminal_offence == "Yes":
+    criminal_charge[0].charge
+    
+  aware_of_DV
+  cohabitor.gather()
+  childcare_plan
+  special_needs
+  
+  if special_needs == "Yes":
+    child_special_needs[0].name
+  
+  interview_order_Form_351__Parenting_Claim_ = True
+---
+objects:
+  - all_courts: ALCourtLoader.using(file_name='Superior_Courthouses.xlsx')
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: children more information
+question: |
+  ${ children[i].familiar() } Additional Information
+fields:
+  - "Who are ${ children[i].familiar() }'s parents?": children[i].parents_name
+    maxlength: 23
+  - "What is your relationship to ${ children[i].familiar() }?": children[i].relationship_to_user
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: how many other children
+question: |
+  Is there any other children that you are the step-parent or legal guardian for?
+fields:
+  - no label: other_child.there_are_any
+    datatype: yesnoradio
+  - How many?: other_child.target_number
+    datatype: integer
+    show if: other_child.there_are_any
+validation code: |
+  if not children.there_are_any:
+    other_child.target_number.target_number = 0
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: other_children
+question: |
+  ${ other_child[i].familiar() } Additional Information
+fields:
+  - "Who does ${ other_child[i].familiar() } live with?": other_child[i].lives_with_now
+    maxlength: 23
+  - "What is your relationship to ${ other_child[i].familiar() }?": other_child[i].relationship_to_user
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: History 
+question: |
+  Previous Court Cases
+fields:
+  - Have you been a part of a family court case before?: family_court_case
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Have you been a part of a civil protection proceeding?: civil_protection_proceeding
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Have you ever been found guilty of a criminal offence for which you have not received a pardon?: criminal_offence_no_pardon
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Are you currently charged with a criminal offence?: criminal_offence
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: Family law cases
+question: |
+  Previous Family Court Case 
+fields:
+  - Court Location: previous_family_case[i].location
+  - Parties Involved: previous_family_case[i].parties
+  - Children Involved: previous_family_case[i].children
+  - Court Orders Made: previous_family_case[i].orders
+list collect: True 
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: Previous Child Protection Cases
+question: |
+  Previous Child Protection Case 
+fields:
+  - Court Location: previous_child_protection_case[i].location
+  - Parties Involved: previous_child_protection_case[i].parties
+  - Civil Protection Orders made: previous_child_protection_case[i].orders
+list collect: True 
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: Previous Criminal Offence (no pardon)
+question: |
+  Previous Criminal Offence
+fields:
+  - Charge: guilt_charge[i].charge
+  - Date you were found guilty: guilt_charge[i].date
+  - Sentence Received: guilt_charge[i].sentence
+list collect: True 
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: Criminal Offence
+question: |
+  Criminal Offence
+fields:
+  - Charge: criminal_charge[i].charge
+  - Date of your next appearance: criminal_charge[i].date
+  - Terms of Release while waiting for Trial: criminal_charge[i].terms_of_release
+list collect: True 
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: respondent court history
+question: |
+  ${ other_parties }'s Court History
+fields:
+  - Are you aware of any acts of domestic violence that the court should make note of?: aware_of_DV
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Please elaborate: domestic_violence_details
+    input type: area
+    maxlength: 332
+    js show if: |
+      val("aware_of_DV") == "Yes"
+  - Is ${ other_parties } bound by a civil protection order? (i.e. a restraining order): civil_protect_res_yes
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Please elaborate: civil_protection_details
+    input type: area
+    maxlength: 415
+    js show if: |
+      val("civil_protect_res_yes") == "Yes"
+  - Is the other party currently charged with a criminal offence or or the subject of any criminal orders?: other_party_criminal
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - "Current criminal offence details": current_criminal_offence_details
+    input type: area
+    maxlength: 664
+    js show if: |
+      val("other_party_criminal") == "Yes"
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: how many co-habitators
+question: |
+  Will you be living with anyone else other than your children? 
+fields:
+  - no label: cohabitor.there_are_any
+    datatype: yesnoradio
+  - How many people?: cohabitor.target_number
+    datatype: integer
+    show if: cohabitor.there_are_any
+validation code: |
+  if not cohabitor.there_are_any:
+    cohabitor.target_number = 0
+---
+if: |
+  str(province_choice) in ["Ontario"]
+sets:
+    - cohabitor[i].name.first
+    - cohabitor[i].name.last
+question:  |
+  Your Cohabitor's Information
+fields:
+  - code: |
+      cohabitor[i].name_fields()
+  - Birthdate: cohabitor[i].birthdate
+    datatype: BirthDate
+  - Relationship to you: cohabitor[i].relationship_to_user
+  - Has a child of this person ever been in the care of a children’s aid society? (If yes, please explain): cohabitor[i].childrensaid_details
+    datatype: area
+  - Has this person been found guilty of a criminal offence (for which he/she has not received a pardon) or is he/she currently facing criminal charges? (If yes, please explain): cohabitor[i].criminality
+    datatype: area
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: user current situation
+question: |
+  Your Current Situation
+fields:
+  - What best describes your situation?: current_situation
+    datatype: checkboxes
+    choices:
+      - Stay at Home Parent: stay_at_home_parent_yes
+      - Employed: work_yes
+      - Student: school_yes
+    none of the above: False
+  - Do you work part time or full time?: work_part_or_full
+    input type: radio
+    choices:
+      - Full Time: work_yes_full_time
+      - Part Time: work_yes_part_time
+    show if: current_situation["work_yes"]
+  - Are you a full time or part time student?: student_part_or_full
+    input type: radio
+    choices:
+      - Full Time: school_yes_full_time
+      - Part Time: school_yes_part_time
+    show if: current_situation["school_yes"]  
+  - Do you anticipate your current plans to change?: anticipate_plan_change_yes
+    datatype: yesnoradio
+  - What changes do you anticipate?: anticipated_changes_details
+    input type: area
+    maxlength: 158
+    show if: anticipate_plan_change_yes
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: child plan
+question: |
+  Plan for your Children
+fields:
+  - Where do you plan to live in the foreseeable future?: parenting_plan_address
+    maxlength: 54
+  - What is the childcare plan for your children?: childcare_plan
+    datatype: area
+    help: school, daycare or be cared for by others etc.
+    maxlength: 82
+  - When will ${ respondents[0] } be able to spend time with the children?: other_parent_time
+    datatype: area
+    maxlength: 82
+  - When will the children have contact with others?: contact_with_others
+    datatype: area
+    help: family members, friends etc.
+    maxlength: 82
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: special needs yes/no
+question: |
+  Special Needs
+fields:
+  - Do any of your children have any special needs?: special_needs
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: special needs description
+question: |
+  Special Need Details
+fields:
+  - Name of Child: child_special_needs[i].name
+  - Special Need: child_special_needs[i].need
+    datatype: checkboxes
+    choices:
+      - Medical: medical
+      - Educational: educational
+      - Mental Heath: mental_health
+      - Developmental: developmental
+      - Other: other_need
+    none of the above: False
+  - Description: child_special_needs[i].description
+    datatype: area
+  - Support or service child will be receiving: child_special_needs[i].support
+    datatype: area
+    help: include the names of any doctors, counsellors, treatment centres, etc. that are or will be providing support or services to the child
+list collect: True 
+---
+objects:
+  - Form_351__Parenting_Claim__attachment: ALDocument.using(title="Form 35.1", filename="Parenting_Claim.pdf", has_addendum=False)
+  - Form_351__Parenting_Claim__attachment_watermarked: ALDocument.using(title="PREVIEW - Form 35.1", filename="Parenting_Claim.pdf", has_addendum=False)
+---
+attachments:
+  - name: Form351_parenting_claim
+    filename: Form351_parenting_claim
+    variable name: Form_351__Parenting_Claim__attachment[i]       
+    skip undefined: True
+    pdf template file: Form351_parenting_claim.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "user_address_on_one_line": ${ users[0].address.on_one_line() }
+      - "user_phone": ${ user_phone }
+      - "respondent": ${ respondents[0] }
+      - "respondent__2": ${ respondents[0] }
+      - "respondent_address_on_one_line": ${ respondents[0].address.on_one_line() }
+      - "respondent_phone": ${ respondent_phone }
+      - "user_birthdate": ${ users[0].birthdate.format('d,M,yy') }
+      - "child1_age": ${ children[0].age_in_years() }
+      - "child1": ${ children[0] }
+      - "child1__2": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format('d,M,yy') }
+      - "child2": ${ children[1] }
+      - "child2__2": ${ children[1] }
+      - "child2_age": ${ children[1].age_in_years() }
+      - "child2_birthdate": ${ children[1].birthdate.format('d,M,yy') }
+      - "child3": ${ children[2] }
+      - "child3__2": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format('d,M,yy') }
+      - "child3_age": ${ children[2].age_in_years() }
+      - "child4": ${ children[3] }
+      - "child4__2": ${ children[3] }
+      - "child4_birthdate": ${ children[3].birthdate.format('d,M,yy') }
+      - "child4_age": ${ children[3].age_in_years() }
+      - "child5_age": ${ children[4].age_in_years() }
+      - "child5": ${ children[4] }
+      - "child5__2": ${ children[4] }
+      - "child5_birthdate": ${ children[4].birthdate.format('d,M,yy') }
+      - "other_child1": ${ other_child[0] }
+      - "cohabitor1_birthdate": ${ cohabitor[0].birthdate.format('d,M,yy') }
+      - "other_child3_birthdate": ${ other_child[2].birthdate.format('d,M,yy') }
+      - "cohabitor1": ${ cohabitor[0] }
+      - "cohabitor2": ${ cohabitor[1] }
+      - "other_child3": ${ other_child[2] }
+      - "cohabitor2_birthdate": ${ cohabitor[1].birthdate.format('d,M,yy') }
+      - "other_child1_birthdate": ${ other_child[0].birthdate.format('d,M,yy') }
+      - "cohabitor4": ${ cohabitor[3] }
+      - "cohabitor4_birthdate": ${ cohabitor[3].birthdate.format('d,M,yy') }
+      - "cohabitor3": ${ cohabitor[2] }
+      - "cohabitor3_birthdate": ${ cohabitor[2].birthdate.format('d,M,yy') }
+      - "other_child2_birthdate": ${ other_child[1].birthdate.format('d,M,yy') }
+      - "other_child2": ${ other_child[1] }
+      - "courthouse_address": ${ trial_court.address.block() }
+      - "user_city_province": ${ users[0].address.city }, ${ users[0].address.state }
+      - "user_name_first_at_marriage": |
+          % if user_different_name:
+          ${ user_name_first_at_marriage }
+          % else:
+          ${ users[0].name.first }
+          % endif
+      - "user_last_before_marriage": |
+          % if user_different_name:
+          ${ user_name_last_before_marriage }
+          % else:
+          ${ users[0].name.last }
+          % endif
+      - "child1_relationship": ${ children[0].relationship_to_user }
+      - "child1_living_with": ${ children[0].living_with }
+      - "child1_parent": ${ children[0].parents_name }
+      - "child1_parent__2": ${ children[0].parents_name }
+      - "child2_relationship": ${ children[1].relationship_to_user }
+      - "child2_parent": ${ children[1].parents_name }
+      - "child2_parent__2": ${ children[1].parents_name }
+      - "child2_living_with": ${ children[1].living_with }
+      - "child3_relationship": ${ children[2].relationship_to_user }
+      - "child3_living_with": ${ children[2].living_with }
+      - "child3_parent": ${ children[2].parents_name }
+      - "child3_parent__2": ${ children[2].parents_name }
+      - "child4_parent": ${ children[3].parents_name }
+      - "child4_parent__2": ${ children[3].parents_name }
+      - "child4_relationship": ${ children[2].relationship_to_user }
+      - "child4_living_with": ${ children[3].living_with }
+      - "child5_relationship": ${ children[4].relationship_to_user }
+      - "child5_parent": ${ children[4].parents_name  }
+      - "child5_parent__2": ${ children[4].parents_name  }
+      - "child5_living_with": ${ children[4].living_with }
+      - "other_child1_relationship": ${ other_child.item( 0 ).relationship_to_user }
+      - "other_child1_living_with": ${ other_child.item( 0 ).lives_with_now }
+      - "other_child2_relationship": ${ other_child.item( 1 ).relationship_to_user }
+      - "other_child2_living_with": ${ other_child.item( 1 ).lives_with_now }
+      - "other_child3_relationship": ${ other_child.item( 2 ).relationship_to_user }
+      - "other_child3_living_with": ${ other_child.item( 2 ).lives_with_now }
+      - "previous_court_location1": ${ previous_family_case[0].location }
+      - "previous_court_parties1": ${ previous_family_case[0].parties }
+      - "previous_court_children1": ${ previous_family_case[0].children }
+      - "previous_court_orders1": ${ previous_family_case[0].orders }
+      - "previous_court_location2": ${ previous_family_case[1].location }
+      - "previous_court_parties2": ${ previous_family_case[1].parties }
+      - "previous_court_children2": ${ previous_family_case[1].children }
+      - "previous_court_orders2": ${ previous_family_case[1].orders }
+      - "previous_court_location3": ${ previous_family_case[2].location }
+      - "previous_court_parties3": ${ previous_family_case[2].parties }
+      - "previous_court_children3": ${ previous_family_case[2].children }
+      - "previous_court_orders3": ${ previous_family_case[2].orders }
+      - "previous_child_protection_case1": ${ previous_child_protection_case[0].location }
+      - "previous_child_protection_case1_parties": ${ previous_child_protection_case[0].parties }
+      - "previous_child_protection_case1_orders": ${ previous_child_protection_case[0].orders }
+      - "previous_child_protection_case2": ${ previous_child_protection_case[1].location }
+      - "previous_child_protection_case2_parties": ${ previous_child_protection_case[1].parties }
+      - "previous_child_protection_case2_orders": ${ previous_child_protection_case[1].orders }
+      - "previous_child_protection_case3": ${ previous_child_protection_case[2].location }
+      - "previous_child_protection_case3_parties": ${ previous_child_protection_case[2].parties }
+      - "previous_child_protection_case3_orders": ${ previous_child_protection_case[2].orders }
+      - "guilt_charge1": ${ guilt_charge[0].charge }
+      - "guilt_charge1_date": ${ guilt_charge[0].date }
+      - "guilt_charge1_sentence": ${ guilt_charge[0].sentence }
+      - "guilt_charge2": ${ guilt_charge[1].charge }
+      - "guilt_charge2_date": ${ guilt_charge[1].date }
+      - "guilt_charge2_sentence": ${ guilt_charge[1].sentence }
+      - "guilt_charge3": ${ guilt_charge[2].charge }
+      - "guilt_charge3_date": ${ guilt_charge[2].date }
+      - "guilt_charge3_sentence": ${ guilt_charge[2].sentence }
+      - "criminal_charge1": ${ criminal_charge[0].charge }
+      - "criminal_charge1_appearance_date": ${ criminal_charge[0].date }
+      - "criminal_charge1_terms_of_release": ${ criminal_charge[0].terms_of_release }
+      - "criminal_charge2": ${ criminal_charge[1].charge }
+      - "criminal_charge2_appearance_date": ${ criminal_charge[1].date }
+      - "criminal_charge2_terms_of_release": ${ criminal_charge[1].terms_of_release }
+      - "criminal_charge3": ${ criminal_charge[2].charge }
+      - "criminal_charge3_appearance_date": ${ criminal_charge[2].date }
+      - "criminal_charge3_terms_of_release": ${ criminal_charge[2].terms_of_release }
+      - "domestic_violence_details": ${ domestic_violence_details }
+      - "civil_protection_details": ${ civil_protection_details }
+      - "current_criminal_offence_details": ${ current_criminal_offence_details }
+      - "child1_life": ${ children[0].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "child2_life": ${ children[1].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "child3_life": ${ children[2].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "child4_life": ${ children[3].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "child5_life": ${ children[4].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "parenting_plan_address": ${ parenting_plan_address }
+      - "cohabitor1_relationship": ${ cohabitor[0].relationship_to_user }
+      - "cohabitor1_childrensaid_details": ${ cohabitor[0].childrensaid_details }
+      - "cohabitor1_criminality": ${ cohabitor[0].criminality }
+      - "cohabitor2_relationship": ${ cohabitor[1].relationship_to_user }
+      - "cohabitor2_childrensaid_details": ${ cohabitor[1].childrensaid_details }
+      - "cohabitor2_criminality": ${ cohabitor[1].criminality }
+      - "cohabitor3_relationship": ${ cohabitor[1].relationship_to_user }
+      - "cohabitor3_childrensaid_details": ${ cohabitor[2].childrensaid_details }
+      - "cohabitor3_criminality": ${ cohabitor[2].criminality }
+      - "cohabitor4_relationship": ${ cohabitor[3].relationship_to_user }
+      - "cohabitor4_childrensaid_details": ${ cohabitor[3].childrensaid_details }
+      - "cohabitor4_criminality": ${ cohabitor[3].criminality }
+      - "stay_at_home_parent_yes": ${ current_situation["stay_at_home_parent_yes"] }
+      - "work_yes": ${ current_situation["work_yes"] }
+      - "work_yes_full_time": ${ work_part_or_full["work_yes_full_time"] }
+      - "work_yes_part_time": ${ work_part_or_full["work_yes_part_time"] }
+      - "school_yes": ${ current_situation["school_yes"] }
+      - "school_yes_full_time": ${ student_part_or_full["school_yes_full_time"] }
+      - "school_yes_part_time": ${ student_part_or_full["school_yes_part_time"] }
+      - "place_of_work_or_school": ${ place_of_work_or_school }
+      - "anticipate_plan_change_yes": ${ anticipate_plan_change_yes }
+      - "anticipated_changes_details": ${ anticipated_changes_details }
+      - "childcare_plan": ${ childcare_plan }
+      - "other_parent_time": ${ other_parent_time }
+      - "contact_with_others": ${ contact_with_others }
+      - "special_needs_yes": ${ special_needs == "Yes" }
+      - "special_needs_no": ${ special_needs == "No" }
+      - "special_child1_medical": ${ child_special_needs[0].need["medical"] }
+      - "special_child1_educational": ${ child_special_needs[0].need["educational"] }
+      - "special_child1_mental_health": ${ child_special_needs[0].need["mental_health"] }
+      - "special_child1_developmental": ${ child_special_needs[0].need["developmental"] }
+      - "special_child1_other": ${ child_special_needs[0].need["other_need"] }
+      - "special_child1": ${ child_special_needs[0].name }
+      - "special_child1_details": ${ child_special_needs[0].description }
+      - "special_child1_support": ${ child_special_needs[0].support }
+      - "special_child2_medical": ${ child_special_needs[1].need["medical"] }
+      - "special_child2_educational": ${ child_special_needs[1].need["educational"] }
+      - "special_child2_mental_health": ${ child_special_needs[1].need["mental_health"] }
+      - "special_child2_developmental": ${ child_special_needs[1].need["developmental"] }
+      - "special_child2_other": ${ child_special_needs[1].need["other_need"] }
+      - "special_child2": ${ child_special_needs[1].name }
+      - "special_child2_details": ${ child_special_needs[1].description }
+      - "special_child2_support": ${ child_special_needs[1].support }
+      - "special_child3_medical": ${ child_special_needs[2].need["medical"] }
+      - "special_child3_educational": ${ child_special_needs[2].need["educational"] }
+      - "special_child3_mental_health": ${ child_special_needs[2].need["mental_health"] }
+      - "special_child3_developmental": ${ child_special_needs[2].need["developmental"] }
+      - "special_child3_other": ${ child_special_needs[2].need["other_need"] }
+      - "special_child3": ${ child_special_needs[2].name }
+      - "special_child3_details": ${ child_special_needs[2].description }
+      - "special_child3_support": ${ child_special_needs[2].support }
+      - "special_child4_medical": ${ child_special_needs[3].need["medical"] }
+      - "special_child4_educational": ${ child_special_needs[3].need["educational"] }
+      - "special_child4_mental_health": ${ child_special_needs[3].need["mental_health"] }
+      - "special_child4_developmental": ${ child_special_needs[3].need["developmental"] }
+      - "special_child4_other": ${ child_special_needs[3].need["other_need"] }
+      - "special_child4": ${ child_special_needs[2].name }
+      - "special_child4_details": ${ child_special_needs[3].description }
+      - "special_child4_support": ${ child_special_needs[3].support }
+      - "user_initials": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }
+  - name: Form351_parenting_claim_watermarked
+    filename: Form351_parenting_claim_watermarked
+    variable name: Form_351__Parenting_Claim__attachment_watermarked[i]       
+    skip undefined: True
+    pdf template file: Form351_parenting_claim_watermarked.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "user_address_on_one_line": ${ users[0].address.on_one_line() }
+      - "user_phone": ${ user_phone }
+      - "respondent": ${ respondents[0] }
+      - "respondent__2": ${ respondents[0] }
+      - "respondent_address_on_one_line": ${ respondents[0].address.on_one_line() }
+      - "respondent_phone": ${ respondent_phone }
+      - "user_birthdate": ${ users[0].birthdate.format('d,M,yy') }
+      - "child1_age": ${ children[0].age_in_years() }
+      - "child1": ${ children[0] }
+      - "child1__2": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format('d,M,yy') }
+      - "child2": ${ children[1] }
+      - "child2__2": ${ children[1] }
+      - "child2_age": ${ children[1].age_in_years() }
+      - "child2_birthdate": ${ children[1].birthdate.format('d,M,yy') }
+      - "child3": ${ children[2] }
+      - "child3__2": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format('d,M,yy') }
+      - "child3_age": ${ children[2].age_in_years() }
+      - "child4": ${ children[3] }
+      - "child4__2": ${ children[3] }
+      - "child4_birthdate": ${ children[3].birthdate.format('d,M,yy') }
+      - "child4_age": ${ children[3].age_in_years() }
+      - "child5_age": ${ children[4].age_in_years() }
+      - "child5": ${ children[4] }
+      - "child5__2": ${ children[4] }
+      - "child5_birthdate": ${ children[4].birthdate.format('d,M,yy') }
+      - "other_child1": ${ other_child[0] }
+      - "cohabitor1_birthdate": ${ cohabitor[0].birthdate.format('d,M,yy') }
+      - "other_child3_birthdate": ${ other_child[2].birthdate.format('d,M,yy') }
+      - "cohabitor1": ${ cohabitor[0] }
+      - "cohabitor2": ${ cohabitor[1] }
+      - "other_child3": ${ other_child[2] }
+      - "cohabitor2_birthdate": ${ cohabitor[1].birthdate.format('d,M,yy') }
+      - "other_child1_birthdate": ${ other_child[0].birthdate.format('d,M,yy') }
+      - "cohabitor4": ${ cohabitor[3] }
+      - "cohabitor4_birthdate": ${ cohabitor[3].birthdate.format('d,M,yy') }
+      - "cohabitor3": ${ cohabitor[2] }
+      - "cohabitor3_birthdate": ${ cohabitor[2].birthdate.format('d,M,yy') }
+      - "other_child2_birthdate": ${ other_child[1].birthdate.format('d,M,yy') }
+      - "other_child2": ${ other_child[1] }
+      - "courthouse_address": ${ trial_court.address.block() }
+      - "user_city_province": ${ users[0].address.city }, ${ users[0].address.state }
+      - "user_name_first_at_marriage": |
+          % if user_different_name:
+          ${ user_name_first_at_marriage }
+          % else:
+          ${ users[0].name.first }
+          % endif
+      - "user_last_before_marriage": |
+          % if user_different_name:
+          ${ user_name_last_before_marriage }
+          % else:
+          ${ users[0].name.last }
+          % endif
+      - "child1_relationship": ${ children[0].relationship_to_user }
+      - "child1_living_with": ${ children[0].living_with }
+      - "child1_parent": ${ children[0].parents_name }
+      - "child1_parent__2": ${ children[0].parents_name }
+      - "child2_relationship": ${ children[1].relationship_to_user }
+      - "child2_parent": ${ children[1].parents_name }
+      - "child2_parent__2": ${ children[1].parents_name }
+      - "child2_living_with": ${ children[1].living_with }
+      - "child3_relationship": ${ children[2].relationship_to_user }
+      - "child3_living_with": ${ children[2].living_with }
+      - "child3_parent": ${ children[2].parents_name }
+      - "child3_parent__2": ${ children[2].parents_name }
+      - "child4_parent": ${ children[3].parents_name }
+      - "child4_parent__2": ${ children[3].parents_name }
+      - "child4_relationship": ${ children[2].relationship_to_user }
+      - "child4_living_with": ${ children[3].living_with }
+      - "child5_relationship": ${ children[4].relationship_to_user }
+      - "child5_parent": ${ children[4].parents_name  }
+      - "child5_parent__2": ${ children[4].parents_name  }
+      - "child5_living_with": ${ children[4].living_with }
+      - "other_child1_relationship": ${ other_child.item( 0 ).relationship_to_user }
+      - "other_child1_living_with": ${ other_child.item( 0 ).lives_with_now }
+      - "other_child2_relationship": ${ other_child.item( 1 ).relationship_to_user }
+      - "other_child2_living_with": ${ other_child.item( 1 ).lives_with_now }
+      - "other_child3_relationship": ${ other_child.item( 2 ).relationship_to_user }
+      - "other_child3_living_with": ${ other_child.item( 2 ).lives_with_now }
+      - "previous_court_location1": ${ previous_family_case[0].location }
+      - "previous_court_parties1": ${ previous_family_case[0].parties }
+      - "previous_court_children1": ${ previous_family_case[0].children }
+      - "previous_court_orders1": ${ previous_family_case[0].orders }
+      - "previous_court_location2": ${ previous_family_case[1].location }
+      - "previous_court_parties2": ${ previous_family_case[1].parties }
+      - "previous_court_children2": ${ previous_family_case[1].children }
+      - "previous_court_orders2": ${ previous_family_case[1].orders }
+      - "previous_court_location3": ${ previous_family_case[2].location }
+      - "previous_court_parties3": ${ previous_family_case[2].parties }
+      - "previous_court_children3": ${ previous_family_case[2].children }
+      - "previous_court_orders3": ${ previous_family_case[2].orders }
+      - "previous_child_protection_case1": ${ previous_child_protection_case[0].location }
+      - "previous_child_protection_case1_parties": ${ previous_child_protection_case[0].parties }
+      - "previous_child_protection_case1_orders": ${ previous_child_protection_case[0].orders }
+      - "previous_child_protection_case2": ${ previous_child_protection_case[1].location }
+      - "previous_child_protection_case2_parties": ${ previous_child_protection_case[1].parties }
+      - "previous_child_protection_case2_orders": ${ previous_child_protection_case[1].orders }
+      - "previous_child_protection_case3": ${ previous_child_protection_case[2].location }
+      - "previous_child_protection_case3_parties": ${ previous_child_protection_case[2].parties }
+      - "previous_child_protection_case3_orders": ${ previous_child_protection_case[2].orders }
+      - "guilt_charge1": ${ guilt_charge[0].charge }
+      - "guilt_charge1_date": ${ guilt_charge[0].date }
+      - "guilt_charge1_sentence": ${ guilt_charge[0].sentence }
+      - "guilt_charge2": ${ guilt_charge[1].charge }
+      - "guilt_charge2_date": ${ guilt_charge[1].date }
+      - "guilt_charge2_sentence": ${ guilt_charge[1].sentence }
+      - "guilt_charge3": ${ guilt_charge[2].charge }
+      - "guilt_charge3_date": ${ guilt_charge[2].date }
+      - "guilt_charge3_sentence": ${ guilt_charge[2].sentence }
+      - "criminal_charge1": ${ criminal_charge[0].charge }
+      - "criminal_charge1_appearance_date": ${ criminal_charge[0].date }
+      - "criminal_charge1_terms_of_release": ${ criminal_charge[0].terms_of_release }
+      - "criminal_charge2": ${ criminal_charge[1].charge }
+      - "criminal_charge2_appearance_date": ${ criminal_charge[1].date }
+      - "criminal_charge2_terms_of_release": ${ criminal_charge[1].terms_of_release }
+      - "criminal_charge3": ${ criminal_charge[2].charge }
+      - "criminal_charge3_appearance_date": ${ criminal_charge[2].date }
+      - "criminal_charge3_terms_of_release": ${ criminal_charge[2].terms_of_release }
+      - "domestic_violence_details": ${ domestic_violence_details }
+      - "civil_protection_details": ${ civil_protection_details }
+      - "current_criminal_offence_details": ${ current_criminal_offence_details }
+      - "child1_life": ${ children[0].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "child2_life": ${ children[1].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "child3_life": ${ children[2].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "child4_life": ${ children[3].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "child5_life": ${ children[4].birthdate.format('d,M,yy') } to ${ today().format('d,M,yy') }
+      - "parenting_plan_address": ${ parenting_plan_address }
+      - "cohabitor1_relationship": ${ cohabitor[0].relationship_to_user }
+      - "cohabitor1_childrensaid_details": ${ cohabitor[0].childrensaid_details }
+      - "cohabitor1_criminality": ${ cohabitor[0].criminality }
+      - "cohabitor2_relationship": ${ cohabitor[1].relationship_to_user }
+      - "cohabitor2_childrensaid_details": ${ cohabitor[1].childrensaid_details }
+      - "cohabitor2_criminality": ${ cohabitor[1].criminality }
+      - "cohabitor3_relationship": ${ cohabitor[1].relationship_to_user }
+      - "cohabitor3_childrensaid_details": ${ cohabitor[2].childrensaid_details }
+      - "cohabitor3_criminality": ${ cohabitor[2].criminality }
+      - "cohabitor4_relationship": ${ cohabitor[3].relationship_to_user }
+      - "cohabitor4_childrensaid_details": ${ cohabitor[3].childrensaid_details }
+      - "cohabitor4_criminality": ${ cohabitor[3].criminality }
+      - "stay_at_home_parent_yes": ${ current_situation["stay_at_home_parent_yes"] }
+      - "work_yes": ${ current_situation["work_yes"] }
+      - "work_yes_full_time": ${ work_part_or_full["work_yes_full_time"] }
+      - "work_yes_part_time": ${ work_part_or_full["work_yes_part_time"] }
+      - "school_yes": ${ current_situation["school_yes"] }
+      - "school_yes_full_time": ${ student_part_or_full["school_yes_full_time"] }
+      - "school_yes_part_time": ${ student_part_or_full["school_yes_part_time"] }
+      - "place_of_work_or_school": ${ place_of_work_or_school }
+      - "anticipate_plan_change_yes": ${ anticipate_plan_change_yes }
+      - "anticipated_changes_details": ${ anticipated_changes_details }
+      - "childcare_plan": ${ childcare_plan }
+      - "other_parent_time": ${ other_parent_time }
+      - "contact_with_others": ${ contact_with_others }
+      - "special_needs_yes": ${ special_needs == "Yes" }
+      - "special_needs_no": ${ special_needs == "No" }
+      - "special_child1_medical": ${ child_special_needs[0].need["medical"] }
+      - "special_child1_educational": ${ child_special_needs[0].need["educational"] }
+      - "special_child1_mental_health": ${ child_special_needs[0].need["mental_health"] }
+      - "special_child1_developmental": ${ child_special_needs[0].need["developmental"] }
+      - "special_child1_other": ${ child_special_needs[0].need["other_need"] }
+      - "special_child1": ${ child_special_needs[0].name }
+      - "special_child1_details": ${ child_special_needs[0].description }
+      - "special_child1_support": ${ child_special_needs[0].support }
+      - "special_child2_medical": ${ child_special_needs[1].need["medical"] }
+      - "special_child2_educational": ${ child_special_needs[1].need["educational"] }
+      - "special_child2_mental_health": ${ child_special_needs[1].need["mental_health"] }
+      - "special_child2_developmental": ${ child_special_needs[1].need["developmental"] }
+      - "special_child2_other": ${ child_special_needs[1].need["other_need"] }
+      - "special_child2": ${ child_special_needs[1].name }
+      - "special_child2_details": ${ child_special_needs[1].description }
+      - "special_child2_support": ${ child_special_needs[1].support }
+      - "special_child3_medical": ${ child_special_needs[2].need["medical"] }
+      - "special_child3_educational": ${ child_special_needs[2].need["educational"] }
+      - "special_child3_mental_health": ${ child_special_needs[2].need["mental_health"] }
+      - "special_child3_developmental": ${ child_special_needs[2].need["developmental"] }
+      - "special_child3_other": ${ child_special_needs[2].need["other_need"] }
+      - "special_child3": ${ child_special_needs[2].name }
+      - "special_child3_details": ${ child_special_needs[2].description }
+      - "special_child3_support": ${ child_special_needs[2].support }
+      - "special_child4_medical": ${ child_special_needs[3].need["medical"] }
+      - "special_child4_educational": ${ child_special_needs[3].need["educational"] }
+      - "special_child4_mental_health": ${ child_special_needs[3].need["mental_health"] }
+      - "special_child4_developmental": ${ child_special_needs[3].need["developmental"] }
+      - "special_child4_other": ${ child_special_needs[3].need["other_need"] }
+      - "special_child4": ${ child_special_needs[2].name }
+      - "special_child4_details": ${ child_special_needs[3].description }
+      - "special_child4_support": ${ child_special_needs[3].support }
+      - "user_initials": ${ users[0].name.first[:1] + users[0].name.middle_initial() + users[0].name.last[:1] }

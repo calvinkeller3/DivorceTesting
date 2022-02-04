@@ -1,0 +1,576 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+objects:
+  - real_property: DAList.using(object_type=DAObject, there_are_any=True)
+  - household: DAList.using(object_type=DAObject, there_are_any=True)
+  - vehicle: DAList.using(object_type=DAObject, there_are_any=True)
+  - pension: DAList.using(object_type=DAObject, there_are_any=True)
+  - rrsp_asset: DAList.using(object_type=DAObject, there_are_any=True)
+  - savings_or_bank: DAList.using(object_type=DAObject, there_are_any=True)
+  - securities: DAList.using(object_type=DAObject, there_are_any=True)
+  - life_and_disability_insurance: DAList.using(object_type=DAObject, there_are_any=True)
+  - AR: DAList.using(object_type=DAObject, there_are_any=True)
+  - business_interest: DAList.using(object_type=DAObject, there_are_any=True)
+  - other_assets: DAList.using(object_type=DAObject, there_are_any=True)
+  - debt: DAList.using(object_type=DAObject, there_are_any=True)  
+  - excluded_a_or_d: DAList.using(object_type=DAObject, there_are_any=True) 
+---
+mandatory: True
+code: |
+  interview_metadata
+  if not defined("interview_metadata['NS_Property_Statement']"):
+    interview_metadata.initializeObject("NS_Property_Statement")
+    interview_metadata["NS_Property_Statement"].update({
+      "al_weaver_version": "1.2.0",
+      "generated on": "2021-10-14",
+      "title": "Ns property statement",
+      "short title": "Ns property statement",
+      "description": "Ns property statement",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_NS_Property_Statement",
+      "attachment block variable": "NS_Property_Statement_attachment",
+      "typical role": "plaintiff",
+    })
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_NS_Property_Statement
+code: |
+  allowed_courts = interview_metadata["NS_Property_Statement"]["allowed courts"]
+  nav.set_section('review_NS_Property_Statement')
+  user_role = 'plaintiff'
+  
+  real_property_yesno
+
+  if real_property_yesno == "Yes": 
+    real_property[0].ownership
+
+  if household_yesno == "Yes":
+    household[0].category
+  
+  if motor_vehicles_yesno == "Yes":
+    vehicle[0].description
+
+  if pensions_yesno == "Yes":
+    pension[0].category 
+
+  if rrsp_yesno == "Yes":
+    rrsp_asset[0].category
+
+  if savings_or_bank_yesno == "Yes":
+    savings_or_bank[0].category
+    
+  if financials_yesno == "Yes":
+    securities[0].category
+
+  if life_and_disability_insurance_yesno == "Yes":
+    life_and_disability_insurance[0].company
+
+  if AR_yesno == "Yes":
+    AR[0].particulars 
+  
+  if business_yesno == "Yes":
+    business_interest[0].company
+
+  if other_assets_yesno == "Yes":
+    other_assets[0].category
+    
+  if debts_yesno == "Yes":
+    debt[0].category
+    
+  if excluded_yesno == "Yes":
+    excluded_a_or_d[0].particulars
+
+  interview_order_NS_Property_Statement = True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: assets yes/no
+question: |
+  Assets 
+fields:
+  - Do you own any real property?: real_property_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any household goods, furniture or appliance to your claim??: household_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you own any Cars, Boats, or Vehicles?: motor_vehicles_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any pensions to your claim?: pensions_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any R.R.S.Ps to your claim?: rrsp_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any Savings or Bank Accounts to your claim?: savings_or_bank_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any Bonds, shares, term deposits, investment certificates, or mutual funds to your claim?: financials_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any life or disability insurance plans to your claim?: life_and_disability_insurance_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any money owed to you to your claim?: AR_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you have any financial interests in a business?: business_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any other assets to your claim?: other_assets_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add debts to your claim?: debts_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Is there any property you'd like to exclude from your claim?: excluded_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: real_property
+question: |
+  Real Property 
+fields:
+  - Ownership: real_property[i].ownership
+  - Nature and Address: real_property[i].address
+  - Value as of ${ today() }: real_property[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: household
+question: |
+  Household Items
+fields:
+  - Category: household[i].category
+    help: e.g. appliances, furniture and household effects, jewellery, etc.
+  - Is this item currently in your possession?: household[i].possession
+    datatype: yesnoradio   
+  - Major Items: household[i].major_items
+  - Value as of ${ today() }: household[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: vehicles
+question: |
+  Vehicles
+fields:
+  - Make, Model, and Year: vehicle[i].description
+  - Is this vehicle currently in your possession?: vehicle[i].possession
+    datatype: yesnoradio   
+  - Value as of ${ today() }: vehicle[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: pension
+question: |
+  Pension
+fields:
+  - Category: pension[i].category
+  - Institution: pension[i].institution  
+  - Value as of ${ today() }: pension[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: rrsp_asset
+question: |
+  R.R.S.P. 
+fields:
+  - Category: rrsp_asset[i].category
+  - Institution: rrsp_asset[i].institution  
+  - Account Number: rrsp_asset[i].account_number  
+  - Value as of ${ today() }: rrsp_asset[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: savings_or_bank
+question: |
+  Savings and other Accounts
+fields:
+  - Category: savings_or_bank[i].category
+  - Institution: savings_or_bank[i].institution  
+  - Account Number: savings_or_bank[i].account_number  
+  - Value as of ${ today() }: savings_or_bank[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: securities
+question: |
+  Securities
+fields:
+  - Category: securities[i].category
+  - Number: securities[i].number  
+  - Description: securities[i].description  
+  - Value as of ${ today() }: securities[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: life_and_disability_insurance
+question: |
+  Life and Disability Insurance
+fields:
+  - Company: life_and_disability_insurance[i].company
+  - Policy Number: life_and_disability_insurance[i].policy_number  
+  - Owner: life_and_disability_insurance[i].owner  
+  - Beneficiary: life_and_disability_insurance[i].beneficiary
+  - Face Amount: life_and_disability_insurance[i].face_amount
+    datatype: currency
+  - Value as of ${ today() }: life_and_disability_insurance[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: AR
+question: |
+  Account Receivable (Money owed to you)
+fields:
+  - Particulars: AR[i].particulars
+  - Value as of ${ today() }: AR[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: business_interest
+question: |
+  Business Interests
+fields:
+  - Category: business_interest[i].company
+  - Interest: business_interest[i].interest
+  - Value as of ${ today() }: business_interest[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: other_assets
+question: |
+  Other Assets
+fields:
+  - Category: other_assets[i].category
+  - Value as of ${ today() }: other_assets[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: debt
+question: |
+  Debts
+fields:
+  - Category: debt[i].category
+  - Institution: debt[i].institution
+  - Particulars: debt[i].particulars
+  - Amount owing as of ${ today() }: debt[i].value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: excluded_a_or_d
+question: |
+  Excluded Assets/Debts
+fields:
+  - Particulars: excluded_a_or_d[i].particulars
+  - Reasons for Exclusion: excluded_a_or_d[i].reason
+  - Value as of ${ today() }: excluded_a_or_d[i].value
+    datatype: currency
+list collect: True
+---
+objects:
+  - NS_Property_Statement_attachment: ALDocument.using(title="Ns property statement", filename="NS_Property_Statement.pdf", has_addendum=False)
+---
+attachments:
+  - name: NS Property Statement attachment
+    filename: NS_Property_Statement     
+    variable name: NS_Property_Statement_attachment[i]        
+    skip undefined: True
+    pdf template file: NS_Property_Statement.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent__2": ${ respondents[0] }
+      - "today()__15": ${ today().format() }
+      - "today()__2": |
+          % if real_property_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__3": |
+          % if household_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__4": |
+          % if pensions_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__5": |
+          % if rrsp_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__6": |
+          % if savings_or_bank_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__7": |
+          % if financials_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__8": |
+          % if life_and_disability_insurance_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__9": |
+          % if AR_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__10": |
+          % if business_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__11": |
+          % if other_assets_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__12": |
+          % if debts_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__13": |
+          % if excluded_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "today()__14": |
+          % if real_property_yesno == "Yes":
+          ${ today().format('short') }
+          % endif
+      - "real_property_ownership1": ${ real_property[0].ownership }
+      - "real_property_value1": ${ currency(real_property[0].value) }
+      - "real_property_nature_address1": ${ real_property[0].address }
+      - "real_property_ownership2": ${ real_property[1].ownership }
+      - "real_property_value2": ${ currency(real_property[1].value) }
+      - "real_property_nature_address2": ${ real_property[1].address }
+      - "real_property_ownership3": ${ real_property[2].ownership }
+      - "real_property_nature_address3": ${ real_property[2].address }
+      - "real_property_value3": ${ currency(real_property[2].value) }
+      - "household_value1": ${ currency(household[0].value) }
+      - "household1": ${ household[0].category }
+      - "household_major_items1": ${ household[0].major_items }
+      - "household_possession1": |
+          % if household[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] } 
+          % endif
+      - "household_value2": ${ currency(household[1].value) }
+      - "household2": ${ household[1].category }
+      - "household_possession2": |
+          % if household[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] } 
+          % endif
+      - "household_major_items2": ${ household[1].major_items }
+      - "household_value3": ${ currency(household[2].value) }
+      - "household3": ${ household[2].category }
+      - "household_possession3": |
+          % if household[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] } 
+          % endif
+      - "household_major_items3": ${ household[2].major_items }
+      - "vehicle_possession1": |
+          % if vehicle[0].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] } 
+          % endif
+      - "vehicle_value1": ${ currency(vehicle[0].value) }
+      - "vehicle1": ${ vehicle[0].description }
+      - "vehicle_possession2": |
+          % if vehicle[1].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] } 
+          % endif
+      - "vehicle_value2": ${ currency(vehicle[1].value) }
+      - "vehicle2": ${ vehicle[1].description }
+      - "vehicle_possession3": |
+          % if vehicle[2].possession:
+          ${ users[0] }
+          % else:
+          ${ respondents[0] } 
+          % endif
+      - "vehicle_value3": ${ currency(vehicle[2].value) }
+      - "vehicle3": ${ vehicle[2].description }
+      - "pension_value1": ${ currency(pension[0].value) }
+      - "pension_institution1": ${ pension[0].institution }
+      - "pension1": ${ pension[0].category }
+      - "pension_value2": ${ currency(pension[1].value) }
+      - "pension2": ${ pension[1].category }
+      - "pension_institution2": ${ pension[1].institution }
+      - "pension_value3": ${ currency(pension[2].value) }
+      - "pension3": ${ pension[2].category }
+      - "pension_institution3": ${ pension[2].institution }
+      - "rrsp_asset1": ${ rrsp_asset[0].category }
+      - "rrsp_asset_institution1": ${ rrsp_asset[0].institution }
+      - "rrsp_asset_number1": ${ rrsp_asset[0].account_number }
+      - "rrsp_asset_value1": ${ currency(rrsp_asset[0].value) }
+      - "rrsp_asset2": ${ rrsp_asset[1].category }
+      - "rrsp_asset_institution2": ${ rrsp_asset[1].institution }
+      - "rrsp_asset_number2": ${ rrsp_asset[1].account_number }
+      - "rrsp_asset_value2": ${ currency(rrsp_asset[1].value) }
+      - "rrsp_asset3": ${ rrsp_asset[2].category }
+      - "rrsp_asset_institution3": ${ rrsp_asset[2].institution }
+      - "rrsp_asset_number3": ${ rrsp_asset[2].account_number }
+      - "rrsp_asset_value3": ${ currency(rrsp_asset[2].value) }
+      - "savings1": ${ savings_or_bank[0].category }
+      - "savings_institution1": ${ savings_or_bank[0].institution }
+      - "savings_number1": ${ savings_or_bank[0].account_number }
+      - "savings_value1": ${ currency(savings_or_bank[0].value) }
+      - "savings2": ${ savings_or_bank[1].category }
+      - "savings_institution2": ${ savings_or_bank[1].institution }
+      - "savings_number2": ${ savings_or_bank[1].account_number }
+      - "savings_value2": ${ currency(savings_or_bank[1].value) }
+      - "savings3": ${ savings_or_bank[2].category }
+      - "savings_institution3": ${ savings_or_bank[2].institution }
+      - "savings_number3": ${ savings_or_bank[2].account_number }
+      - "savings_value3": ${ currency(savings_or_bank[2].value) }
+      - "security_value1": ${ currency(securities[0].value) }
+      - "security1": ${ securities[0].category }
+      - "security_number1": ${ securities[0].number }
+      - "security_description1": ${ securities[0].description }
+      - "security_value2": ${ currency(securities[1].value) }
+      - "security2": ${ securities[1].category }
+      - "security_number2": ${ securities[1].number }
+      - "security_description2": ${ securities[1].description }
+      - "security_value3": ${ currency(securities[2].value) }
+      - "security3": ${ securities[2].category }
+      - "security_number3": ${ securities[2].number }
+      - "security_description3": ${ securities[2].description }
+      - "insurance_value1": ${ currency(life_and_disability_insurance[0].value) }
+      - "insurance_amount1": ${ currency(life_and_disability_insurance[0].face_amount) }
+      - "insurance1": ${ life_and_disability_insurance[0].company }
+      - "insurance_policy_no1": ${ life_and_disability_insurance[0].policy_number }
+      - "insurance_owner1": ${ life_and_disability_insurance[0].owner }
+      - "insurance_beneficiary1": ${ life_and_disability_insurance[0].beneficiary }
+      - "insurance_value2": ${ currency(life_and_disability_insurance[1].value) }
+      - "insurance2": ${ life_and_disability_insurance[1].company }
+      - "insurance_policy_no2": ${ life_and_disability_insurance[1].policy_number }
+      - "insurance_owner2": ${ life_and_disability_insurance[1].owner }
+      - "insurance_beneficiary2": ${ life_and_disability_insurance[1].beneficiary }
+      - "insurance_amount2": ${ currency(life_and_disability_insurance[1].face_amount) }
+      - "insurance_value3": ${ currency(life_and_disability_insurance[2].value) }
+      - "insurance3": ${ life_and_disability_insurance[2].company }
+      - "insurance_policy_no3": ${ life_and_disability_insurance[2].policy_number }
+      - "insurance_owner3": ${ life_and_disability_insurance[2].owner }
+      - "insurance_beneficiary3": ${ life_and_disability_insurance[2].beneficiary }
+      - "insurance_amount3": ${ currency(life_and_disability_insurance[2].face_amount) }
+      - "AR_amount1": ${ currency(AR[0].value) }
+      - "AR_particulars1": ${ AR[0].particulars }
+      - "AR_amount2": ${ currency(AR[1].value) }
+      - "AR_particulars2": ${ AR[1].particulars }
+      - "AR_amount3": ${ currency(AR[2].value) }
+      - "AR_particulars3": ${ AR[2].particulars }
+      - "business_interest_value1": ${ currency(business_interest[0].value) }
+      - "business_interest1": ${ business_interest[0].company }
+      - "business_interest_interest1": ${ business_interest[0].interest }
+      - "business_interest_value2": ${ currency(business_interest[1].value) }
+      - "business_interest2": ${ business_interest[1].company }
+      - "business_interest_interest2": ${ business_interest[1].interest }
+      - "business_interest_value3": ${ currency(business_interest[2].value) }
+      - "business_interest3": ${ business_interest[2].company }
+      - "business_interest_interest3": ${ business_interest[2].interest }
+      - "other_value1": ${ currency(other_assets[0].value) }
+      - "other_asset1": ${ other_assets[0].category }
+      - "other_value2": ${ currency(other_assets[1].value) }
+      - "other_asset2": ${ other_assets[1].category }
+      - "other_value3": ${ currency(other_assets[2].value) }
+      - "other_asset3": ${ other_assets[2].category }
+      - "debt_amount_owing1": ${ currency(debt[0].value) }
+      - "debt1": ${ debt[0].category }
+      - "debt_institution1": ${ debt[0].institution }
+      - "debt_particulars1": ${ debt[0].particulars }
+      - "debt_amount_owing2": ${ currency(debt[1].value) }
+      - "debt2": ${ debt[1].category }
+      - "debt_institution2": ${ debt[1].institution }
+      - "debt_particulars2": ${ debt[1].particulars }
+      - "debt_amount_owing3": ${ currency(debt[2].value) }
+      - "debt3": ${ debt[2].category }
+      - "debt_institution3": ${ debt[2].institution }
+      - "debt_particulars3": ${ debt[2].particulars }
+      - "debt_amount_owing4": ${ currency(debt[3].value) }
+      - "debt4": ${ debt[3].category }
+      - "debt_institution4": ${ debt[3].institution }
+      - "debt_particulars4": ${ debt[3].particulars }
+      - "debt_amount_owing5": ${ currency(debt[4].value) }
+      - "debt5": ${ debt[4].category }
+      - "debt_institution5": ${ debt[4].institution }
+      - "debt_particulars5": ${ debt[4].particulars }
+      - "debt_amount_owing6": ${ currency(debt[5].value) }
+      - "debt6": ${ debt[5].category }
+      - "debt_institution6": ${ debt[5].institution }
+      - "debt_particulars6": ${ debt[5].particulars }
+      - "excluded_value1": ${ currency(excluded_a_or_d[0].value) }
+      - "excluded1": ${ excluded_a_or_d[0].particulars }
+      - "excluded_reason1": ${ excluded_a_or_d[0].reason }
+      - "excluded_value2": ${ currency(excluded_a_or_d[1].value) }
+      - "excluded2": ${ excluded_a_or_d[1].particulars }
+      - "excluded_reason2": ${ excluded_a_or_d[1].reason }
+      - "excluded_value3": ${ currency(excluded_a_or_d[2].value) }
+      - "excluded3": ${ excluded_a_or_d[2].particulars }
+      - "excluded_reason3": ${ excluded_a_or_d[2].reason }

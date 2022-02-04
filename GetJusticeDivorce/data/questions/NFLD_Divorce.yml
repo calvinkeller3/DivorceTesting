@@ -1,0 +1,687 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - NFLD_Property_Statement.yml
+  - NFLD_Financial_Statement.yml
+---
+mandatory: True
+comment: |
+  This contains metadata that will not be overwritten if this YAML file is included in another
+  file. Each file gets its own key in the interview_metadata dictionary.
+  Most keys are not currently used at runtime, other than "allowed courts".
+code: |
+  interview_metadata
+  if not defined("interview_metadata['NFLD_Divorce']"):
+    interview_metadata.initializeObject("NFLD_Divorce")
+    interview_metadata["NFLD_Divorce"].update({
+      "al_weaver_version": "1.2.0",
+      "generated on": "2021-09-20",
+      "title": "NFLD_Divorce",
+      "short title": "NFLD Divorce",
+      "description": "Form f4.03a nfld divorce",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_NFLD_Divorce",
+      "attachment block variable": "NFLD_Divorce_attachment",
+      "typical role": "plaintiff",
+    })
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+code: |
+  children[i].name.first
+  children[i].birthdate
+  children[i].gender
+  children[i].living_with
+  children[i].special_needs
+  children[i].complete = True
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_NFLD_Divorce
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["NFLD_Divorce"]["allowed courts"]
+  nav.set_section('review_NFLD_Divorce')
+  user_role = 'plaintiff'
+  province_choice
+  trial_court_index
+  users.gather()
+  set_parts(subtitle=str(users))
+  users[0].birthdate
+  users[0].address.address
+  user_different_name
+  respondents.gather()
+  other_parties[0].birthdate
+  respondents[0].address.address
+  respondent_different_name
+  claim_sought
+  basis_for_divorce
+  lived_together
+  child_protection
+  children.gather()
+  
+  if claim_sought["divorce_act_custody"] or claim_sought["divorce_act_access"]: 
+    current_decision_making
+    proposed_decision_making
+  
+  if claim_sought["support_claim_yes"]:
+    interview_order_NFLD_Financial_Statement
+    
+  if claim_sought["property_claim_yes"]:
+    interview_order_NFLD_Property_Statement
+    
+  NFLD_Divorce_preview_question
+  users[0].signature
+  
+  interview_order_NFLD_Divorce = True
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: Screen seven
+question: |
+  Previous Court Cases
+fields:
+  - Are any of the parties in this case involved in a child protection case?: child_protection
+    datatype: yesnoradio
+  - Please provide details of the case: child_protection_details
+    datatype: area
+    show if: child_protection
+  - Are there any ongoing court proceedings, court orders, and/or written agreements involving you, your spouse, and/or the children in this case?: proceedings_order_agreements_yes
+    datatype: yesnoradio
+  - "Provide the details of the cases the parties are involved in": proceedings_order_agreements
+    datatype: area
+    show if: proceedings_order_agreements_yes
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: how many children
+question: |
+  % if al_form_type in ['starts_case','existing_case','appeal']:
+  Are there any children from the marriage?
+  % else:
+  Are any children involved in this matter?
+  % endif  
+fields:
+  - no label: children.there_are_any
+    datatype: yesnoradio
+  - How many?: children.target_number
+    datatype: integer
+    show if: children.there_are_any
+validation code: |
+  if not children.there_are_any:
+    children.target_number = 0
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: children names without birthdate
+sets:
+  - children[0].name.first
+  - children[0].name.last
+question: |
+  % if hasattr(children, 'ask_number') and children.ask_number and children.target_number == 1:
+  Your Child's Name
+  % else:
+  Your Oldest Child's Name
+  % endif
+fields:
+  - code: |
+      children[0].name_fields()
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: children names without birthdate
+sets:
+  - children[i].name.first
+  - children[i].name.last
+question: |
+  Your ${ ordinal(i).capitalize() } Child's Name
+fields:
+  - code: |
+      children[i].name_fields()
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: Screen eight
+question: |
+  ${ children[0].name } Additional Information
+fields:
+  - "Where does ${ children[0].name } live?": child1_city
+    maxlength: 23
+  - "Who does ${ children[0].name } live with?": child1_living_with
+    maxlength: 23
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: Screen nine
+question: |
+  ${ children[1].name } Additional Information
+fields:
+  - "Where does ${ children[1].name } live?": child2_city
+    maxlength: 23
+  - "Who does ${ children[1].name } live with?": child2_living_with
+    maxlength: 23
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: Screen ten
+question: |
+  ${ children[2].name } Additional Information
+fields:
+  - "Where does ${ children[2].name } live?": child3_city
+    maxlength: 23
+  - "Who does ${ children[2].name } live with?": child3_living_with
+    maxlength: 23
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: Screen 11
+question: |
+  ${ children[3].name } Additional Information
+fields:
+  - "Where does ${ children[3].name } live?": child4_city
+    maxlength: 23
+  - "Who does ${ children[3].name } live with?": child4_living_with
+    maxlength: 23
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: Screen 12
+question: |
+  ${ children[i].familiar() } Additional Information
+fields:
+  - "Where does ${ children[i].familiar() } live?": children[i].where_lives
+    maxlength: 23
+  - "Who does ${ children[i].familiar() } live with?": children[i].living_with
+    maxlength: 23
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: Screen 13
+question: |
+  ${ children[5].name } Additional Information
+fields:
+  - "Where does ${ children[5].name } live?": child6_city
+    maxlength: 23
+  - "Who does ${ children[5].name } live with?": child6_living_with
+    maxlength: 23
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: Screen 14
+question: |
+  ${ children[6].name } Additional Information
+fields:
+  - "Where does ${ children[6].name } live?": child7_city
+    maxlength: 23
+  - "Who does ${ children[6].name } live with?": child7_living_with
+    maxlength: 23
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: children additional information
+question: |
+  ${ children[i].familiar() } Additional Information
+fields:
+  - "Who does ${ children[i].familiar() } live with?": children[i].living_with
+    maxlength: 23
+  - "If applicable, please describe any ${ children[i].familiar() }'s disabilities or special needs.": children[i].special_needs
+    datatype: area
+    maxlength: 40
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: parenting order
+question: |
+  Current Parenting Arrangement Details
+subquestion: |
+  Outline the following current parenting arrangements to the best of your ability.
+fields:
+  - Decision-making about the child(ren): current_decision_making
+    datatype: area
+  - Regular parenting schedule (daily, weekly, monthly, or other): current_parenting_schedule
+    datatype: area
+  - Parenting schedule for holidays and special occasions: current_parenting_schedule_holidays
+    datatype: area
+  - Schedule for other communication (ie. phone or internet): current_schedule_for_communication
+    datatype: area
+  - Other important issues in relation to parenting the child(ren): current_other_important_issues
+    datatype: area
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: parenting order
+question: |
+  Proposed Parenting Arrangement Details
+subquestion: |
+  Outline the following proposed parenting arrangements to the best of your ability.
+fields:
+  - Decision-making about the child(ren): proposed_decision_making
+    datatype: area
+  - Regular parenting schedule (daily, weekly, monthly, or other): proposed_parenting_schedule
+    datatype: area
+  - Parenting schedule for holidays and special occasions: proposed_parenting_schedule_holidays
+    datatype: area
+  - Schedule for other communication (ie. phone or internet): proposed_schedule_for_communication
+    datatype: area
+  - Other important issues in relation to parenting the child(ren): proposed_other_important_issues
+    datatype: area
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: preview NFLD_Divorce
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ NFLD_preview_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. 
+continue button field: NFLD_Divorce_preview_question    
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+objects:
+  - NFLD_Divorce_attachment: ALDocument.using(title="Originating Application for Divorce", filename="Divorce_Application.pdf", enabled=True, has_addendum=False)
+  - NFLD_Divorce_attachment_watermarked: ALDocument.using(title="PREVIEW - Originating Application for Divorce", filename="Divorce_Application.pdf", enabled=True, has_addendum=False) 
+  - Additional_Information: ALDocument.using(title="Additional Information", filename="Additional_Information.pdf", enabled=True, has_addendum=False)
+  - Key_Assumptions_NFLD: ALDocument.using(title="Important Key Assumptions", filename="Key_Assumptions.pdf", enabled=True, has_addendum=False)
+---
+objects:
+  - NL_user_bundle: ALDocumentBundle.using(elements=[NFLD_Divorce_attachment, NFLD_Property_Statement_attachment, NFLD_Financial_Statement_attachment, Additional_Information, Key_Assumptions_NFLD], filename="GetJustice_Divorce_package.pdf", title="All forms to download for your records", enabled=True)
+  - NFLD_GJ_bundle: ALDocumentBundle.using(elements=[NFLD_Divorce_attachment, NFLD_Property_Statement_attachment, NFLD_Financial_Statement_attachment], filename="GetJustice_Divorce_package.pdf", title="All forms to download for your records", enabled=True)
+  - NFLD_preview_bundle: ALDocumentBundle.using(elements=[NFLD_Divorce_attachment_watermarked, NFLD_Property_Statement_watermarked, NFLD_Financial_Statement_watermarked], filename="PREVIEW_GetJustice_Divorce_package.pdf", title="All forms to download for your records", enabled=True)
+---
+code: |
+  if claim_sought["property_claim_yes"]:
+    NFLD_Property_Statement_attachment.enabled=True
+  else:
+    NFLD_Property_Statement_attachment.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"]:
+    NFLD_Property_Statement_watermarked.enabled=True
+  else:
+    NFLD_Property_Statement_watermarked.enabled=False
+---
+code: |
+  if claim_sought["support_claim_yes"]:
+    NFLD_Financial_Statement_attachment.enabled=True
+  else:
+    NFLD_Financial_Statement_attachment.enabled=False
+---
+code: |
+  if claim_sought["support_claim_yes"]:
+    NFLD_Financial_Statement_watermarked.enabled=True
+  else:
+    NFLD_Financial_Statement_watermarked.enabled=False
+---
+attachments:
+  - name: NFLD Divorce attachment
+    filename: NFLD_Divorce     
+    variable name: NFLD_Divorce_attachment[i]        
+    skip undefined: True
+    pdf template file: NFLD_Divorce.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "user_gender": ${ users[0].gender.capitalize().replace("-"," ") }
+      - "user_phone": ${ user_phone }
+      - "user_email": ${ user_email }
+      - "respondent_gender": ${ respondents[0].gender.capitalize().replace("-"," ") }
+      - "respondent_phone": ${ respondent_phone }
+      - "respondent_email": ${ respondent_email }
+      - "child1": ${ children[0] }
+      - "child1_gender": ${ children[0].gender.capitalize().replace("-"," ") }
+      - "child2": ${ children[1] }
+      - "child2_gender": ${ children[1].gender.capitalize().replace("-"," ") }
+      - "child3": ${ children[2] }
+      - "child3_gender": ${ children[2].gender.capitalize().replace("-"," ") }
+      - "child4": ${ children[3] }
+      - "child4_gender": ${ children[3].gender.capitalize().replace("-"," ") }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "clarenville": ${ str(trial_court) in ["Clarenville Courthouse"] }
+      - "corner_brook": ${ str(trial_court) in ["Corner Brook Courthouse"] }
+      - "gander": ${ str(trial_court) in ["Gander Courthouse"] }
+      - "grand_bank": ${ str(trial_court) in ["Grand Bank Courthouse"] }
+      - "grand_falls": ${ str(trial_court) in ["Grand Falls-Windsor Law Courts Bldg."] }
+      - "happy_valley": ${ str(trial_court) in ["Happy Valley-Goose Bay Courthouse"] }
+      - "port_aux_basques": ${ str(trial_court) in ["Port aux Basques (Corner Brook Circuit)"] }
+      - "rocky_harbour": ${ str(trial_court) in ["Rocky Harbour (Corner Brook Circuit)"] }
+      - "st_anthony": ${ str(trial_court) in ["St. Anthony (Corner Brook Circuit)"] }
+      - "st_johns": ${ str(trial_court) in ["St. John's Courthouse"] }
+      - "stephenville": ${ str(trial_court) in ["Stephenville Courthouse"] }
+      - "wabush": ${ str(trial_court) in ["Wabush Courthouse"] }
+      - "divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "parenting": ${ claim_sought["divorce_act_custody"] } claim_sought["divorce_act_access"]
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other": ${ claim_other }
+      - "user_last_name": ${ users[0].name.last }
+      - "user_last_name_at_birth": |
+          % if user_different_name:
+          ${ user_name_last_at_birth }
+          % else:
+          ${ users[0].name.last }
+          % endif 
+      - "user_first_name": ${ users[0].name.first }
+      - "user_middle_name": ${ users[0].name.middle }
+      - "user_postal_code": ${ users[0].address.zip }
+      - "user_address": ${ users[0].address.address }
+      - "user_city": ${ users[0].address.city }
+      - "user_province": ${ users[0].address.state }
+      - "user_dob_day": ${ ordinal(users[0].birthdate.format('d'), use_word=False) }
+      - "user_dob_year": ${ users[0].birthdate.format('yyyy') }
+      - "user_dob_month": ${ users[0].birthdate.format('MMMM') }
+      - "user_occupation": ${ user_occupation }
+      - "respondent_last_name": ${ users[0].name.last }
+      - "respondent_last_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_last_at_birth }
+          % else:
+          ${ respondents[0].name.last }
+          % endif
+      - "respondent_first_name": ${ respondents[0].name.first }
+      - "respondent_middle_name": ${ respondents[0].name.middle }
+      - "respondent_address": ${ respondents[0].address.address }
+      - "respondent_city": ${ respondents[0].address.city }
+      - "respondent_postal_code": ${ respondents[0].address.zip }
+      - "respondent_province": ${ respondents[0].address.state }
+      - "respondent_dob_day": ${ ordinal(other_parties[0].birthdate.format('d'), use_word=False) }
+      - "respondent_dob_year": ${ other_parties[0].birthdate.format('yyyy') }
+      - "respondent_dob_month": ${ other_parties[0].birthdate.format('MMMM') }
+      - "respondent_occupation": ${ respondent_occupation }
+      - "never_lived_together": ${ not lived_together }
+      - "started_living_together_date_month": ${ started_living_together_date.format('MMM') }.
+      - "started_living_together_date_year": ${ started_living_together_date.format('yyyy') }
+      - "started_living_together_date_day": ${ ordinal(started_living_together_date.format('d'), use_word=False) }
+      - "marriage_date_month": ${ marriage_date.format('MMM') }.
+      - "marriage_date_year": ${ marriage_date.format('yyyy') }
+      - "marriage_date_day": ${ ordinal(marriage_date.format('d'), use_word=False) }
+      - "Place of marriage": ${ marriage_place }
+      - "user_widowed": ${ user_marital_status=="Widowed" }
+      - "user_unmarried": ${ user_marital_status=="Never Married" }
+      - "user_divorced": ${ user_marital_status=="Divorced" }
+      - "respondent_unmarried": ${ respondent_marital_status=="Never Married" }
+      - "respondent_divorced": ${ respondent_marital_status=="Divorced" }
+      - "respondent_widowed": ${ respondent_marital_status=="Widowed" }
+      - "separation_date_month": ${ separated_date.format('MMM') }.
+      - "separation_date_year": ${ separated_date.format('yyyy') }
+      - "separation_date_day": ${ ordinal(separated_date.format('d'), use_word=False) }
+      - "child1_dob": ${ children[0].birthdate.format('M/d/yyyy') }
+      - "child1_living_with": ${ children.item( 0 ).living_with }
+      - "child1_special_needs": ${ children.item( 0 ).special_needs }
+      - "child2_dob": ${ children[1].birthdate.format('M/d/yyyy') }
+      - "child2_living_with": ${ children.item( 1 ).living_with }
+      - "child2_special_needs": ${ children.item( 1 ).special_needs }
+      - "child3_dob": ${ children[2].birthdate.format('M/d/yyyy') }
+      - "child3_living_with": ${ children.item( 2 ).living_with }
+      - "child3_special_needs": ${ children.item( 2 ).special_needs }
+      - "child4_dob": ${ children[3].birthdate.format('M/d/yyyy') }
+      - "child4_living_with": ${ children.item( 3 ).living_with }
+      - "child4_special_needs": ${ children.item( 3 ).special_needs }
+      - "no_children": |
+          % if len(children) < 1:
+          no_children = True 
+          % endif          
+      - "more_than_four_children": |
+          % if len(children) > 4:
+          more_than_four_children = True 
+          % endif
+      - "child_protection_yes": ${ child_protection }
+      - "child_protection_no": ${ not child_protection }
+      - "child_protection_details": ${ child_protection_details }
+      - "proceedings_order_agreements": ${ proceedings_order_agreements }
+      - "proceedings_order_agreements_not_applicable": ${ not proceedings_order_agreements_yes }
+      - "separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "adultery__1": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "cruelty__1": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "other_details": ${ claim_other_details }
+      - "today_year": ${ today().format('yy') }
+      - "today_month": ${ today().format('MMMM') }
+      - "today_day": ${ ordinal(today().format('d'), use_word=False) }
+      - "respondent_parent_child1": |
+          % if defined('children[0]'):
+          ${ respondents[0] }
+          % endif
+      - "user_parent_child1": |
+          % if defined('children[0]'):
+          ${ users[0] }
+          % endif
+      - "respondent_parent_child2": |
+          % if defined('children[1]'):
+          ${ respondents[0] }
+          % endif
+      - "user_parent_child2": |
+          % if defined('children[1]'):
+          ${ users[0] }
+          % endif
+      - "respondent_parent_child3": |
+          % if defined('children[2]'):
+          ${ respondents[0] }
+          % endif
+      - "user_parent_child3": |
+          % if defined('children[2]'):
+          ${ users[0] }
+          % endif      
+      - "respondent_parent_child4": |
+          % if defined('children[3]'):
+          ${ respondents[0] }
+          % endif
+      - "user_parent_child4": |
+          % if defined('children[3]'):
+          ${ users[0] }
+          % endif
+      - "current_decision_making": ${ current_decision_making }
+      - "current_parenting_schedule": ${ current_parenting_schedule }
+      - "current_parenting_schedule_holidays": ${ current_parenting_schedule_holidays }
+      - "current_schedule_for_communication": ${ current_schedule_for_communication }
+      - "current_other_important_issues": ${ current_other_important_issues }
+      - "proposed_decision_making": ${ proposed_decision_making }
+      - "proposed_parenting_schedule": ${ proposed_parenting_schedule }
+      - "proposed_parenting_schedule_holidays": ${ proposed_parenting_schedule_holidays }
+      - "proposed_schedule_for_communication": ${ proposed_schedule_for_communication }
+      - "proposed_other_important_issues": ${ proposed_other_important_issues }
+      - "child_support_yes": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support_yes": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "spousal_support_yes__2": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "property_equal_division_yes": ${ property_claim_sought["property_claim_equalization"] }
+      - "property_Exclusive_yes": ${ property_claim_sought["property_claim_exclusive_possession_home"] }
+      - "property_claim_yes": ${ claim_sought["property_claim_yes"] }
+  - name: NFLD_Divorce_watermarked
+    filename: NFLD_Divorce_watermarked
+    variable name: NFLD_Divorce_attachment_watermarked[i]        
+    skip undefined: True
+    pdf template file: NFLD_Divorce_watermarked.pdf
+    fields:
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "user_gender": ${ users[0].gender.capitalize().replace("-"," ") }
+      - "user_phone": ${ user_phone }
+      - "user_email": ${ user_email }
+      - "respondent_gender": ${ respondents[0].gender.capitalize().replace("-"," ") }
+      - "respondent_phone": ${ respondent_phone }
+      - "respondent_email": ${ respondent_email }
+      - "child1": ${ children[0] }
+      - "child1_gender": ${ children[0].gender.capitalize().replace("-"," ") }
+      - "child2": ${ children[1] }
+      - "child2_gender": ${ children[1].gender.capitalize().replace("-"," ") }
+      - "child3": ${ children[2] }
+      - "child3_gender": ${ children[2].gender.capitalize().replace("-"," ") }
+      - "child4": ${ children[3] }
+      - "child4_gender": ${ children[3].gender.capitalize().replace("-"," ") }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "clarenville": ${ str(trial_court) in ["Clarenville Courthouse"] }
+      - "corner_brook": ${ str(trial_court) in ["Corner Brook Courthouse"] }
+      - "gander": ${ str(trial_court) in ["Gander Courthouse"] }
+      - "grand_bank": ${ str(trial_court) in ["Grand Bank Courthouse"] }
+      - "grand_falls": ${ str(trial_court) in ["Grand Falls-Windsor Law Courts Bldg."] }
+      - "happy_valley": ${ str(trial_court) in ["Happy Valley-Goose Bay Courthouse"] }
+      - "port_aux_basques": ${ str(trial_court) in ["Port aux Basques (Corner Brook Circuit)"] }
+      - "rocky_harbour": ${ str(trial_court) in ["Rocky Harbour (Corner Brook Circuit)"] }
+      - "st_anthony": ${ str(trial_court) in ["St. Anthony (Corner Brook Circuit)"] }
+      - "st_johns": ${ str(trial_court) in ["St. John's Courthouse"] }
+      - "stephenville": ${ str(trial_court) in ["Stephenville Courthouse"] }
+      - "wabush": ${ str(trial_court) in ["Wabush Courthouse"] }
+      - "divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "parenting": ${ claim_sought["divorce_act_custody"] } claim_sought["divorce_act_access"]
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other": ${ claim_other }
+      - "user_last_name": ${ users[0].name.last }
+      - "user_last_name_at_birth": |
+          % if user_different_name:
+          ${ user_name_last_at_birth }
+          % else:
+          ${ users[0].name.last }
+          % endif 
+      - "user_first_name": ${ users[0].name.first }
+      - "user_middle_name": ${ users[0].name.middle }
+      - "user_postal_code": ${ users[0].address.zip }
+      - "user_address": ${ users[0].address.address }
+      - "user_city": ${ users[0].address.city }
+      - "user_province": ${ users[0].address.state }
+      - "user_dob_day": ${ ordinal(users[0].birthdate.format('d'), use_word=False) }
+      - "user_dob_year": ${ users[0].birthdate.format('yyyy') }
+      - "user_dob_month": ${ users[0].birthdate.format('MMMM') }
+      - "user_occupation": ${ user_occupation }
+      - "respondent_last_name": ${ users[0].name.last }
+      - "respondent_last_name_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_last_at_birth }
+          % else:
+          ${ respondents[0].name.last }
+          % endif
+      - "respondent_first_name": ${ respondents[0].name.first }
+      - "respondent_middle_name": ${ respondents[0].name.middle }
+      - "respondent_address": ${ respondents[0].address.address }
+      - "respondent_city": ${ respondents[0].address.city }
+      - "respondent_postal_code": ${ respondents[0].address.zip }
+      - "respondent_province": ${ respondents[0].address.state }
+      - "respondent_dob_day": ${ ordinal(other_parties[0].birthdate.format('d'), use_word=False) }
+      - "respondent_dob_year": ${ other_parties[0].birthdate.format('yyyy') }
+      - "respondent_dob_month": ${ other_parties[0].birthdate.format('MMMM') }
+      - "respondent_occupation": ${ respondent_occupation }
+      - "never_lived_together": ${ not lived_together }
+      - "started_living_together_date_month": ${ started_living_together_date.format('MMM') }.
+      - "started_living_together_date_year": ${ started_living_together_date.format('yyyy') }
+      - "started_living_together_date_day": ${ ordinal(started_living_together_date.format('d'), use_word=False) }
+      - "marriage_date_month": ${ marriage_date.format('MMM') }.
+      - "marriage_date_year": ${ marriage_date.format('yyyy') }
+      - "marriage_date_day": ${ ordinal(marriage_date.format('d'), use_word=False) }
+      - "Place of marriage": ${ marriage_place }
+      - "user_widowed": ${ user_marital_status=="Widowed" }
+      - "user_unmarried": ${ user_marital_status=="Never Married" }
+      - "user_divorced": ${ user_marital_status=="Divorced" }
+      - "respondent_unmarried": ${ respondent_marital_status=="Never Married" }
+      - "respondent_divorced": ${ respondent_marital_status=="Divorced" }
+      - "respondent_widowed": ${ respondent_marital_status=="Widowed" }
+      - "separation_date_month": ${ separated_date.format('MMM') }.
+      - "separation_date_year": ${ separated_date.format('yyyy') }
+      - "separation_date_day": ${ ordinal(separated_date.format('d'), use_word=False) }
+      - "child1_dob": ${ children[0].birthdate.format('M/d/yyyy') }
+      - "child1_living_with": ${ children.item( 0 ).living_with }
+      - "child1_special_needs": ${ children.item( 0 ).special_needs }
+      - "child2_dob": ${ children[1].birthdate.format('M/d/yyyy') }
+      - "child2_living_with": ${ children.item( 1 ).living_with }
+      - "child2_special_needs": ${ children.item( 1 ).special_needs }
+      - "child3_dob": ${ children[2].birthdate.format('M/d/yyyy') }
+      - "child3_living_with": ${ children.item( 2 ).living_with }
+      - "child3_special_needs": ${ children.item( 2 ).special_needs }
+      - "child4_dob": ${ children[3].birthdate.format('M/d/yyyy') }
+      - "child4_living_with": ${ children.item( 3 ).living_with }
+      - "child4_special_needs": ${ children.item( 3 ).special_needs }
+      - "no_children": |
+          % if len(children) < 1:
+          no_children = True 
+          % endif          
+      - "more_than_four_children": |
+          % if len(children) > 4:
+          more_than_four_children = True 
+          % endif
+      - "child_protection_yes": ${ child_protection }
+      - "child_protection_no": ${ not child_protection }
+      - "child_protection_details": ${ child_protection_details }
+      - "proceedings_order_agreements": ${ proceedings_order_agreements }
+      - "proceedings_order_agreements_not_applicable": ${ not proceedings_order_agreements_yes }
+      - "separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "adultery__1": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "cruelty__1": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "other_details": ${ claim_other_details }
+      - "today_year": ${ today().format('yy') }
+      - "today_month": ${ today().format('MMMM') }
+      - "today_day": ${ ordinal(today().format('d'), use_word=False) }
+      - "respondent_parent_child1": |
+          % if defined('children[0]'):
+          ${ respondents[0] }
+          % endif
+      - "user_parent_child1": |
+          % if defined('children[0]'):
+          ${ users[0] }
+          % endif
+      - "respondent_parent_child2": |
+          % if defined('children[1]'):
+          ${ respondents[0] }
+          % endif
+      - "user_parent_child2": |
+          % if defined('children[1]'):
+          ${ users[0] }
+          % endif
+      - "respondent_parent_child3": |
+          % if defined('children[2]'):
+          ${ respondents[0] }
+          % endif
+      - "user_parent_child3": |
+          % if defined('children[2]'):
+          ${ users[0] }
+          % endif      
+      - "respondent_parent_child4": |
+          % if defined('children[3]'):
+          ${ respondents[0] }
+          % endif
+      - "user_parent_child4": |
+          % if defined('children[3]'):
+          ${ users[0] }
+          % endif
+      - "current_decision_making": ${ current_decision_making }
+      - "current_parenting_schedule": ${ current_parenting_schedule }
+      - "current_parenting_schedule_holidays": ${ current_parenting_schedule_holidays }
+      - "current_schedule_for_communication": ${ current_schedule_for_communication }
+      - "current_other_important_issues": ${ current_other_important_issues }
+      - "proposed_decision_making": ${ proposed_decision_making }
+      - "proposed_parenting_schedule": ${ proposed_parenting_schedule }
+      - "proposed_parenting_schedule_holidays": ${ proposed_parenting_schedule_holidays }
+      - "proposed_schedule_for_communication": ${ proposed_schedule_for_communication }
+      - "proposed_other_important_issues": ${ proposed_other_important_issues }
+      - "child_support_yes": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support_yes": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "spousal_support_yes__2": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "property_equal_division_yes": ${ property_claim_sought["property_claim_equalization"] }
+      - "property_Exclusive_yes": ${ property_claim_sought["property_claim_exclusive_possession_home"] }
+      - "property_claim_yes": ${ claim_sought["property_claim_yes"] }
+  - name: Additional_Information
+    filename: Additional_Information
+    variable name: Additional_Information[i]        
+    skip undefined: True
+    pdf template file: Additional_Information.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }
+  - name: Key_Assumptions_NFLD
+    filename: Key_Assumptions_NFLD
+    variable name: Key_Assumptions_NFLD[i]        
+    skip undefined: True
+    pdf template file: Key_Assumptions_NFLD.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }  

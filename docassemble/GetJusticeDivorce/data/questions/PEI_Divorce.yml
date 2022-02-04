@@ -1,0 +1,591 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - NS_and_PEI_Property_Statement.yml
+  - NS_Parenting_Statement.yml
+  - NS_and_PEI_Statement_of_Expense.yml
+  - NS_and_PEI_Income_Statement.yml
+---
+mandatory: True
+comment: |
+  This contains metadata that will not be overwritten if this YAML file is included in another
+  file. Each file gets its own key in the interview_metadata dictionary.
+  Most keys are not currently used at runtime, other than "allowed courts".
+code: |
+  interview_metadata
+  if not defined("interview_metadata['PEI_Divorce_Form70A']"):
+    interview_metadata.initializeObject("PEI_Divorce_Form70A")
+    interview_metadata["PEI_Divorce_Form70A"].update({
+      "al_weaver_version": "1.2.0",
+      "generated on": "2021-09-21",
+      "title": "Pei divorce form70a",
+      "short title": "Pei divorce form70a",
+      "description": "Pei divorce form70a",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_PEI_Divorce_Form70A",
+      "attachment block variable": "PEI_Divorce_Form70A_attachment",
+      "typical role": "plaintiff",
+    })
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+code: |
+  children[i].name.first
+  children[i].birthdate
+  children[i].gender
+  children[i].grade  
+  children[i].living_with
+  children[i].complete = True
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_PEI_Divorce_Form70A
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["PEI_Divorce_Form70A"]["allowed courts"]
+  nav.set_section('review_PEI_Divorce_Form70A')
+  user_role = 'plaintiff'
+  province_choice
+  trial_court_index
+  users.gather()
+  set_parts(subtitle=str(users))
+  users[0].birthdate
+  users[0].address.address
+  user_different_name
+  respondents.gather()
+  other_parties[0].birthdate
+  respondents[0].address.address
+  respondent_different_name
+  claim_sought
+  basis_for_divorce
+  marriage_date
+  previous_court_proceedings
+  previous_court_proceedings_criminal
+  previous_court_proceedings_child_protect
+  previous_court_proceedings_civil_protect
+  children.gather()
+  
+  if children.target_number > 0:
+    present_arrangements_decision_making
+    parenting_order_sought_bioc
+  
+  agreement[0].date      
+  
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    interview_order_NS_Income_Statement
+
+  if claim_sought["property_claim_yes"]:
+    interview_order_NS_Property_Statement
+  
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    interview_order_NS_Statement_of_Expense
+    
+  PEI_Divorce_Form70A_preview_question
+  users[0].signature
+    
+  interview_order_PEI_Divorce_Form70A = True
+---
+objects:
+  - agreement: DAList.using(object_type=DAObject, there_are_any=True)
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: Screen seven
+question: |
+  Previous Court Cases
+subquestion: |
+  Have any parties involved in this case been involved in another case regarding marriage, custody, access, parenting arrangements, or support? If yes, please explain
+fields:
+  - no label: previous_court_proceedings
+    datatype: yesnoradio
+  - Details: family_law_proceedings_or_proceedings_details
+    datatype: area
+    show if: previous_court_proceedings
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: child protect
+question: |
+  Previous Court Cases
+subquestion: |
+  Are you aware of any current or previous involvement of Child Protection Services with you, your spouse/former spouse, or your children?
+fields:
+  - no label: previous_court_proceedings_child_protect
+    datatype: yesnoradio
+  - Details: child_protection_proceedings_or_orders
+    datatype: area
+    show if: previous_court_proceedings_child_protect
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: criminal proceedings
+question: |
+  Previous Court Cases
+subquestion: |
+  Do you know if your spouse/former spouse is currently charged with committing, or has been convicted of, a criminal offence or required to follow conditions in relation to a criminal case involving family violence?
+fields:
+  - no label: previous_court_proceedings_criminal
+    datatype: yesnoradio
+  - Details: criminal_proceedings_or_orders
+    datatype: area
+    show if: previous_court_proceedings_criminal
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: civil protect
+question: |
+  Previous Court Cases
+subquestion: |
+  Are you aware of any current or previous civil protection orders or proceedings involving you or your spouse/former spouse?
+fields:
+  - no label: previous_court_proceedings_civil_protect
+    datatype: yesnoradio
+  - Details: civil_protection_proceedings_or_orders
+    datatype: area
+    show if: previous_court_proceedings_civil_protect
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: how many children
+question: |
+  % if al_form_type in ['starts_case','existing_case','appeal']:
+  Are there any children from the marriage?
+  % else:
+  Are any children involved in this matter?
+  % endif  
+fields:
+  - no label: children.there_are_any
+    datatype: yesnoradio
+  - How many?: children.target_number
+    datatype: integer
+    show if: children.there_are_any
+validation code: |
+  if not children.there_are_any:
+    children.target_number = 0
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: children names without birthdate
+sets:
+  - children[0].name.first
+  - children[0].name.last
+question: |
+  % if hasattr(children, 'ask_number') and children.ask_number and children.target_number == 1:
+  Your Child's Name
+  % else:
+  Your Oldest Child's Name
+  % endif
+fields:
+  - code: |
+      children[0].name_fields()
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: children names without birthdate
+sets:
+  - children[i].name.first
+  - children[i].name.last
+question: |
+  Your ${ ordinal(i).capitalize() } Child's Name
+fields:
+  - code: |
+      children[i].name_fields()
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: children gender and lives with
+question: |
+  ${ children[i].familiar() } Additional Information
+fields:
+  - "Who does ${ children[i].familiar() } live with?": children[i].living_with
+    maxlength: 23
+  - "What grade is ${ children[i].familiar() } in?": children[i].grade
+    maxlength: 23    
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: Screen one
+question: |
+  Parenting Arrangements
+fields:
+  - Outline the current decision making responsibility arrangements.: present_arrangements_decision_making
+    datatype: area
+  - Outline the current parenting time arrangements.: present_arrangements_pt
+    datatype: area
+  - Outline the current child support arrangements.: present_arrangements_cs
+    datatype: area
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: agreements
+question: |
+  Previous Agreement 
+fields:
+  - "Is there a agreement between the parties in regards to decision making of the child(ren) of the marriage?": parenting_agreement_yes
+    datatype: yesnoradio
+  - "Describe the agreement": orders_or_agreements_decision_making
+    maxlength: 76
+    datatype: area
+    show if: parenting_agreement_yes  
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: agreements
+question: |
+  Previous Agreement 
+fields:
+  - "Please outline the parenting order you seek that is in the best interest of the child(ren)": parenting_order_sought_bioc
+    datatype: area
+  - "If applicable, outline any changes of the spouses that may affect the parenting order sought": changes_affecting_parenting_order  
+    datatype: area
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: Domestic contract etc.
+question: |
+  Do you and your spouse have any previous agreements? 
+subquestion: |
+      This can include domestic contracts, separation agreements, minutes of settlement, or other financial arrangements and parenting plans.
+fields:
+  - Date of agreement: agreement[i].date
+    datatype: date
+    required: False
+  - What is the nature of the agreement?: agreement[i].nature
+    required: False
+  - What is the status of the agreement?: agreement[i].status
+    required: False
+    help: |
+      Agreed upon, signed, in-action, etc.
+list collect: True  
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: preview PEI_Divorce_Form70A
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ PEI_preview_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. 
+continue button field: PEI_Divorce_Form70A_preview_question    
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+objects:
+  - PEI_Divorce_Form70A_attachment: ALDocument.using(title="Petition for Divorce", filename="Divorce_Form.pdf", enabled=True, has_addendum=False)
+  - PEI_Divorce_Form70A_watermarked: ALDocument.using(title="PREVIEW - Petition for Divorce", filename="Divorce_Form.pdf", enabled=True, has_addendum=False)
+  - Additional_Information: ALDocument.using(title="Additional Information", filename="Additional_Information.pdf", enabled=True, has_addendum=False)
+  - Key_Assumptions_PEi: ALDocument.using(title="Important Key Assumptions", filename="Key_Assumptions.pdf", enabled=True, has_addendum=False)
+---
+objects:
+  - PEI_user_bundle: ALDocumentBundle.using(elements=[PEI_Divorce_Form70A_attachment, PEI_Statement_of_Property, PEI_Statement_of_Expense, PEI_Statement_of_Income, Additional_Information, Key_Assumptions_PEi], filename="GetJustice_Divorce_Package.pdf", title="All forms to download for your records", enabled=True)
+  - PEI_GJ_bundle: ALDocumentBundle.using(elements=[PEI_Divorce_Form70A_attachment, PEI_Statement_of_Property, PEI_Statement_of_Expense, PEI_Statement_of_Income], filename="GetJustice_Divorce_Package.pdf", title="All forms to download for your records", enabled=True)
+  - PEI_preview_bundle: ALDocumentBundle.using(elements=[PEI_Divorce_Form70A_watermarked, PEI_Statement_of_Property_watermarked, PEI_Statement_of_Expense_watermarked, PEI_Statement_of_Income_watermarked], filename="PREVIEW_GetJustice_Divorce_Package.pdf", title="All forms to download for your records", enabled=True)
+---
+code: |
+  if claim_sought["property_claim_yes"]:
+    PEI_Statement_of_Property.enabled=True
+  else:
+    PEI_Statement_of_Property.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"]:
+    PEI_Statement_of_Property_watermarked.enabled=True
+  else:
+    PEI_Statement_of_Property_watermarked.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    PEI_Statement_of_Expense.enabled=True
+  else:
+    PEI_Statement_of_Expense.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    PEI_Statement_of_Expense_watermarked.enabled=True
+  else:
+    PEI_Statement_of_Expense_watermarked.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    PEI_Statement_of_Income.enabled=True
+  else:
+    PEI_Statement_of_Income.enabled=False
+---
+code: |
+  if claim_sought["property_claim_yes"] or claim_sought["support_claim_yes"]:
+    PEI_Statement_of_Income_watermarked.enabled=True
+  else:
+    PEI_Statement_of_Income_watermarked.enabled=False
+---
+attachments:
+  - name: PEI Divorce Form70A attachment
+    filename: PEI_Divorce_Form70A     
+    variable name: PEI_Divorce_Form70A_attachment[i]        
+    skip undefined: True
+    pdf template file: PEI_Divorce_Form70A.pdf
+    fields:
+      - "respondent__1": ${ respondents[0] }
+      - "user_birthdate": ${ users[0].birthdate.format() }
+      - "user_gender": ${ users[0].gender.capitalize().replace("-"," ") }
+      - "respondent_birthdate": ${ other_parties[0].birthdate }
+      - "respondent_gender": ${ respondents[0].gender.capitalize().replace("-"," ") }
+      - "child1_birthdate": ${ children[0].birthdate.format('MM/dd/yyyy') }
+      - "child1": ${ children[0] }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format('MM/dd/yyyy') }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format('MM/dd/yyyy') }
+      - "child4_birthdate": ${ children[3].birthdate.format('MM/dd/yyyy') }
+      - "child4": ${ children[3] }
+      - "child5_birthdate": ${ children[4].birthdate.format('MM/dd/yyyy') }
+      - "child5": ${ children[4] }
+      - "trial_court": ${ trial_court.address.block() }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "child_support": ${ support_claim_sought["divorce_act_child_support"] }
+      - "decision_making": ${ claim_sought["divorce_act_custody"] }
+      - "parenting_time": ${ claim_sought["divorce_act_access"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "separated_date": |
+          % if basis_for_divorce["basis_for_divorce_separation"]:
+          ${ separated_date }
+          % endif
+      - "separation_details_our_text": ${ separation_details_our_text }
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "adultery_details": ${ adultery_details }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "cruelty_details": ${ cruelty_details }
+      - "marriage_date": ${ marriage_date }
+      - "marriage_place": ${ marriage_place }
+      - "user_birthplace": ${ user_birthplace }
+      - "user_last_name_b4_marriage":  |
+          % if user_different_name:
+          ${ user_name_last_before_marriage }
+          % else:
+          ${ users[0].name.last }
+          % endif
+      - "user_first_name_b4_marriage": |
+          % if user_different_name:
+          ${ user_name_first_at_marriage }
+          % else:
+          ${ users[0].name.first }
+          % endif
+      - "user_marital_status": ${ user_marital_status }
+      - "respondent_birthplace": ${ respondent_birthplace }
+      - "respondent_last_name_b4_marriage": |
+          % if respondent_different_name:
+          ${ respondent_name_last_before_marriage }
+          % else:
+          ${ respondents[0].name.last }
+          % endif 
+      - "respondent_first_name_before_marriage":  |
+          % if respondent_different_name:
+          ${ respondent_name_first_at_marriage }
+          % else:
+          ${ respondents[0].name.first }
+          % endif      
+      - "respondent_marital_status": ${ respondent_marital_status }
+      - "user_move_city": ${ user_move_date }
+      - "user_city": ${ users[0].address.city }
+      - "respondent_city": ${ respondents[0].address.city }
+      - "respondent_move_date": ${ respondent_move_date }
+      - "child1_living_with": ${ children.item(0).living_with }
+      - "child1_grade": ${ children.item( 0 ).grade }
+      - "child2_living_with": ${ children.item(1).living_with }
+      - "child2_grade": ${ children.item( 1 ).grade }
+      - "child3_living_with": ${ children.item(2).living_with }
+      - "child3_grade": ${ children.item( 2 ).grade }
+      - "child4_grade": ${ children.item( 3 ).grade }
+      - "child4_living_with": ${ children.item(3).living_with }
+      - "child5_grade": ${ children.item( 4 ).grade }
+      - "child5_living_with": ${ children.item(4).living_with }
+      - "children_reside_in": |
+          % if len(children) > 0:
+          ${ users[0].address.city }
+          % endif
+      - "access_yes": ${ claim_sought["divorce_act_access"] }
+      - "access_no": ${ not claim_sought["divorce_act_access"] }
+      - "agreements_parenting_time": ${ agreements_parenting_time }
+      - "decision_making_yes": ${ claim_sought["divorce_act_custody"] }
+      - "decision_making_no": ${ not claim_sought["divorce_act_custody"] }
+      - "orders_or_agreements_decision_making": ${ orders_or_agreements_decision_making }
+      - "parenting_order_sought_bioc": ${ parenting_order_sought_bioc }
+      - "changes_affecting_parenting_order": ${ changes_affecting_parenting_order }
+      - "grounds_for_divorce": ${ basise_for_divorce_details }
+      - "family_law_proceedings_or_proceedings_yes_no": |
+          % if previous_court_proceedings:
+          Yes
+          % else:
+          No 
+          % endif
+      - "family_law_proceedings_or_proceedings_details": ${ family_law_proceedings_or_proceedings_details }
+      - "criminal_proceedings_or_orders": ${ criminal_proceedings_or_orders }
+      - "child_protection_proceedings_or_orders": ${ child_protection_proceedings_or_orders }
+      - "civil_protection_proceedings_or_orders": ${ civil_protection_proceedings_or_orders }
+      - "today()": ${ today() }
+      - "agreement_date_1": ${ agreement[0].date.format('MM/dd/yyyy') }
+      - "agreement_nature_1": ${ agreement[0].nature }
+      - "agreement_status_1":  ${ agreement[0].status }
+      - "agreement_date_2": ${ agreement[1].date.format('MM/dd/yyyy') }
+      - "agreement_nature_2": ${ agreement[1].nature }
+      - "agreement_status_2":  ${ agreement[1].status }
+      - "agreement_date_3": ${ agreement[2].date.format('MM/dd/yyyy') }
+      - "agreement_nature_3": ${ agreement[2].nature }
+      - "agreement_status_3":  ${ agreement[2].status }
+      - "agreement_date_4": ${ agreement[3].date.format('MM/dd/yyyy') }
+      - "agreement_nature_4": ${ agreement[3].nature }
+      - "agreement_status_4":  ${ agreement[3].status }
+      - "agreement_date_5": ${ agreement[4].date.format('MM/dd/yyyy') }
+      - "agreement_nature_5": ${ agreement[4].nature }
+      - "agreement_status_5": ${ agreement[4].status }   
+      - "respondent_address": ${ respondents[0].address }
+      - "trial_court_name": ${ trial_court }
+  - name: PEI_Divorce_Form70A_watermarked
+    filename: PEI_Divorce_Form70A_watermarked
+    variable name: PEI_Divorce_Form70A_watermarked[i]        
+    skip undefined: True
+    pdf template file: PEI_Divorce_Form70A_watermarked.pdf
+    fields:
+      - "respondent__1": ${ respondents[0] }
+      - "user_birthdate": ${ users[0].birthdate.format() }
+      - "user_gender": ${ users[0].gender.capitalize().replace("-"," ") }
+      - "respondent_birthdate": ${ other_parties[0].birthdate }
+      - "respondent_gender": ${ respondents[0].gender.capitalize().replace("-"," ") }
+      - "child1_birthdate": ${ children[0].birthdate.format('MM/dd/yyyy') }
+      - "child1": ${ children[0] }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format('MM/dd/yyyy') }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format('MM/dd/yyyy') }
+      - "child4_birthdate": ${ children[3].birthdate.format('MM/dd/yyyy') }
+      - "child4": ${ children[3] }
+      - "child5_birthdate": ${ children[4].birthdate.format('MM/dd/yyyy') }
+      - "child5": ${ children[4] }
+      - "trial_court": ${ trial_court.address.block() }
+      - "user_signature": ${ users[0].signature_if_final(i) }
+      - "divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "child_support": ${ support_claim_sought["divorce_act_child_support"] }
+      - "decision_making": ${ claim_sought["divorce_act_custody"] }
+      - "parenting_time": ${ claim_sought["divorce_act_access"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "separated_date": |
+          % if basis_for_divorce["basis_for_divorce_separation"]:
+          ${ separated_date }
+          % endif
+      - "separation_details_our_text": ${ separation_details_our_text }
+      - "adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "adultery_details": ${ adultery_details }
+      - "cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "cruelty_details": ${ cruelty_details }
+      - "marriage_date": ${ marriage_date }
+      - "marriage_place": ${ marriage_place }
+      - "user_birthplace": ${ user_birthplace }
+      - "user_last_name_b4_marriage":  |
+          % if user_different_name:
+          ${ user_name_last_before_marriage }
+          % else:
+          ${ users[0].name.last }
+          % endif
+      - "user_first_name_b4_marriage": |
+          % if user_different_name:
+          ${ user_name_first_at_marriage }
+          % else:
+          ${ users[0].name.first }
+          % endif
+      - "user_marital_status": ${ user_marital_status }
+      - "respondent_birthplace": ${ respondent_birthplace }
+      - "respondent_last_name_b4_marriage": |
+          % if respondent_different_name:
+          ${ respondent_name_last_before_marriage }
+          % else:
+          ${ respondents[0].name.last }
+          % endif 
+      - "respondent_first_name_before_marriage":  |
+          % if respondent_different_name:
+          ${ respondent_name_first_at_marriage }
+          % else:
+          ${ respondents[0].name.first }
+          % endif      
+      - "respondent_marital_status": ${ respondent_marital_status }
+      - "user_move_city": ${ user_move_date }
+      - "user_city": ${ users[0].address.city }
+      - "respondent_city": ${ respondents[0].address.city }
+      - "respondent_move_date": ${ respondent_move_date }
+      - "child1_living_with": ${ children.item(0).living_with }
+      - "child1_grade": ${ children.item( 0 ).grade }
+      - "child2_living_with": ${ children.item(1).living_with }
+      - "child2_grade": ${ children.item( 1 ).grade }
+      - "child3_living_with": ${ children.item(2).living_with }
+      - "child3_grade": ${ children.item( 2 ).grade }
+      - "child4_grade": ${ children.item( 3 ).grade }
+      - "child4_living_with": ${ children.item(3).living_with }
+      - "child5_grade": ${ children.item( 4 ).grade }
+      - "child5_living_with": ${ children.item(4).living_with }
+      - "children_reside_in": |
+          % if len(children) > 0:
+          ${ users[0].address.city }
+          % endif
+      - "access_yes": ${ claim_sought["divorce_act_access"] }
+      - "access_no": ${ not claim_sought["divorce_act_access"] }
+      - "agreements_parenting_time": ${ agreements_parenting_time }
+      - "decision_making_yes": ${ claim_sought["divorce_act_custody"] }
+      - "decision_making_no": ${ not claim_sought["divorce_act_custody"] }
+      - "orders_or_agreements_decision_making": ${ orders_or_agreements_decision_making }
+      - "parenting_order_sought_bioc": ${ parenting_order_sought_bioc }
+      - "changes_affecting_parenting_order": ${ changes_affecting_parenting_order }
+      - "grounds_for_divorce": ${ basise_for_divorce_details }
+      - "family_law_proceedings_or_proceedings_yes_no": |
+          % if previous_court_proceedings:
+          Yes
+          % else:
+          No 
+          % endif
+      - "family_law_proceedings_or_proceedings_details": ${ family_law_proceedings_or_proceedings_details }
+      - "criminal_proceedings_or_orders": ${ criminal_proceedings_or_orders }
+      - "child_protection_proceedings_or_orders": ${ child_protection_proceedings_or_orders }
+      - "civil_protection_proceedings_or_orders": ${ civil_protection_proceedings_or_orders }
+      - "today()": ${ today() }
+      - "agreement_date_1": ${ agreement[0].date.format('MM/dd/yyyy') }
+      - "agreement_nature_1": ${ agreement[0].nature }
+      - "agreement_status_1":  ${ agreement[0].status }
+      - "agreement_date_2": ${ agreement[1].date.format('MM/dd/yyyy') }
+      - "agreement_nature_2": ${ agreement[1].nature }
+      - "agreement_status_2":  ${ agreement[1].status }
+      - "agreement_date_3": ${ agreement[2].date.format('MM/dd/yyyy') }
+      - "agreement_nature_3": ${ agreement[2].nature }
+      - "agreement_status_3":  ${ agreement[2].status }
+      - "agreement_date_4": ${ agreement[3].date.format('MM/dd/yyyy') }
+      - "agreement_nature_4": ${ agreement[3].nature }
+      - "agreement_status_4":  ${ agreement[3].status }
+      - "agreement_date_5": ${ agreement[4].date.format('MM/dd/yyyy') }
+      - "agreement_nature_5": ${ agreement[4].nature }
+      - "agreement_status_5": ${ agreement[4].status }   
+      - "respondent_address": ${ respondents[0].address }
+      - "trial_court_name": ${ trial_court }
+  - name: Additional_Information
+    filename: Additional_Information
+    variable name: Additional_Information[i]        
+    skip undefined: True
+    pdf template file: Additional_Information.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }
+  - name: Key_Assumptions_PEi
+    filename: Key_Assumptions_PEi
+    variable name: Key_Assumptions_PEi[i]        
+    skip undefined: True
+    pdf template file: Key_Assumptions_PEi.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }  

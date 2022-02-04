@@ -1,0 +1,1416 @@
+initial: True
+code: |
+  speak_text = False
+---
+modules:
+  - .dastripe
+---
+features:
+  javascript: https://js.stripe.com/v3/
+---
+objects:
+  - payment: DAStripe.using(payor=users[0], currency='cad')
+  - users[0].billing_address: ALAddress
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - docassemble.GetJusticeBranding:get_justice.yml
+  - get_justice.yml
+  - AB_Divorce.yml
+  - BC_Divorce.yml
+  - MB_Divorce.yml
+  - NB_Divorce.yml
+  - NFLD_Divorce.yml
+  - NS_Divorce.yml
+  - ON_Divorce.yml
+  - PEI_Divorce.yml
+  - SK_Divorce.yml
+---
+modules:
+  - .progressivedisclosure
+---
+features:
+  css: progressivedisclosure.css
+---
+imports: 
+  - textwrap
+---
+features:
+  navigation: True
+---
+language: en
+sections:
+  - section_getting_started: Getting started
+  - review_basic_information:  Basic Information
+  - court_selection: Courthouse
+  - review_Small_Claims: Your claim
+  - section_payment: Payment
+  - download_divorce_documents: Download
+---
+objects:
+  - all_courts: ALCourtLoader.using(file_name='Superior_Courthouses.xlsx')
+---
+imports: 
+  - textwrap
+---
+mandatory: True
+#################### Main order #####################
+code: |
+  nav.set_section('section_getting_started')
+  divorce_intro_pro
+  user_role = 'plaintiff'
+  nav.set_section('review_basic_information')  
+  province_choice
+  
+  nav.set_section('court_selection')
+  trial_court
+  
+  set_progress(16.66)
+  
+  users.gather()
+  set_parts(subtitle=str(users))
+  users[0].birthdate
+  users[0].address.address
+  
+  if send_data:
+    send_data_via_email_to_GJ
+    send_data_via_email
+    
+  set_progress(33.32)
+  
+  if str(province_choice) in ["Newfoundland and Labrador", "Nova Scotia", "Saskatchewan"]:
+    user_occupation
+  
+  if str(province_choice) in ["New Brunswick"]:
+    user_name_last_at_birth_NB
+  
+  if str(province_choice) not in ["New Brunswick"]:
+    user_different_name
+  
+  if str(province_choice) in ["British Columbia", "Nova Scotia", "Ontario", "Prince Edward Island", "Saskatchewan"]:
+    user_move_date
+  
+  if str(province_choice) in ["Ontario", "New Brunswick"]:  
+    user_divorced_before
+  
+  set_progress(49.98)
+  
+  respondents.gather()
+  other_parties[0].birthdate
+  respondents[0].address.address
+  
+  if str(province_choice) in ["Newfoundland and Labrador", "Nova Scotia", "Saskatchewan"]:
+    respondent_occupation
+    
+  if str(province_choice) in ["New Brunswick"]:
+    respondent_name_last_at_birth_NB
+  
+  if str(province_choice) not in ["New Brunswick"]:  
+    respondent_different_name
+  
+  if str(province_choice) in ["British Columbia", "Ontario", "Prince Edward Island"]:
+    respondent_move_date
+    
+  if str(province_choice) in ["Ontario", "New Brunswick"]:
+    respondent_divorced_before
+  
+  set_progress(66.64)
+  
+  claim_sought
+  basis_for_divorce
+  marriage_date
+  
+  interview_order_divorce
+  
+  set_progress(83.3)
+  wants_get_justice_service
+  
+  if wants_get_justice_service:
+    get_justice_service_info
+  
+  wants_get_justice_MC
+  
+  if wants_get_justice_MC:
+    get_justice_MC_info
+  
+  coupon_yesno
+  
+  if coupon_yesno:
+    coupon_code
+    if coupon_code != "SAVE10GJ":
+      wrong_coupon
+    
+    if coupon_code == "SAVE10GJ":
+      coupon_correct
+  
+  nav.set_section('section_payment')    
+  users[0].billing_address.address
+ 
+  if not payment.paid:
+    payment_screen
+  
+  if payment.paid and province_choice == "Alberta":
+    send_email_to_GJ_AB
+    send_AB_email
+
+  if payment.paid and province_choice == "British Columbia":
+    send_email_to_GJ_BC
+    send_BC_email
+    
+  if payment.paid and province_choice == "Manitoba":
+    send_email_to_GJ_MB
+    send_MB_email
+
+  if payment.paid and province_choice == "Nova Scotia":
+    send_email_to_GJ_NS
+    send_NS_email
+
+  if payment.paid and province_choice == "Ontario":
+    send_email_to_GJ_ON
+    send_ON_email
+    
+  if payment.paid and province_choice == "Saskatchewan":
+    send_email_to_GJ_SK
+    send_SK_email
+    
+  if payment.paid and province_choice == "New Brunswick":
+    send_email_to_GJ_NB
+    send_NB_email
+
+  if payment.paid and province_choice == "Newfoundland and Labrador":
+    send_email_to_GJ_NFLD
+    send_NFLD_email
+
+  if payment.paid and province_choice == "Prince Edward Island":
+    send_email_to_GJ_PEI
+    send_PEI_email
+    
+  set_progress(100)  
+  
+  nav.set_section('download_divorce_documents')    
+  download_divorce_documents
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_small_claims
+code: |
+  if province_choice == "Alberta":
+    interview_order_Petition_for_Divorce_Alberta
+    
+  if province_choice == "Ontario":
+    interview_order_Form_8__Ontario
+    
+  if province_choice == "Manitoba":
+    interview_order_Form_70A__Petition_for_Divorce
+    
+  if province_choice == "Nova Scotia":
+    interview_order_NS_Divorce
+
+  if province_choice == "Saskatchewan":
+    interview_order_SK_Petition_for_Divorce_Form1516
+    
+  if province_choice == "New Brunswick":
+    interview_order_Form_72a
+    
+  if province_choice == "Newfoundland and Labrador":
+    interview_order_NFLD_Divorce
+    
+  if province_choice == "British Columbia":
+    interview_order_BC_Divorce_Petition
+    
+  if province_choice == "Prince Edward Island":
+    interview_order_PEI_Divorce_Form70A
+    
+  interview_order_divorce = True
+---
+code: |
+  AL_DEFAULT_COUNTRY = "CA"
+---
+template: what_documents
+subject: |
+  What documents will this app generate?
+content: |
+  We will generate all the documents that are required by your province when filing for a divorce! We'll make sure you have all the information you need to file your documents correctly and get the divorce process done as smoothly as possible.
+---
+template: what_information_needed
+subject: |
+  What information will help me complete this app?
+content: |
+  This may depend on the type of claim you want to make (more on that later) but as a bottom line, you should have access to the contact information of your spouse, and any relevant information regarding your children and your finances!
+---
+template: how_long
+subject: |
+  How long will this take?
+content: |
+  Less than 20 minutes if you have all the information you need. If you need to jump to another matter simply save your session and continue later!
+---
+code: |
+  trial_court = all_courts.as_court('trial_court', trial_court_index)  
+---
+objects:
+  - users: ALPeopleList.using(ask_number=True,target_number=1)
+  - other_parties: ALPeopleList.using(ask_number=True,target_number=1)
+  - children: ALPeopleList.using(ask_number=True,complete_attribute='complete')
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+objects:
+  - GJ_logo_and_title: DAStaticFile.using(filename="Divorce_Welcome.jpg")
+---
+id: Divorce
+question: |
+  <img src="${GJ_logo_and_title.url_for()}" alt="GetJustice Logo" style="width:100%;height:100%;"/>
+subquestion: |
+  ${ collapse_template(what_documents) }
+  ${ collapse_template(what_information_needed) }
+  ${ collapse_template(how_long) }
+fields:
+  - To continue, you must accept the [Terms and Conditions](https://getjustice.io/terms-and-conditions/).: acknowledged_information_use
+    datatype: checkboxes
+    none of the above: False    
+    minlength: 1
+    choices:
+      - I have read and accept the Terms and Conditions.
+    validation messages:
+      minlength: |
+        You cannot continue unless you agree to the terms of use. 
+continue button field: divorce_intro_pro
+---
+id: province_choice 
+question: |
+  In what province do you wish to file your claim?
+fields:
+  - no label: province_choice
+    choices:
+      - Alberta: Alberta
+      - British Columbia: British Columbia
+      - Manitoba: Manitoba
+      - New Brunswick: New Brunswick
+      - Newfoundland and Labrador: Newfoundland and Labrador
+      - Nova Scotia: Nova Scotia
+      - Ontario: Ontario
+      - Prince Edward Island: Prince Edward Island
+      - Saskatchewan: Saskatchewan
+css: |
+  <style>
+  #daMainQuestion {
+    text-align: center;
+  }
+  </style>
+---
+id: courthouse choice
+question: |
+  At which courthouse will you be filing your claim?
+fields:
+  - 'Courthouse': trial_court_index      
+    code: all_courts.filter_courts(column = "address_state", court_types = [province_choice])
+---
+id: user personal details 
+sets:
+    - users[0].name.first
+    - users[0].name.last
+question:  |
+  Your Information
+fields:
+  - code: |
+      users[0].name_fields()
+  - code: |
+      users[0].gender_fields(show_help=True)  
+  - Email: user_email
+    datatype: email
+  - Phone Number: user_phone
+  - Marital Status at the time of marriage: user_marital_status
+    datatype: radio
+    choices:
+      - Never Married: Never Married
+      - Divorced: Divorced
+      - Widowed: Widowed
+    show if:
+      code: |
+        str(province_choice) not in ['Ontario']      
+continue button field: send_data
+---
+id: user birthdate & birthplace
+question: |
+  Additional Details
+fields:
+  - What is your birthdate?: users[0].birthdate
+    datatype: BirthDate
+  - What is your birthplace?: user_birthplace
+    show if:
+      code: |
+        str(province_choice) in ["Alberta", "Manitoba", "Prince Edward Island", "Nova Scotia"]
+---  
+if: |
+  str(province_choice) in ["Newfoundland and Labrador", "Nova Scotia", "Saskatchewan"]
+id: user occupation
+question: |
+  Your Occupation
+fields: 
+  - What is your occupation?: user_occupation
+  - Employer: user_occupation_name
+    show if:
+      code: |
+        str(province_choice) in ["Nova Scotia", "Saskatchewan"]
+  - Employer Address: user_occupation_address_block
+    show if:
+      code: |
+        str(province_choice) in ["Nova Scotia"]    
+  - Employer Phone Number: user_occupation_phone
+    show if:
+      code: |
+        str(province_choice) in ["Nova Scotia"]
+  - What is your annual income?: user_income
+    datatype: currency
+    show if:
+      code: |
+        str(province_choice) in ["Saskatchewan"]
+---  
+if: |
+  str(province_choice) in ["New Brunswick"]
+id: different name (NB)
+question: |
+  Additional Details
+fields:
+  - When did you move to New Brunswick?: user_move_date_NB
+    datatype: date
+    show if:
+      code: |
+        str(trial_court) in ["Saint John Law Courts","Palais de Justice, Moncton Law Courts"]
+  - What was your last name at birth?: user_name_last_at_birth_NB
+  - What was your first name on the day before the marriage date?: user_first_name_at_wedding_NB
+  - What was your last name on the day before the marriage date?: user_name_last_before_marriage_NB
+---
+if: |
+  str(province_choice) in ["Alberta", "British Columbia"]
+id: different name (AB & BC)
+question: |
+  Additional Details 
+fields:
+  - Have you ever had a different name?: user_different_name
+    datatype: yesnoradio  
+  - What was your last name at birth?: user_name_last_at_birth
+    show if: user_different_name
+  - What was your last name on the day before the marriage date?: user_name_last_before_marriage
+    show if: user_different_name  
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: different name (MB)
+question: |
+  Additional Details 
+fields:
+  - Have you ever had a different name?: user_different_name
+    datatype: yesnoradio
+  - What was your last name on the day before the marriage date?: user_name_last_before_marriage
+    show if: user_different_name
+  - What was your full name at birth?: user_name_full_at_birth 
+    show if: user_different_name
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: different name (NFLD)
+question: |
+  Additional Details 
+fields:
+  - Have you ever had a different name?: user_different_name
+    datatype: yesnoradio  
+  - What was your last name at birth?: user_name_last_at_birth
+    show if: user_different_name
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: different name (SK)
+question: |
+  Additional Details 
+fields:
+  - Have you ever had a different name?: user_different_name
+    datatype: yesnoradio
+  - What was your last name at birth?: user_name_last_at_birth
+    show if: user_different_name      
+  - What was your last name on the day before the marriage date?: user_name_last_before_marriage
+    show if: user_different_name  
+---
+if: |
+  str(province_choice) in ["Ontario", "Prince Edward Island"]
+id: different name (ON & PEI)
+question: |
+  Additional Details 
+fields:
+  - Have you ever had a different name?: user_different_name
+    datatype: yesnoradio  
+  - What was your last name on the day before the marriage date?: user_name_last_before_marriage
+    show if: user_different_name  
+  - What was your first name on the day before the marriage date?: user_name_first_at_marriage  
+    show if: user_different_name
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: different name (NS)
+question: |
+  Additional Details 
+fields:
+  - Have you ever had a different name?: user_different_name
+    datatype: yesnoradio
+  - What was your full name at birth?: user_name_full_at_birth
+    show if: user_different_name    
+  - What was your full name on the day before marriage?: user_full_name_before_marriage
+    show if: user_different_name  
+---
+if: |
+  str(province_choice) in ["British Columbia", "Nova Scotia", "Ontario", "Prince Edward Island", "Saskatchewan" ]
+id: user move date
+question: |
+  Additional Details
+fields:
+  - When did you move to ${ state_name(users[0].address.state, country_code = "CA") }?: user_move_date
+    datatype: date
+---
+if: |
+  str(province_choice) in ["Ontario", "New Brunswick"]
+id: user divorced before
+question: |
+  Additional Details 
+fields:
+  - Have you been divorced before?: user_divorced_before
+    datatype: yesnoradio  
+  - When and where was your divorce?: user_divorce_place_and_date
+    show if: user_divorced_before
+---
+id: respondent name
+sets:
+  - other_parties[0].name.first
+  - other_parties[0].name.last
+question:  |
+  Your Spouse's Information
+subquestion: |
+  If you're unsure about some of your spouse's information, simply write "Unknown"
+fields:
+  - code: |
+      other_parties[0].name_fields()
+  - code: |
+      respondents[0].gender_fields(show_help=True)
+  - Email: respondent_email
+    datatype: email
+  - Phone Number: respondent_phone
+  - Marital Status at the time of marriage: respondent_marital_status
+    datatype: radio
+    choices:
+      - Never Married: Never Married
+      - Divorced: Divorced
+      - Widowed: Widowed
+    show if:
+      code: |
+        str(province_choice) not in ['Ontario']      
+---
+id: respondent birthdate & birthplace
+question: |
+  Additional Details
+subquestion: |
+  If you're unsure about some of your spouse's information, simply write "Unknown"
+fields:
+  - What is your spouse's birthdate?: other_parties[0].birthdate
+    datatype: BirthDate
+  - What is your spouse's birthplace?: respondent_birthplace
+    show if:
+      code: |
+        str(province_choice) in ["Alberta", "Manitoba", "Prince Edward Island", "Nova Scotia"]
+---  
+if: |
+  str(province_choice) in ["Newfoundland and Labrador", "Nova Scotia", "Saskatchewan"]
+id: respondent occupation
+question: |
+  Your Spouse's Occupation
+subquestion: |
+  If you're unsure about some of your spouse's information, simply write "Unknown"
+fields: 
+  - What is their occupation?: respondent_occupation
+  - Employer: respondent_occupation_name
+    show if:
+      code: |
+        str(province_choice) in ["Nova Scotia", "Saskatchewan"]
+  - Employer Address: respondent_occupation_address_block
+    show if:
+      code: |
+        str(province_choice) in ["Nova Scotia"]    
+  - Employer Phone Number: respondent_occupation_phone
+    show if:
+      code: |
+        str(province_choice) in ["Nova Scotia"]
+  - What is their annual income?: respondent_income
+    datatype: currency
+    show if:
+      code: |
+        str(province_choice) in ["Saskatchewan"]
+---  
+if: |
+  str(province_choice) in ["New Brunswick"]
+id: respondent different name (NB)
+question: |
+  Additional Details
+fields:
+  - When did your Spouse move to New Brunswick?: respondent_move_date_NB
+    datatype: date
+    show if:
+      code: |
+        str(trial_court) in ["Saint John Law Courts","Palais de Justice, Moncton Law Courts"]
+  - What was their last name at birth?: respondent_name_last_at_birth_NB
+  - What was their first name on the day before the marriage date?: respondent_first_name_at_wedding_NB
+  - What was their last name on the day before the marriage date?: respondent_name_last_before_marriage_NB
+---
+if: |
+  str(province_choice) in ["Alberta", "British Columbia"]
+id: respondent different name  (AB & BC)
+question: |
+  Additional Information about your Spouse 
+fields:
+  - Did your spouse ever have a different name?: respondent_different_name
+    datatype: yesnoradio
+  - What was their last name at birth?: respondent_name_last_at_birth
+    show if: respondent_different_name
+  - What was their last name on the day before the marriage date?: respondent_name_last_before_marriage
+    show if: respondent_different_name
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: respondent different name (NFLD)
+question: |
+  Additional Information about your Spouse 
+fields:
+  - Did your Spouse ever have a different name?: respondent_different_name
+    datatype: yesnoradio
+  - What was their last name at birth?: respondent_name_last_at_birth
+    show if: respondent_different_name
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: respondent different name (SK)
+question: |
+  Additional Information about your Spouse 
+fields:
+  - Did your spouse ever have a different name?: respondent_different_name
+    datatype: yesnoradio
+  - What was their last name at birth?: respondent_name_last_at_birth
+    show if: respondent_different_name
+  - What was their last name on the day before the marriage date?: respondent_name_last_before_marriage
+    show if: respondent_different_name
+---
+if: |
+  str(province_choice) in ["Ontario", "Prince Edward Island"]
+id: respondent different name (ON & PEI)
+question: |
+  Additional Information about your Spouse 
+fields:
+  - Did your spouse ever have a different name?: respondent_different_name
+    datatype: yesnoradio
+  - What was their last name on the day before the marriage date?: respondent_name_last_before_marriage
+    show if: respondent_different_name  
+  - What was their first name on the day before the marriage date?: respondent_name_first_at_marriage
+    show if: respondent_different_name  
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: respondent different name (MB)
+question: |
+  Additional Information about your Spouse 
+fields:
+  - Did your spouse ever have a different name?: respondent_different_name
+    datatype: yesnoradio
+  - What was their last name on the day before the marriage date?: respondent_name_last_before_marriage
+    show if: respondent_different_name  
+  - What was their full name at birth?: respondent_name_full_at_birth
+    show if: respondent_different_name
+---
+if: |
+  str(province_choice) in ["Nova Scotia"]
+id: respondent different name (NS)
+question: |
+  Additional Information about your Spouse 
+fields:
+  - Did your spouse ever have a different name?: respondent_different_name
+    datatype: yesnoradio  
+  - What was their full name at birth?: respondent_name_full_at_birth
+    show if: respondent_different_name
+  - What was their full name on the day before marriage?: respondent_full_name_before_marriage
+    show if: respondent_different_name
+---
+if: |
+  str(province_choice) in ["Ontario", "New Brunswick"]
+id: respondent divorced before
+question: |
+  Additional Details 
+fields:
+  - Has your Spouse been divorced before?: respondent_divorced_before
+    datatype: yesnoradio
+  - When and where was their divorce?: respondent_divorce_place_and_date
+    show if: respondent_divorced_before
+---
+if: |
+  str(province_choice) in ["British Columbia", "Ontario", "Prince Edward Island"]
+id: user move date
+question: |
+  Additional Details
+fields:
+  - When did your Spouse move to ${ state_name(respondents[0].address.state, country_code = "CA") }?: respondent_move_date
+    datatype: date
+---
+if: |
+  str(province_choice) not in ["Ontario", "Newfoundland and Labrador"]
+id: Claim Sought
+question: |
+  Claim Information
+fields:
+  - What type of claim would you like to make?: claim_sought
+    datatype: checkboxes
+    choices:
+      - Divorce: divorce_act_divorce
+        default: true
+      - Support claim: support_claim_yes
+      - Property claim: property_claim_yes
+      - Custody of child(ren): divorce_act_custody
+      - Access to child(ren): divorce_act_access
+    none of the above: False
+  - What type of support claim would you like to make?: support_claim_sought
+    show if: claim_sought["support_claim_yes"]
+    datatype: checkboxes
+    choices:
+      - Child Support: divorce_act_table_child_support
+      - Spousal Support: divorce_act_spousal_support
+    none of the above: False
+  - What type of property claim would you like to make?: property_claim_sought
+    show if: claim_sought["property_claim_yes"]
+    datatype: checkboxes
+    choices:
+      - Equalization of Net Family Properties: property_claim_equalization
+        default: true
+      - Exclusive Possession of Matrimonial Home: property_claim_exclusive_possession_home
+      - Exclusive Possession of Contents of Matrimonial Home: property_claim_exclusive_possession_content
+      - Sale of Family Property: property_claim_sale_of_family_home
+    none of the above: False
+  - Would you like to claim anything else?: claim_other
+    datatype: yesnoradio
+  - Would you like to claim costs?: claim_costs
+    datatype: yesnoradio
+  - Please provide details of the relief claimed: relief_claimed_details
+    datatype: area
+    rows: 6
+    show if: 
+      code: |
+        str(province_choice) in ["Manitoba"]
+  - Describe your other claims: claim_other_details
+    input type: area
+    maxlength: 236
+    show if: claim_other
+---
+if: |
+  str(province_choice) in ["Ontario", "Newfoundland and Labrador"]
+id: Claim Sought
+question: |
+  Claim Information
+fields:
+  - What type of claim would you like to make?: claim_sought
+    datatype: checkboxes
+    choices:
+      - Divorce: divorce_act_divorce
+        default: true
+      - Support claim: support_claim_yes
+      - Property claim: property_claim_yes
+      - Custody of child(ren): divorce_act_custody
+      - Access to child(ren): divorce_act_access
+    none of the above: False
+  - What type of support claim would you like to make?: support_claim_sought
+    show if: claim_sought["support_claim_yes"]
+    datatype: checkboxes
+    choices:
+      - Child Support: divorce_act_table_child_support
+      - Spousal Support: divorce_act_spousal_support
+    none of the above: False
+  - What type of property claim would you like to make?: property_claim_sought
+    show if: claim_sought["property_claim_yes"]
+    datatype: checkboxes
+    choices:
+      - Equalization of Net Family Properties: property_claim_equalization
+        default: true
+      - Exclusive Possession of Matrimonial Home: property_claim_exclusive_possession_home
+      - Exclusive Possession of Contents of Matrimonial Home: property_claim_exclusive_possession_content
+      - Sale of Family Property: property_claim_sale_of_family_home
+    none of the above: False
+  - Would you like to claim anything else?: claim_other
+    datatype: yesnoradio
+  - Would you like to claim costs?: claim_costs
+    datatype: yesnoradio
+  - Describe your other claims: claim_other_details
+    input type: area
+    maxlength: 236
+    show if: claim_other
+  - Please describe why you are making this claim: claim_details
+    input type: area
+    help: |
+      Include any amounts of support (if known) and the names of the children for whom you are claiming decision-making responsibility, parenting time, or contact in this case.    
+    maxlength: 2016
+    show if: 
+      code: |
+        str(province_choice) in ["Ontario"]
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: divorce basis (ON)
+question: |
+  Basis for Divorce
+fields:
+  - What is your basis for filing for divorce?: basis_for_divorce
+    datatype: checkboxes
+    choices:
+      - Separation: basis_for_divorce_separation
+      - Adultery: basis_for_divorce_adultery
+      - Cruelty: basis_for_divorce_cruelty
+    none of the above: False
+  - Have you and your spouse lived together since separating?: have_lived_together
+    datatype: yesnoradio
+  - Please explain: have_lived_together_details
+    input type: area
+    maxlength: 178
+    show if: have_lived_together 
+  - Please give details about the adultery: adultery_details
+    input type: area
+    maxlength: 184
+    show if: basis_for_divorce["basis_for_divorce_adultery"]
+  - Please give details about the cruelty: cruelty_details
+    input type: area
+    maxlength: 184
+    show if: basis_for_divorce["basis_for_divorce_cruelty"]
+  - Outline the particulars for the divorce: basise_for_divorce_details
+    input type: area
+---
+if: |
+  str(province_choice) in ["New Brunswick"]
+id: divorce basis (NB)
+question: |
+  Basis for Divorce
+fields:
+  - What is your basis for filing for divorce?: basis_for_divorce
+    datatype: checkboxes
+    choices:
+      - Separation: basis_for_divorce_separation
+      - Adultery: basis_for_divorce_adultery
+      - Cruelty: basis_for_divorce_cruelty
+    none of the above: False
+  - When did this adultery occur?: adultery_date
+    datatype: date
+    show if: basis_for_divorce["basis_for_divorce_adultery"]
+  - If known, with who did they commit adultery?: adultery_with
+    show if: basis_for_divorce["basis_for_divorce_adultery"]
+  - Outline the particulars for the divorce: basise_for_divorce_details
+    input type: area
+---
+if: |
+  str(province_choice) in ["Prince Edward Island"]
+id: divorce basis (PEI)
+question: |
+  Basis for Divorce
+fields:
+  - What is your basis for filing for divorce?: basis_for_divorce
+    datatype: checkboxes
+    choices:
+      - Separation: basis_for_divorce_separation
+      - Adultery: basis_for_divorce_adultery
+      - Cruelty: basis_for_divorce_cruelty
+    none of the above: False
+  - Please give details about the adultery: adultery_details
+    input type: area
+    maxlength: 184
+    show if: basis_for_divorce["basis_for_divorce_adultery"]
+  - Please give details about the cruelty: cruelty_details
+    input type: area
+    maxlength: 184
+    show if: basis_for_divorce["basis_for_divorce_cruelty"]
+  - Outline the particulars for the divorce: basise_for_divorce_details
+    input type: area
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: divorce basis (SK)
+question: |
+  Basis for Divorce
+fields:
+  - What is your basis for filing for divorce?: basis_for_divorce
+    datatype: checkboxes
+    choices:
+      - Separation: basis_for_divorce_separation
+      - Adultery: basis_for_divorce_adultery
+      - Cruelty: basis_for_divorce_cruelty
+    none of the above: False
+  - Outline the particulars for the divorce: basise_for_divorce_details
+    input type: area
+---
+if: |
+  str(province_choice) in ["Newfoundland and Labrador"]
+id: divorce basis (NFLD)
+question: |
+  Basis for Divorce
+fields:
+  - What is your basis for filing for divorce?: basis_for_divorce
+    datatype: checkboxes
+    choices:
+      - Separation: basis_for_divorce_separation
+      - Adultery: basis_for_divorce_adultery
+      - Cruelty: basis_for_divorce_cruelty
+    none of the above: False
+  - Please give details about the adultery: adultery_details
+    input type: area
+    maxlength: 184
+    show if: basis_for_divorce["basis_for_divorce_adultery"]
+  - Please give details about the cruelty: cruelty_details
+    input type: area
+    maxlength: 184
+    show if: basis_for_divorce["basis_for_divorce_cruelty"]
+---
+if: |
+  str(province_choice) in ["Alberta", "British Columbia", "Manitoba", "Nova Scotia"]
+id: divorce basis (AB, BC, MB, & NS)
+question: |
+  Basis for Divorce
+fields:
+  - What is your basis for filing for divorce?: basis_for_divorce
+    datatype: checkboxes
+    choices:
+      - Separation: basis_for_divorce_separation
+      - Adultery: basis_for_divorce_adultery
+      - Cruelty: basis_for_divorce_cruelty
+    none of the above: False
+  - Outline the particulars for the divorce: basise_for_divorce_details
+    input type: area
+---
+if: |
+  str(province_choice) in ["Alberta", "Manitoba", "Newfoundland and Labrador"]
+id: marriage details (AB, MB, NFLD)
+question: |
+  Relationship Details
+fields:
+  - When did you and your spouse get married?: marriage_date
+    datatype: date
+  - Where did you and your spouse get married?: marriage_place
+  - When did you get separated?: separated_date
+    datatype: date
+  - Have you and your spouse ever lived together?: lived_together
+    datatype: yesnoradio
+  - When did you start living together?: started_living_together_date
+    datatype: date
+    show if: lived_together
+---
+if: |
+  str(province_choice) in ["British Columbia"]
+id: marriage details (BC)
+question: |
+  Relationship Details
+fields:
+  - When did you and your spouse get married?: marriage_date
+    datatype: date
+  - In what city did you get married?: marriage_place_city
+  - In what province did you get married?: marriage_place_province
+  - When did you get separated?: separated_date
+    datatype: date
+  - Have you and your spouse ever lived together?: lived_together
+    datatype: yesnoradio
+  - When did you start living together?: started_living_together_date
+    datatype: date
+    show if: lived_together
+---
+if: |
+  str(province_choice) in ["New Brunswick"]
+id: marriage details (NB)
+question: |
+  Relationship Details
+fields:
+  - When did you and your spouse get married?: marriage_date
+    datatype: date
+  - Where did you and your spouse get married?: marriage_place
+  - When did you get separated?: separated_date
+    datatype: date
+  - Have you and your spouse ever lived together?: lived_together
+    datatype: yesnoradio
+  - When did you start living together?: started_living_together_date
+    datatype: date
+    show if: lived_together
+  - Are you still living together?: lived_together_still
+    datatype: yesnoradio
+    show if: lived_together
+---
+if: |
+  str(province_choice) in ["Prince Edward Island", "Nova Scotia"]
+id: marriage details (PEI)
+question: |
+  Relationship Details
+fields:
+  - When did you and your spouse get married?: marriage_date
+    datatype: date
+  - Where did you and your spouse get married?: marriage_place
+  - When did you get separated?: separated_date
+    datatype: date
+---
+if: |
+  str(province_choice) in ["Ontario"]
+id: marriage details (ON)
+question: |
+  Relationship Details
+fields:
+  - When did you and your spouse get married?: marriage_date
+    datatype: date
+  - When did you get separated?: separated_date
+    datatype: date
+  - Have you and your spouse ever lived together?: lived_together
+    datatype: yesnoradio
+  - When did you start living together?: started_living_together_date
+    datatype: date
+    show if: lived_together
+  - Are you still living together?: lived_together_still
+    datatype: yesnoradio
+    show if: lived_together
+---
+if: |
+  str(province_choice) in ["Saskatchewan"]
+id: marriage details (SK)
+question: |
+  Relationship Details
+fields:
+  - When did you and your spouse get married?: marriage_date
+    datatype: date
+  - Where did you and your spouse get married?: marriage_place
+  - When did you get separated?: separated_date
+    datatype: date
+  - Have you and your spouse ever lived together?: lived_together
+    datatype: yesnoradio
+  - When did you start living together?: started_living_together_date
+    datatype: date
+    show if: lived_together
+  - Where did you start living together?: started_living_together_place
+    show if: lived_together
+---
+id: get justice service
+question: | 
+  Do you want GetJustice to do service for you?
+subquestion: | 
+  GetJustice's service fee is $129 and does one attempt via personal service
+
+  
+  There are other options for service. If you would like to arrange your own plans for serving your spouse, simply select no. 
+yesno: wants_get_justice_service
+---
+id: GetJustice service
+continue button field: get_justice_service_info
+question: |
+  Service with GetJustice
+subquestion: |
+  Once we receive your documents, we will contact you and inform you of the next steps of the filing and service process!
+---
+id: get justice service
+question: | 
+  Original Marriage Certificate
+subquestion: | 
+  Your original marriage certificate is needed to apply for divorce in your province! If you'd like, GetJustice can apply for your original marriage certificate on your behalf.
+fields:
+  - Would you like GetJustice to request an original marriage certificate on your behalf?: wants_get_justice_MC
+    datatype: yesnoradio
+    help: The total cost for our Marriage Certificate request service is $59 + HST plus Provincial Filing Fee.
+---
+id: GetJustice service
+continue button field: get_justice_MC_info
+question: |
+  Original Marriage Certificate
+subquestion: |
+  Once we receive your documents, we will contact you and inform you of the next steps of the process! 
+---
+id: coupon
+question: |
+  Promotion
+subquestion: |
+  Do you have an exclusive GetJustice Coupon?
+fields:
+  - no label: coupon_yesno
+    datatype: yesnoradio
+---
+id: coupon
+question: |
+  Promotion
+fields:
+  - Enter GetJustice Coupon code: coupon_code
+---
+event: wrong_coupon
+question: |
+  Whoops!
+subquestion: |
+  __Looks like the coupon code was incorrect!__
+  
+  
+  Please click the back button and re-enter the code or select "no" when asked if you have a coupon code.
+---
+id: coupon applied 
+question: |
+  Congratulations!
+subquestion: |
+  __Your coupon code has been applied!__
+continue button field: coupon_correct
+---
+id: download_divorce_documents
+event: download_divorce_documents
+question: |
+  All Done!
+subquestion: |
+  Thank you, ${users}. Please find all your forms attached!
+  
+  Schedule your lawyer consultation below:
+  
+  ${ action_button_html("https://calendly.com/getjustice/20min", label = "Click here to book now!", color = "primary", size = "md") }
+  
+  % if province_choice == "Alberta":
+  ${ AB_user_bundle.download_list_html() }
+
+  ${ AB_user_bundle.send_button_html(show_editable_checkbox=False) }
+  % elif province_choice == "British Columbia":
+  ${ BC_user_bundle.download_list_html() }
+
+  ${ BC_user_bundle.send_button_html(show_editable_checkbox=False) }
+  % elif province_choice == "Manitoba":
+  ${ MB_user_bundle.download_list_html() }
+
+  ${ MB_user_bundle.send_button_html(show_editable_checkbox=False) }  
+  % elif province_choice == "New Brunswick":
+  ${ NB_user_bundle.download_list_html() }
+
+  ${ NB_user_bundle.send_button_html(show_editable_checkbox=False) }
+  % elif province_choice == "Newfoundland and Labrador":
+  ${ NL_user_bundle.download_list_html() }
+
+  ${ NL_user_bundle.send_button_html(show_editable_checkbox=False) }
+  % elif province_choice == "Nova Scotia":
+  ${ NS_user_bundle.download_list_html() }
+
+  ${ NS_user_bundle.send_button_html(show_editable_checkbox=False) }  
+  % elif province_choice == "Ontario":
+  ${ ON_user_bundle.download_list_html() }
+
+  ${ ON_user_bundle.send_button_html(show_editable_checkbox=False) }  
+  % elif province_choice == "Prince Edward Island":
+  ${ PEI_user_bundle.download_list_html() }
+
+  ${ PEI_user_bundle.send_button_html(show_editable_checkbox=False) }
+  % elif province_choice == "Saskatchewan":
+  ${ SK_user_bundle.download_list_html() }
+
+  ${ SK_user_bundle.send_button_html(show_editable_checkbox=False) }  
+  % endif
+---
+template: section_signature_template
+content: |
+  Signature
+---
+template: about_this_interview_version_info
+content: |
+  "${all_variables(special='metadata').get('title','').rstrip()}" version 
+  `${ package_version_number }`.
+
+  &copy; ${today().year} [GetJustice](https://getjustice.io/)
+---
+sets: 
+  - users[0].billing_address.address
+  - users[0].billing_address.city
+question: |
+  What is your billing address?
+fields:
+  - Same as my mailing address: users[0].billing_address
+    datatype: object_radio
+    choices:
+      - users[0].address
+    object labeler: |
+      lambda y: y.on_one_line() 
+    disable others: True
+    none of the above: |
+      A new address
+  - code: |
+      users[0].billing_address.address_fields(country_code='CA', default_state=users[0].address.state)
+---
+code: |
+
+  if wants_get_justice_service:
+    service_amount = 145.77
+    
+  else:
+    service_amount = 0
+    
+  if wants_get_justice_MC and province_choice == "Alberta":
+    MC_cost = 86.67
+    
+  elif wants_get_justice_MC and province_choice == "British Columbia":
+    MC_cost = 93.67
+    
+  elif wants_get_justice_MC and province_choice == "Manitoba":
+    MC_cost = 96.67  
+
+  elif wants_get_justice_MC and province_choice == "New Brunswick":
+    MC_cost = 93.67
+    
+  elif wants_get_justice_MC and province_choice == "Newfoundland and Labrador":
+    MC_cost = 96.67  
+  
+  elif wants_get_justice_MC and province_choice == "Nova Scotia":
+    MC_cost = 93.67
+    
+  elif wants_get_justice_MC and province_choice == "Ontario":
+    MC_cost = 96.67  
+
+  elif wants_get_justice_MC and province_choice == "Prince Edward Island":
+    MC_cost = 93.67
+    
+  elif wants_get_justice_MC and province_choice == "Saskatchewan":
+    MC_cost = 96.67 
+
+  else: 
+    MC_cost = 0
+    
+  if province_choice == "Alberta" and divorce_intro_premium and not coupon_yesno:
+    payment.amount = 1054.87 + service_amount + MC_cost
+
+  elif province_choice == "Alberta" and divorce_intro_premium and coupon_yesno:
+    payment.amount = 975.88 + service_amount + MC_cost
+    
+  elif province_choice == "Alberta" and divorce_intro_pro and not coupon_yesno:
+    payment.amount = 484.87 + service_amount + MC_cost
+    
+  elif province_choice == "Alberta" and divorce_intro_pro and coupon_yesno:
+    payment.amount = 467.38 + service_amount + MC_cost
+    
+  elif province_choice == "Alberta" and divorce_intro_standard and not coupon_yesno:
+    payment.amount = 111.87 + service_amount + MC_cost
+  
+  elif province_choice == "Alberta" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 100.68 + service_amount + MC_cost
+    
+  elif province_choice == "British Columbia" and divorce_intro_premium and not coupon_yesno:
+    payment.amount = 999.87 + service_amount + MC_cost
+    
+  elif province_choice == "British Columbia" and divorce_intro_premium and coupon_yesno:
+    payment.amount = 920.88 + service_amount + MC_cost
+  
+  elif province_choice == "British Columbia" and divorce_intro_pro and not coupon_yesno:
+    payment.amount = 434.87 + service_amount + MC_cost
+    
+  elif province_choice == "British Columbia" and divorce_intro_pro and coupon_yesno:
+    payment.amount = 412.38 + service_amount + MC_cost
+    
+  elif province_choice == "British Columbia" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 111.87 + service_amount + MC_cost
+    
+  elif province_choice == "British Columbia" and divorce_intro_standard and not coupon_yesno:
+    payment.amount = 100.68 + service_amount + MC_cost
+      
+  elif province_choice == "Manitoba" and divorce_intro_premium and not coupon_yesno:
+    payment.amount = 939.87 + service_amount + MC_cost
+
+  elif province_choice == "Manitoba" and divorce_intro_premium and coupon_yesno:
+    payment.amount = 860.88 + service_amount + MC_cost
+  
+  elif province_choice == "Manitoba" and divorce_intro_pro and not coupon_yesno:
+    payment.amount = 374.87 + service_amount + MC_cost
+    
+  elif province_choice == "Manitoba" and divorce_intro_pro and coupon_yesno:
+    payment.amount = 352.38 + service_amount + MC_cost
+    
+  elif province_choice == "Manitoba" and divorce_intro_standard and not coupon_yesno:
+    payment.amount = 111.87 + service_amount + MC_cost
+    
+  elif province_choice == "Manitoba" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 100.68 + service_amount + MC_cost
+        
+  elif province_choice == "New Brunswick" and divorce_intro_premium and not coupon_yesno:
+    payment.amount = 899.87 + service_amount + MC_cost
+    
+  elif province_choice == "New Brunswick" and divorce_intro_premium and coupon_yesno:
+    payment.amount = 820.88 + service_amount + MC_cost
+  
+  elif province_choice == "New Brunswick" and divorce_intro_pro and not coupon_yesno:
+    payment.amount = 334.87 + service_amount + MC_cost
+
+  elif province_choice == "New Brunswick" and divorce_intro_pro and coupon_yesno:
+    payment.amount = 312.38 + service_amount + MC_cost
+    
+  elif province_choice == "New Brunswick" and divorce_intro_standard and not coupon_yesno:
+    payment.amount = 111.87 + service_amount + MC_cost
+
+  elif province_choice == "New Brunswick" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 100.68 + service_amount + MC_cost
+
+  elif province_choice == "Newfoundland and Labrador" and divorce_intro_premium and not coupon_yesno:
+    payment.amount = 919.87 + service_amount + MC_cost
+    
+  elif province_choice == "Newfoundland and Labrador" and divorce_intro_premium and coupon_yesno:
+    payment.amount = 840.88 + service_amount + MC_cost
+  
+  elif province_choice == "Newfoundland and Labrador" and divorce_intro_pro and not coupon_yesno:
+    payment.amount = 354.87 + service_amount + MC_cost
+    
+  elif province_choice == "Newfoundland and Labrador" and divorce_intro_pro and coupon_yesno:
+    payment.amount = 332.38 + service_amount + MC_cost
+    
+  elif province_choice == "Newfoundland and Labrador" and divorce_intro_standard and not coupon_yesno:
+    payment.amount = 111.87 + service_amount + MC_cost
+    
+  elif province_choice == "Newfoundland and Labrador" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 100.68 + service_amount + MC_cost
+    
+  elif province_choice == "Nova Scotia" and divorce_intro_premium and not coupon_yesno:
+    payment.amount = 1109.87 + service_amount + MC_cost
+    
+  elif province_choice == "Nova Scotia" and divorce_intro_premium and coupon_yesno:
+    payment.amount = 1030.88 + service_amount + MC_cost
+  
+  elif province_choice == "Nova Scotia" and divorce_intro_pro and not coupon_yesno:
+    payment.amount = 544.87 + service_amount + MC_cost
+
+  elif province_choice == "Nova Scotia" and divorce_intro_pro and coupon_yesno:
+    payment.amount = 522.38 + service_amount + MC_cost
+
+  elif province_choice == "Nova Scotia" and divorce_intro_standard and not coupon_yesno:
+    payment.amount = 111.87 + service_amount + MC_cost
+
+  elif province_choice == "Nova Scotia" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 100.68 + service_amount + MC_cost
+
+  elif province_choice == "Ontario" and divorce_intro_premium and not coupon_yesno:
+    payment.amount = 1001.87 + service_amount + MC_cost
+
+  elif province_choice == "Ontario" and divorce_intro_premium and coupon_yesno:
+    payment.amount = 922.88 + service_amount + MC_cost
+
+  elif province_choice == "Ontario" and divorce_intro_pro and not coupon_yesno:
+    payment.amount = 436.87 + service_amount + MC_cost
+
+  elif province_choice == "Ontario" and divorce_intro_pro and coupon_yesno:
+    payment.amount = 414.38 + service_amount + MC_cost
+
+  elif province_choice == "Ontario" and divorce_intro_standard and not coupon_yesno:
+    payment.amount = 111.87 + service_amount + MC_cost
+
+  elif province_choice == "Ontario" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 100.68 + service_amount + MC_cost
+
+  elif province_choice == "Prince Edward Island" and divorce_intro_premium and not coupon_yesno:
+    payment.amount = 889.87 + service_amount + MC_cost
+
+  elif province_choice == "Prince Edward Island" and divorce_intro_premium and coupon_yesno:
+    payment.amount = 810.88 + service_amount + MC_cost
+
+  elif province_choice == "Prince Edward Island" and divorce_intro_pro and not coupon_yesno:
+    payment.amount = 324.87 + service_amount + MC_cost
+
+  elif province_choice == "Prince Edward Island" and divorce_intro_pro and coupon_yesno:
+    payment.amount = 302.38 + service_amount + MC_cost
+
+  elif province_choice == "Prince Edward Island" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 111.87 + service_amount + MC_cost
+
+  elif province_choice == "Prince Edward Island" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 100.68 + service_amount + MC_cost
+
+  elif province_choice == "Saskatchewan" and divorce_intro_premium and not coupon_yesno:
+    payment.amount = 1089.87 + service_amount + MC_cost
+
+  elif province_choice == "Saskatchewan" and divorce_intro_premium and coupon_yesno:
+    payment.amount = 1010.88 + service_amount + MC_cost
+
+  elif province_choice == "Saskatchewan" and divorce_intro_pro and not coupon_yesno:
+    payment.amount = 524.87 + service_amount + MC_cost
+
+  elif province_choice == "Saskatchewan" and divorce_intro_pro and coupon_yesno:
+    payment.amount = 502.38 + service_amount + MC_cost
+
+  elif province_choice == "Saskatchewan" and divorce_intro_standard and not coupon_yesno:
+    payment.amount = 111.87 + service_amount + MC_cost
+    
+  elif province_choice == "Saskatchewan" and divorce_intro_standard and coupon_yesno:
+    payment.amount = 100.68 + service_amount + MC_cost
+---
+event: payment.demand
+question: |
+  Payment
+subquestion: |
+  You are almost ready! You will be able to download your forms as soon
+  as you complete payment.
+  
+  Your selected services will cost a total of ${ currency(payment.amount) }
+  Canadian.
+  
+  ${ payment.html }
+script: |
+  ${ payment.javascript }
+---
+event: payment.success
+code: |
+  payment.process()
+---
+code: |
+  send_AB_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=Email_sent, attachments=AB_GJ_bundle.as_pdf_list())
+  send_email_to_GJ_AB = True
+---
+code: |
+  send_BC_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=Email_sent, attachments=BC_GJ_bundle.as_pdf_list())
+  send_email_to_GJ_BC = True
+---
+code: |
+  send_NB_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=Email_sent, attachments=NB_GJ_bundle.as_pdf_list())
+  send_email_to_GJ_NB = True
+---
+code: |
+  send_MB_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=Email_sent, attachments=MB_GJ_bundle.as_pdf_list())
+  send_email_to_GJ_MB = True
+---
+code: |
+  send_NFLD_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=Email_sent, attachments=NFLD_GJ_bundle.as_pdf_list())
+  send_email_to_GJ_NFLD = True
+---
+code: |
+  send_NS_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=Email_sent, attachments=NS_GJ_bundle.as_pdf_list())
+  send_email_to_GJ_NS = True
+---
+code: |
+  send_ON_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=Email_sent, attachments=ON_GJ_bundle.as_pdf_list())
+  send_email_to_GJ_ON = True
+---
+code: |
+  send_PEI_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=Email_sent, attachments=PEI_GJ_bundle.as_pdf_list())
+  send_email_to_GJ_PEI = True
+---
+code: |
+  send_SK_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=Email_sent, attachments=SK_GJ_bundle.as_pdf_list())
+  send_email_to_GJ_SK = True
+---
+template: Email_sent
+subject: |
+  SALE COMPLETE! - ${ users } Completed the Divorce Pro App.
+content: |
+  Nice! ${ users } completed the Divorce Pro App and their documents are attached. They would like to file their documents in ${ province_choice}.
+---
+code: |
+  send_data_via_email = send_email(to='calvin@getjustice.io', cc='taayo@getjustice.io', template=send_data_template)
+  send_data_via_email_to_GJ = True
+---
+template: send_data_template
+subject: |
+  Interview Started! - ${ users[0] } began the Pro Divorce App.
+content: |
+  A pro divorce app session has started. If payment is not received by the end of the day, please enter ${ users }'s information into MailChimp and tag them with "Began Interview: Divorce Pro".
+  
+  Name: ${ users[0] } 
+  
+  Email: ${ user_email }
+  
+  Phone Number: ${ user_phone }
+  
+  Province: ${ state_name(users[0].address.state, country_code = "CA") }
+---
+code: |
+  divorce_intro_premium=False
+---
+code: |
+  divorce_intro_standard=False

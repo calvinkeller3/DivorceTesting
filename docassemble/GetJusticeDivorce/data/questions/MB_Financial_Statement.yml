@@ -1,0 +1,2131 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+objects:
+  - benefit: DAList.using(object_type=DAObject, there_are_any=True)
+  - real_property: DAList.using(object_type=DAObject, there_are_any=True)
+  - vehicles: DAList.using(object_type=DAObject, there_are_any=True)
+  - household: DAList.using(object_type=DAObject, there_are_any=True)
+  - equipment: DAList.using(object_type=DAObject, there_are_any=True)
+  - bank: DAList.using(object_type=DAObject, there_are_any=True)
+  - rrsp_asset: DAList.using(object_type=DAObject, there_are_any=True)
+  - securities: DAList.using(object_type=DAObject, there_are_any=True)
+  - money_owed: DAList.using(object_type=DAObject, there_are_any=True)
+  - life_insurance: DAList.using(object_type=DAObject, there_are_any=True)
+  - pension: DAList.using(object_type=DAObject, there_are_any=True)
+  - business_interest: DAList.using(object_type=DAObject, there_are_any=True)
+  - mortgage: DAList.using(object_type=DAObject, there_are_any=True)
+  - loan: DAList.using(object_type=DAObject, there_are_any=True)
+  - credit_card: DAList.using(object_type=DAObject, there_are_any=True)
+  - other_debt: DAList.using(object_type=DAObject, there_are_any=True)
+---
+mandatory: True
+code: |
+  interview_metadata
+  if not defined("interview_metadata['MB_Financial_Statement']"):
+    interview_metadata.initializeObject("MB_Financial_Statement")
+    interview_metadata["MB_Financial_Statement"].update({
+      "al_weaver_version": "1.2.0",
+      "generated on": "2021-10-13",
+      "title": "Mb financial statement",
+      "short title": "Mb financial statement",
+      "description": "Mb financial statement",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_MB_Financial_Statement",
+      "attachment block variable": "MB_Financial_Statement_attachment",
+      "typical role": "plaintiff",
+    })
+---
+objects:
+  - users: ALPeopleList.using(ask_number=True,target_number=1)
+  - other_parties: ALPeopleList.using(ask_number=True,target_number=1)
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_MB_Financial_Statement
+code: |
+  allowed_courts = interview_metadata["MB_Financial_Statement"]["allowed courts"]
+  nav.set_section('review_MB_Financial_Statement')
+  user_role = 'plaintiff'
+  user_situation
+  employment_income
+  Gross_rental_income
+  gross_business_income
+  declared_income_last
+  actual_dividends
+  union_and_professional_dues
+  benefits[0].details
+  income_tax
+  groceries_and_household
+  rent_and_mortgage
+  medical_insurance
+  public_transit
+  adult_clothing
+  
+  if len(children) > 0: 
+    child_Care
+  
+  rrsp
+  real_property_yesno
+  
+  if real_property_yesno == "Yes": 
+    real_property[0].details
+  
+  if motor_vehicles_yesno == "Yes":
+    vehicles[0].details
+  
+  if household_yesno == "Yes":
+    household[0].Description
+  
+  if hequipment_yesno == "Yes":
+    equipment[0].Description
+  
+  if bank_yesno == "Yes":
+    bank[0].details
+  
+  if rrsp_yesno == "Yes":
+    rrsp_asset[0].details
+  
+  if financials_yesno == "Yes":
+    securities[0].details
+  
+  if money_owed_yesno == "Yes":
+    money_owed[0].details   
+  
+  if life_insurance_yesno == "Yes":
+    life_insurance[0].details
+  
+  if pensions_yesno == "Yes":
+    pension[0].details 
+  
+  if business_yesno == "Yes":
+    business_interest[0].description
+  
+  mortgage_yesno
+  
+  if mortgage_yesno == "Yes":
+    mortgage[0].details
+    
+  if loan_yesno == "Yes":
+      loan[0].details
+  
+  if credit_cards_yesno == "Yes":
+    credit_card[0].details
+  
+  if other_debts_yesno == "Yes":
+    other_debt[0].details
+
+  interview_order_MB_Financial_Statement = True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: employer information
+question: |
+  Employment Information
+fields:
+  - What best describes you current situation?: user_situation
+    datatype: checkboxes
+    choices:
+      - Employed: employed
+      - Self-Employed: self_employed
+      - Unemployed: unemployed
+    none of the above: False
+  - What is your occupation?: user_job_title
+    show if: user_situation["employed"]
+  - What is the name of your employer?: user_employer_name
+    show if: user_situation["employed"]
+  - What is the address of your employer?: user_employer_address
+    show if: user_situation["employed"]
+  - What is the name of your business?: user_self_employed_business
+    show if: user_situation["self_employed"]
+  - What is the address of your business?: user_self_employed_business_address
+    show if: user_situation["self_employed"]
+  - When were you last employed?: user_unemployed_date
+    datatype: date
+    show if: user_situation["unemployed"]
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: detailed income
+question: |
+  Your Income Details
+subquestion: |
+  Complete the following values on an annual basis
+fields:
+  - Employment income (before deductions): employment_income
+    datatype: currency
+  - Other employment income: other_employment_income
+    datatype: currency
+  - Old age security pension: old_age_security_pension
+    datatype: currency
+  - Canada pension plan: canada_pension_plan
+    datatype: currency
+  - Other pension: other_pension
+    datatype: currency
+  - Employment insurance benefits: employment_insurance_benefits
+    datatype: currency
+  - Taxable amount of dividends from taxable Canadian corporations: dividends
+    datatype: currency
+  - Interest and investment income: interest_and_investment_income
+    datatype: currency
+  - Net partnership income: net_partnership_income
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: detailed income
+question: |
+  Additional Income Details
+subquestion: |
+  Complete the following values on an annual basis
+fields:
+  - Gross rental income: Gross_rental_income
+    datatype: currency
+  - Net rental income: net_rental_income
+    datatype: currency
+  - Taxable capital gains: taxable_capital_gains
+    datatype: currency
+  - Spousal support received: spousal_support
+    datatype: currency
+  - Child support received: child_support
+    datatype: currency
+  - Registered Retirement Savings Plan income: rrsp_income
+    datatype: currency
+  - Do you have any other sources of income?: other_income_yes
+    datatype: radio
+    choices:
+      - No: No
+      - Yes: Yes
+    help: (e.g. business income, farming or fishing income etc.)
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: detailed income
+question: |
+  Other Income
+subquestion: |
+  Complete the following values on an annual basis
+fields:
+  - Gross business income: gross_business_income
+    datatype: currency
+  - Net business income: net_business_income
+    datatype: currency
+  - Gross professional income: gross_professional_income
+    datatype: currency
+  - Net professional income: net_professional_income
+    datatype: currency
+  - Gross commission income: gross_commission_income
+    datatype: currency
+  - Net commission income: net_commission_income
+    datatype: currency
+  - Gross farming income: gross_farming_income
+    datatype: currency
+  - Net farming income: net_farming_income
+    datatype: currency
+  - Gross fishing income: gross_fishing_income
+    datatype: currency
+  - Net fishing income: net_fishing_income
+    datatype: currency
+  - Workers compensation benefits: workers_compensation_benefits
+    datatype: currency
+  - Social assistance payments: social_assistance_payments
+    datatype: currency
+  - Net federal supplements: net_federal_supplements
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: declare details
+question: |
+  Declared income
+fields:
+  - What total income did you declared on your most recent personal income tax?: declared_income_last
+    datatype: currency
+  - What year was that?: declared_year
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: additional details
+question: |
+  Additional Income
+subquestion: |
+  Complete the following values on an annual basis
+fields:
+  - Actual amount of dividends received from Canadian corporations: actual_dividends
+    datatype: currency
+  - Actual capital gains realized in excess of actual capital losses: actual_capital_gains
+    datatype: currency
+  - Allowable capital cost allowance for real property: allowable_capital_cost_allowance
+    datatype: currency
+  - Do you own any employee stock options?: stock_options_yes
+    datatype: yesnoradio
+  - Employee stock options with a Canadian-controlled private corporation exercised: stock_options
+    datatype: currency
+    show if: stock_options_yes
+  - Value of shares at the time the options are exercised: value_of_shares
+    datatype: currency
+    show if: stock_options_yes
+  - Amount paid for the shares: amount_paid_For_shares
+    datatype: currency
+    show if: stock_options_yes
+  - Amount paid to acquire the options to purchase the shares: options_puchase_amount
+    datatype: currency
+    show if: stock_options_yes
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: deduction details
+question: |
+  Income Deductions
+subquestion: |
+  Complete the following values on an annual basis
+fields:
+  - Union and Professional dues: union_and_professional_dues
+    datatype: currency
+  - Child Support received: child_support_Received
+    datatype: currency
+  - Spousal Support received: spousal_support_received
+    datatype: currency
+  - Social assistance received by the parent for other members of the household: social_assistance_from_household
+    datatype: currency
+  - Taxable amount of dividends from taxable Canadian corporations: taxable_dividends
+    datatype: currency
+  - Actual Business investment losses": business_investment_losses
+    datatype: currency
+  - Carrying charges and interest expenses: carrying_charges_and_interest
+    datatype: currency
+  - Self Employment income: self_employment_income
+    datatype: currency
+  - Portion of partnership and sole proprietorship income that is required by the  partnership to be re-invested: portion_of_partnership
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: benefits
+question: |
+  Benefits 
+fields:
+  - Description: benefits[i].details
+  - Benefit type: benefits[i].type
+    help: allowance, company asset etc.
+  - Monetary Amount: benefits[i].amount
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: expenses - Automatic Deductions
+question: |
+  Expenses - Automatic Deductions
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Income tax: income_tax
+    datatype: currency
+  - Canada Pension Plan: canada_pension_plan_expense
+    datatype: currency
+  - Employment insurance: employment_insurance
+    datatype: currency
+  - Employer pension: employer_pension
+    datatype: currency
+  - Union dues: union_dues
+    datatype: currency    
+  - Insurance: insurance
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: expenses - Household Expenses
+question: |
+  Household Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Groceries and household: groceries_and_household
+    datatype: currency
+  - Meals outside the home: meals_outside
+    datatype: currency
+  - Telephone: telephone
+    datatype: currency    
+  - Cable television: cable_television
+    datatype: currency
+  - Laundry and dry cleaning: laundry_dry_cleaning
+    datatype: currency
+  - Newspaper, publications: newspaper_publications
+    datatype: currency
+  - Stationery, computer supplies: stationery
+    datatype: currency
+  - Vacation: vacation
+    datatype: currency
+  - Pet care: pet_care
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: expenses - Housing
+question: |
+  Housing Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Rent and mortgage: rent_and_mortgage
+    datatype: currency
+  - Property Taxes: taxes
+    datatype: currency
+  - Home Insurance: home_insurance
+    datatype: currency
+  - Heat: heat
+    datatype: currency
+  - Water: water
+    datatype: currency
+  - Hydro: hydro
+    datatype: currency
+  - House repairs and maintenance: hosue_repairs
+    datatype: currency
+  - Yard maintenance: yard_maintenance
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: expenses - Health
+question: |
+  Health Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Medical Insurance: medical_insurance
+    datatype: currency
+  - Drugs (Net of coverage): drugs
+    datatype: currency
+  - Dental care (Net of coverage): dental_care
+    datatype: currency
+  - Optical care (Net of coverage): optical_care
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: expenses - Transportation
+question: |
+  Transportation Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Public transit, taxis, etc.: public_transit
+    datatype: currency
+  - Car operation: car_operation
+    datatype: currency
+  - Gas and Oil: gas_and_oil
+    datatype: currency
+  - Insurance and licence: insurance_licence
+    datatype: currency
+  - Maintenance: maintenance
+    datatype: currency
+  - Parking: parking
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: expenses - Personal 
+question: |
+  Personal Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:    
+  - Clothing: adult_clothing
+    datatype: currency
+  - Hair care: hair_Care
+    datatype: currency
+  - Toiletries, cosmetics: toiletries
+    datatype: currency
+  - Educations fees, supplies: educations
+    datatype: currency
+  - Entertainment and recreation: entertainment_and_recreation
+    datatype: currency
+  - Fitness: fitness
+    datatype: currency
+  - Personal insurance: personal_insurance
+    datatype: currency    
+  - Charitable donations: charitable_donations
+    datatype: currency
+  - Gifts to others: gifts
+    datatype: currency
+  - Alcohol, tabacco: alcohol
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: expenses - Childcare Costs
+question: |
+  Childcare Costs
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - Child care: child_Care
+    datatype: currency
+  - Babysitting: babysitting
+    datatype: currency
+  - Hair care: hair_care
+    datatype: currency
+  - Clothing": clothing
+    datatype: currency
+  - Allowance: allowance
+    datatype: currency
+  - School fees and supplies: school_fees
+    datatype: currency
+  - Entertainment and recreation: entertainment_children
+    datatype: currency
+  - Gifts for your children: gifts_for_children
+    datatype: currency
+  - Insurance: child_insurance
+    datatype: currency
+  - Activities, lessons, and supplies: activities_lessons
+    datatype: currency
+  - Camp: camp
+    datatype: currency
+  - Gifts for other children: gifts_to_other_children
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: expenses - other
+question: |
+  Other Expenses
+subquestion: |
+  Complete the following values on a per month basis
+fields:
+  - RRSP (monthly contributions): rrsp
+    datatype: currency
+  - RESP (monthly contributions): resp
+    datatype: currency
+  - Debt expenses (other than mortgage): debt_expenses
+    datatype: currency
+  - Lease payments: lease_payments
+    datatype: currency
+  - Support payments to others: support_payments
+    datatype: currency
+  - Reserves for Income tax: income_tax_saves
+    datatype: currency
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: assets yes/no
+question: |
+  Assets 
+fields:
+  - Do you own any real property?: real_property_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you own any Cars, Boats, or Vehicles?: motor_vehicles_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any household goods, furniture or appliance to your claim??: household_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any tools, sports, and hobby equipment to your claim??: hequipment_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any Bank Accounts to your claim?: bank_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any R.R.S.Ps to your claim?: rrsp_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any Bonds, shares, term deposits, investment certificates, or mutual funds to your claim?: financials_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any money owed to you to your claim?: money_owed_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any life insurance plans to your claim?: life_insurance_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any pensions to your claim?: pensions_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Do you have any financial interests in a business?: business_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: real property
+question: |
+  Real Property 
+fields:
+  - Address: real_property[i].details
+  - Is this property currently in your possession?: real_property[i].possession
+    datatype: yesnoradio   
+  - What is the property's present market value?: real_property[i].present_value
+    datatype: currency
+  - What was the value on ${ separated_date }?: real_property[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: vehicles
+question: |
+  Vehicles 
+fields:
+  - Year, Make, Model: vehicles[i].details
+  - Is this vehicle currently in your possession?: vehicles[i].possession
+    datatype: yesnoradio      
+  - What is the vehicle's present market value?: vehicles[i].present_value
+    datatype: currency
+  - What was the value on ${ separated_date }?: vehicles[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: household
+question: |
+  Household Goods, Furniture and Appliances 
+fields:
+  - Description: household[i].Description
+  - Is this item currently in your possession?: household[i].possession
+    datatype: yesnoradio      
+  - What is the item's present market value?: household[i].present_value
+    datatype: currency
+  - What was the value on ${ separated_date }?: household[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: equipment
+question: |
+  Tools, sports and hobby equipment  
+fields:
+  - Description: equipment[i].Description
+  - Is this item currently in your possession?: equipment[i].possession
+    datatype: yesnoradio      
+  - What is the item's present market value?: equipment[i].present_value
+    datatype: currency
+  - What was the value on ${ separated_date }?: equipment[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: bank
+question: |
+  Bank accounts and cash on hand  
+fields:
+  - Account and Bank Name: bank[i].details
+  - Is this account currently in your possession?: bank[i].possession
+    datatype: yesnoradio      
+  - What is the account's present market value?: bank[i].present_value
+    datatype: currency
+  - What was the value on ${ separated_date }?: bank[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: rrsp
+question: |
+  R.R.S.P.  
+fields:
+  - Details: rrsp_asset[i].details
+  - Is this R.R.S.P. currently in your possession?: rrsp_asset[i].possession
+    datatype: yesnoradio      
+  - What is the R.R.S.P.'s present market value?: rrsp_asset[i].present_value
+    datatype: currency
+  - What was the value on ${ separated_date }?: rrsp_asset[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: securities
+question: |
+  Bonds, shares, term deposits, investment certificates, mutual funds  
+fields:
+  - Details: securities[i].details
+  - Is this security currently in your possession?: securities[i].possession
+    datatype: yesnoradio      
+  - What is the security's present market value?: securities[i].present_value
+    datatype: currency
+  - What was the value on ${ separated_date }?: securities[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: money_owed
+question: |
+  Money Owed
+fields:
+  - Details of Debt: money_owed[i].details   
+  - How much of the debt is currently unpaid?: money_owed[i].present_value
+    datatype: currency
+  - How much of the debt was unpaid on ${ separated_date }?: money_owed[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: life_insurance
+question: |
+  Life Insurance (cash value) 
+fields:
+  - Plan Details: life_insurance[i].details
+  - What is the cash value today?: life_insurance[i].present_value
+    datatype: currency
+  - What was the cash value on ${ separated_date }?: life_insurance[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: pension
+question: |
+  Pension Plans 
+fields:
+  - Details: pension[i].details    
+  - What is the plan's present market value?: pension[i].present_value
+    datatype: currency
+  - What was the value on ${ separated_date }?: pension[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: business_interest
+question: |
+  Business Assets 
+fields:
+  - Description: business_interest[i].description
+  - What is the interest's present market value?: business_interest[i].present_value
+    datatype: currency
+  - What was the value on ${ separated_date }?: business_interest[i].sep_value
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: debts yes/no
+question: |
+  Debts 
+fields:
+  - Would you like to add a Mortgage to your claim?: mortgage_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add loans to your claim?: loan_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any credit cards to your claim?: credit_cards_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+  - Would you like to add any other debts to your claim?: other_debts_yesno
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: mortgage
+question: |
+  Mortgage 
+fields:
+  - Description: mortgage[i].details
+  - Is this your, your spouse's, or a joint debt?: mortgage[i].debt_type
+    datatype: checkboxes
+    choices:
+      - ${ users[0] }'s Debt: user
+      - ${ respondents[0] }'s Debt: respondent
+      - Joint Debt: joint
+    none of the above: False
+  - Present Outstanding Amount: mortgage[i].present_outstanding
+    datatype: currency
+  - Amount Outstanding on ${ separated_date }: mortgage[i].sep_outstanding
+    datatype: currency
+  - Monthly Payments currently being made: mortgage[i].monthly_payments
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: loan
+question: |
+  Loans 
+fields:
+  - Description: loan[i].details
+  - Is this your, your spouse's, or a joint debt?: loan[i].debt_type
+    datatype: checkboxes
+    choices:
+      - ${ users[0] }'s Debt: user
+      - ${ respondents[0] }'s Debt: respondent
+      - Joint Debt: joint
+    none of the above: False
+  - Present Outstanding Amount: loan[i].present_outstanding
+    datatype: currency
+  - Amount Outstanding on ${ separated_date }: loan[i].sep_outstanding
+    datatype: currency
+  - Monthly Payments currently being made: loan[i].monthly_payments
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: credit_card
+question: |
+  Credit Cards 
+fields:
+  - Description: credit_card[i].details
+  - Is this your, your spouse's, or a joint debt?: credit_card[i].debt_type
+    datatype: checkboxes
+    choices:
+      - ${ users[0] }'s Debt: user
+      - ${ respondents[0] }'s Debt: respondent
+      - Joint Debt: joint
+    none of the above: False
+  - Present Outstanding Amount: credit_card[i].present_outstanding
+    datatype: currency
+  - Amount Outstanding on ${ separated_date }: credit_card[i].sep_outstanding
+    datatype: currency
+  - Monthly Payments currently being made: credit_card[i].monthly_payments
+    datatype: currency
+list collect: True
+---
+if: |
+  str(province_choice) in ["Manitoba"]
+id: other_debt
+question: |
+  Other Debt 
+fields:
+  - Description: other_debt[i].details
+  - Is this your, your spouse's, or a joint debt?: other_debt[i].debt_type
+    datatype: checkboxes
+    choices:
+      - ${ users[0] }'s Debt: user
+      - ${ respondents[0] }'s Debt: respondent
+      - Joint Debt: joint
+    none of the above: False
+  - Present Outstanding Amount: other_debt[i].present_outstanding
+    datatype: currency
+  - Amount Outstanding on ${ separated_date }: other_debt[i].sep_outstanding
+    datatype: currency
+  - Monthly Payments currently being made: other_debt[i].monthly_payments
+    datatype: currency
+list collect: True
+---
+objects:
+  - MB_Financial_Statement_attachment: ALDocument.using(title="Financial Statement", filename="Financial_Statement.pdf", has_addendum=False)
+  - MB_Financial_Statement_watermarked: ALDocument.using(title="PREVIEW - Financial Statement", filename="Financial_Statement.pdf", has_addendum=False)
+---
+attachments:
+  - name: MB Financial Statement attachment
+    filename: MB_Financial_Statement     
+    variable name: MB_Financial_Statement_attachment[i]        
+    skip undefined: True
+    pdf template file: MB_Financial_Statement.pdf
+    fields:
+      - "trial_court": ${ trial_court.address.city }
+      - "trial_court__2": ${ trial_court.address.city }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "user__6": ${ users[0] }
+      - "user__5": ${ users[0] }
+      - "user__3": ${ users[0] }
+      - "user__4": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent__2": ${ respondents[0] }
+      - "user_phone_number": ${ user_phone }
+      - "user_street_address": ${ users[0].address.address }
+      - "user_city_postal": ${ users[0].address.zip }
+      - "user_city": ${ users[0].address.city }
+      - "user_province": ${ users[0].address.state }
+      - "user_job_title": ${ user_job_title }
+      - "employed": ${ user_situation["employed"] }
+      - "user_employer_name": ${ user_employer_name }
+      - "user_employer_address": ${ user_employer_address }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "user_self_employed_business": ${ user_self_employed_business }
+      - "user_self_employed_business_address": ${ user_self_employed_business_address }
+      - "user_unemployed_date": ${ user_unemployed_date }
+      - "unemployed": ${ user_situation["unemployed"] }
+      - "total_income": ${ currency(sum_if_defined("employment_income", "other_employment_income", "old_age_security_pension", "canada_pension_plan", "other_pension", "employment_insurance_benefits", "dividends", "interest_and_investment_income", "net_partnership_income", "net_rental_income", "taxable_capital_gains", "spousal_support", "child_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "workers_compensation_benefits", "social_assistance_payments", "net_federal_supplements")) }
+      - "total_income__2": ${ currency(sum_if_defined("employment_income", "other_employment_income", "old_age_security_pension", "canada_pension_plan", "other_pension", "employment_insurance_benefits", "dividends", "interest_and_investment_income", "net_partnership_income", "net_rental_income", "taxable_capital_gains", "spousal_support", "child_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "workers_compensation_benefits", "social_assistance_payments", "net_federal_supplements")) }
+      - "employment_income": ${ currency(employment_income) }
+      - "other_employment_income": ${ currency(other_employment_income) }
+      - "old_age_security_pension": ${ currency(old_age_security_pension) }
+      - "canada_pension_plan": ${ currency(canada_pension_plan) }
+      - "other_pension": ${ currency(other_pension) }
+      - "employment_insurance_benefits": ${ currency(employment_insurance_benefits) }
+      - "dividends": ${ currency(dividends) }
+      - "taxable_dividends": ${ currency(taxable_dividends) }
+      - "interest_and_investment_income": ${ currency(interest_and_investment_income) }
+      - "net_partnership_income": ${ currency(net_partnership_income) }
+      - "Gross_rental_income": ${ currency(Gross_rental_income) }
+      - "net_rental_income": ${ currency(net_rental_income) }
+      - "taxable_capital_gains": ${ currency(taxable_capital_gains) }
+      - "spousal_support": ${ currency(spousal_support) }
+      - "child_support": ${ currency(child_support) }
+      - "rrsp_income": ${ currency(rrsp_income) }
+      - "gross_business_income": ${ currency(gross_business_income) }
+      - "net_business_income": ${ currency(net_business_income) }
+      - "gross_professional_income": ${ currency(gross_professional_income) }
+      - "net_professional_income": ${ currency(net_professional_income) }
+      - "gross_commission_income": ${ currency(gross_commission_income) }
+      - "net_commission_income": ${ currency(net_commission_income) }
+      - "gross_farming_income": ${ currency(gross_farming_income) }
+      - "net_farming_income": ${ currency(net_farming_income) }
+      - "gross_fishing_income": ${ currency(gross_fishing_income) }
+      - "net_fishing_income": ${ currency(net_fishing_income) }
+      - "workers_compensation_benefits": ${ currency(workers_compensation_benefits) }
+      - "social_assistance_payments": ${ currency(social_assistance_payments) }
+      - "net_federal_supplements": ${ currency(net_federal_supplements) }
+      - "declared_income_last": ${ currency(declared_income_last) }
+      - "return": ${ declared_year }
+      - "actual_dividends": ${ currency(actual_dividends) }
+      - "actual_capital_gains": ${ currency(actual_capital_gains) }
+      - "allowable_capital_cost_allowance": ${ currency(allowable_capital_cost_allowance) }
+      - "stock_options": |
+          % if stock_options_yes:
+          ${ currency(stock_options) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif
+      - "value_of_shares": |
+          % if stock_options_yes:
+          ${ currency(value_of_shares) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif 
+      - "amount_paid_For_shares": |
+          % if stock_options_yes:
+          ${ currency(amount_paid_For_shares) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif 
+      - "options_puchase_amount": |
+          % if stock_options_yes:
+          ${ currency(options_puchase_amount) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif
+      - "total_Stocks": |
+          % if stock_options_yes:
+          ${ currency(total_Stocks) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif
+      - "total_stocks": |
+          % if stock_options_yes:
+          ${ currency(total_stocks) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif
+      - "total_additions": ${ currency(sum_if_defined("actual_dividends", "actual_capital_gains", "allowable_capital_cost_allowance", "stock_options", "total_stocks")) }
+      - "union_and_professional_dues": ${ currency(union_and_professional_dues) }
+      - "child_support_Received": ${ currency(child_support_Received) }
+      - "spousal_support_received": ${ currency(spousal_support_received) }
+      - "social_assistance_from_household": ${ currency(social_assistance_from_household) }
+      - "business_investment_losses": ${ currency(business_investment_losses) }
+      - "carrying_charges_and_interest": ${ currency(carrying_charges_and_interest) }
+      - "self_employment_income": ${ currency(self_employment_income) }
+      - "portion_of_partnership": ${ currency(portion_of_partnership) }
+      - "total_deductions": ${ currency(sum_if_defined("union_and_professional_dues", "child_support_Received", "spousal_support_received", "social_assistance_from_household", "business_investment_losses", "carrying_charges_and_interest", "self_employment_income", "portion_of_partnership")) }
+      - "annual_income_for_child_support": ${ currency(sum_if_defined("employment_income", "other_employment_income", "old_age_security_pension", "canada_pension_plan", "other_pension", "employment_insurance_benefits", "dividends", "interest_and_investment_income", "net_partnership_income", "net_rental_income", "taxable_capital_gains", "spousal_support", "child_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "workers_compensation_benefits", "social_assistance_payments", "net_federal_supplements") + sum_if_defined("actual_dividends", "actual_capital_gains", "allowable_capital_cost_allowance", "stock_options", "total_stocks") - sum_if_defined("union_and_professional_dues", "child_support_Received", "spousal_support_received", "social_assistance_from_household", "business_investment_losses", "carrying_charges_and_interest", "self_employment_income", "portion_of_partnership")) }
+      - "Benefit1": ${ benefits[0].details }
+      - "Benefit_type1": ${ benefits[0].type }
+      - "Benefit_amount1": ${ currency(benefits[0].amount) }
+      - "Benefit2": ${ benefits[1].details }
+      - "Benefit_type2": ${ benefits[1].type }
+      - "Benefit_amount2": ${ currency(benefits[1].amount) }
+      - "Benefit3": ${ benefits[2].details }
+      - "Benefit_type3": ${ benefits[2].type }
+      - "Benefit_amount3": ${ currency(benefits[2].amount) }
+      - "subtotal_expenses_two": ${ currency(sum_if_defined("educations", "adult_clothing", "hair_Care", "toiletries", "entertainment_and_recreation", "fitness", "personal_insurance", "charitable_donations", "gifts", "alcohol", "clothing", "child_Care", "babysitting", "hair_care", "allowance", "school_fees", "entertainment_children", "child_insurance", "gifts_for_children", "activities_lessons", "camp", "gifts_to_other_children", "rrsp", "resp", "debt_expenses", "lease_payments", "support_payments", "income_tax_saves")) }
+      - "income_tax": ${ currency(income_tax) }
+      - "employment_insurance": ${ currency(employment_insurance) }
+      - "canada_pension_plan_expense": ${ currency(canada_pension_plan_expense) }
+      - "adult_clothing": ${ currency(adult_clothing) }
+      - "clothing": |
+          % if len(children) > 0:
+          ${ currency(clothing) }
+          % else:
+          $0.00
+          % endif
+      - "employer_pension": ${ currency(employer_pension) }
+      - "hair_Care": ${ currency(hair_Care) }
+      - "union_dues": ${ currency(union_dues) }
+      - "toiletries": ${ currency(toiletries) }
+      - "personal_insurance": ${ currency(personal_insurance) }
+      - "child_insurance": |
+          % if len(children) > 0:
+          ${ currency(child_insurance) }
+          % else:
+          $0.00
+          % endif
+      - "insurance": ${ currency(insurance) }
+      - "educations": ${ currency(educations) }
+      - "entertainment_and_recreation": ${ currency(entertainment_and_recreation) }
+      - "fitness": ${ currency(fitness) }
+      - "groceries_and_household": ${ currency(groceries_and_household) }
+      - "charitable_donations": ${ currency(charitable_donations) }
+      - "meals_outside": ${ currency(meals_outside) }
+      - "gifts": ${ currency(gifts) }
+      - "gifts_for_children": |
+          % if len(children) > 0:
+          ${ currency(gifts_for_children) }
+          % else:
+          $0.00
+          % endif
+      - "telephone": ${ currency(telephone) }
+      - "alcohol": ${ currency(alcohol) }
+      - "cable_television": ${ currency(cable_television) }
+      - "laundry_dry_cleaning": ${ currency(laundry_dry_cleaning) }
+      - "child_Care": |
+          % if len(children) > 0:
+          ${ currency(child_Care) }
+          % else:
+          $0.00
+          % endif
+      - "newspaper_publications": ${ currency(newspaper_publications) }
+      - "babysitting": |
+          % if len(children) > 0:
+          ${ currency(babysitting) }
+          % else:
+          $0.00
+          % endif
+      - "stationery": ${ currency(stationery) }
+      - "vacation": ${ currency(vacation) }
+      - "hair_care": |
+          % if len(children) > 0:
+          ${ currency(hair_care) }
+          % else:
+          $0.00
+          % endif
+      - "pet_care": ${ currency(pet_care) }
+      - "allowance": |
+          % if len(children) > 0:
+          ${ currency(allowance) }
+          % else:
+          $0.00
+          % endif
+      - "school_fees": |
+          % if len(children) > 0:
+          ${ currency(school_fees) }
+          % else:
+          $0.00
+          % endif
+      - "rent_and_mortgage": ${ currency(rent_and_mortgage) }
+      - "entertainment_children": |
+          % if len(children) > 0:
+          ${ currency(entertainment_children) }
+          % else:
+          $0.00
+          % endif
+      - "taxes": ${ currency(taxes) }
+      - "home_insurance": ${ currency(home_insurance) }
+      - "heat": ${ currency(heat) }
+      - "water": ${ currency(water) }
+      - "activities_lessons": |
+          % if len(children) > 0:
+          ${ currency(child_gifts) }
+          % else:
+          $0.00
+          % endif ${ currency(activities_lessons) }
+      - "camp": |
+          % if len(children) > 0:
+          ${ currency(camp) }
+          % else:
+          $0.00
+          % endif 
+      - "hydro": ${ currency(hydro) }
+      - "gifts_to_other_children": |
+          % if len(children) > 0:
+          ${ currency(gifts_to_other_children) }
+          % else:
+          $0.00
+          % endif
+      - "hosue_repairs": ${ currency(hosue_repairs) }
+      - "rrsp": ${ currency(rrsp) }
+      - "yard_maintenance": ${ currency(yard_maintenance) }
+      - "resp": ${ currency(resp) }
+      - "debt_expenses": ${ currency(debt_expenses) }
+      - "medical_insurance": ${ currency(medical_insurance) }
+      - "drugs": ${ currency(drugs) }
+      - "lease_payments": ${ currency(lease_payments) }
+      - "dental_care": ${ currency(dental_care) }
+      - "optical_care": ${ currency(optical_care) }
+      - "support_payments": ${ currency(support_payments) }
+      - "income_tax_saves": ${ currency(income_tax_saves) }
+      - "public_transit": ${ currency(public_transit) }
+      - "car_operation": ${ currency(car_operation) }
+      - "total_expenses": ${ currency(sum_if_defined("telephone", "income_tax", "employment_insurance", "canada_pension_plan_expense", "employer_pension", "union_dues", "insurance", "groceries_and_household", "meals_outside", "cable_television", "laundry_dry_cleaning", "newspaper_publications", "stationery", "vacation", "pet_care", "rent_and_mortgage", "taxes", "home_insurance", "heat", "water", "hydro", "hosue_repairs", "yard_maintenance", "medical_insurance", "drugs", "dental_care", "optical_care", "public_transit", "car_operation", "gas_and_oil", "insurance_licence", "maintenance", "parking", "educations", "adult_clothing", "hair_Care", "toiletries", "entertainment_and_recreation", "fitness", "personal_insurance", "charitable_donations", "gifts", "alcohol", "clothing", "child_Care", "babysitting", "hair_care", "allowance", "school_fees", "entertainment_children", "child_insurance", "gifts_for_children", "activities_lessons", "camp", "gifts_to_other_children", "rrsp", "resp", "debt_expenses", "lease_payments", "support_payments", "income_tax_saves")) }
+      - "gas_and_oil": ${ currency(gas_and_oil) }
+      - "insurance_licence": ${ currency(insurance_licence) }
+      - "maintenance": ${ currency(maintenance) }
+      - "parking": ${ currency(parking) }
+      - "subtotal_expenses_one": ${ currency(sum_if_defined("telephone", "income_tax", "employment_insurance", "canada_pension_plan_expense", "employer_pension", "union_dues", "insurance", "groceries_and_household", "meals_outside", "cable_television", "laundry_dry_cleaning", "newspaper_publications", "stationery", "vacation", "pet_care", "rent_and_mortgage", "taxes", "home_insurance", "heat", "water", "hydro", "hosue_repairs", "yard_maintenance", "medical_insurance", "drugs", "dental_care", "optical_care", "public_transit", "car_operation", "gas_and_oil", "insurance_licence", "maintenance", "parking")) }
+      - "real_property_possession1": |
+          % if real_property[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "real_property_value_sep1": ${ currency(real_property[0].sep_value) }
+      - "real_property1": ${ real_property[0].details }
+      - "real_property_value1": ${ currency(real_property[0].present_value) }
+      - "real_property_possession2": |
+          % if real_property[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "real_property_value_sep2": ${ currency(real_property[1].sep_value) }
+      - "real_property2": ${ real_property[1].details }
+      - "real_property_value2": ${ currency(real_property[1].present_value) }
+      - "real_property_possession3": |
+          % if real_property[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "real_property_value_sep3": ${ currency(real_property[2].sep_value) }
+      - "real_property3": ${ real_property[2].details }
+      - "real_property_value3": ${ currency(real_property[2].present_value) }
+      - "vehicles_possession1": |
+          % if vehicles[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "vehicles_value_sep1": ${ currency(vehicles[0].sep_value) }
+      - "vehicles1": ${ vehicles[0].details }
+      - "vehicles_value1": ${ currency(vehicles[0].present_value) }
+      - "vehicles_possession2": |
+          % if vehicles[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "vehicles_value_sep2": ${ currency(vehicles[1].sep_value) }
+      - "vehicles2": ${ vehicles[1].details }
+      - "vehicles_value2": ${ currency(vehicles[1].present_value) }
+      - "vehicles_possession3": |
+          % if vehicles[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "vehicles_value_sep3": ${ currency(vehicles[2].sep_value) }
+      - "vehicles3": ${ vehicles[2].details }
+      - "vehicles_value3": ${ currency(vehicles[2].present_value) }
+      - "household_possession1": |
+          % if household[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "household_value_sep1": ${ currency(household[0].sep_value) }
+      - "household1": ${ household[0].Description }
+      - "household_value1": ${ currency(household[0].present_value) }
+      - "household_possession2": |
+          % if household[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "household_value_sep2": ${ currency(household[1].sep_value) }
+      - "household2": ${ household[1].Description }
+      - "household_value2": ${ currency(household[1].present_value) }
+      - "household_possession3": |
+          % if household[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "household_value_sep3": ${ currency(household[2].sep_value) }
+      - "household3": ${ household[2].Description }
+      - "household_value3": ${ currency(household[2].present_value) }
+      - "equipment_possession1": |
+          % if equipment[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "equipment_value_sep1": ${ currency(equipment[0].sep_value) }
+      - "equipment1": ${ equipment[0].Description }
+      - "equipment_value1": ${ currency(equipment[0].present_value) }
+      - "equipment_possession2": |
+          % if equipment[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "equipment_value_sep2": ${ currency(equipment[1].sep_value) }
+      - "equipment2": ${ equipment[1].Description }
+      - "equipment_value2": ${ currency(equipment[1].present_value) }
+      - "equipment_possession3": |
+          % if equipment[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "equipment_value_sep3": ${ currency(equipment[2].sep_value) }
+      - "equipment3": ${ equipment[2].Description }
+      - "equipment_value3": ${ currency(equipment[2].present_value) }
+      - "bank_possession1": |
+          % if bank[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "bank_value_sep1": ${ currency(bank[0].sep_value) }
+      - "bank1": ${ bank[0].details }
+      - "bank_value1": ${ currency(bank[0].present_value) }
+      - "bank_possession2": |
+          % if bank[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "bank_value_sep2": ${ currency(bank[1].sep_value) }
+      - "bank2": ${ bank[1].details }
+      - "bank_value2": ${ currency(bank[1].present_value) }
+      - "bank_possession3": |
+          % if bank[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "bank_value_sep3": ${ currency(bank[2].sep_value) }
+      - "bank3": ${ bank[2].details }
+      - "bank_value3": ${ currency(bank[2].present_value) }
+      - "rrsp_possession1": |
+          % if rrsp_asset[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "rrsp_value_sep1": ${ currency(rrsp_asset[0].sep_value) }
+      - "rrsp1": ${ rrsp_asset[0].details }
+      - "rrsp_value1": ${ currency(rrsp_asset[0].present_value) }
+      - "rrsp_possession2": |
+          % if rrsp_asset[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "rrsp_value_sep2": ${ currency(rrsp_asset[1].sep_value) }
+      - "rrsp2": ${ rrsp_asset[1].details }
+      - "rrsp_value2": ${ currency(rrsp_asset[1].present_value) }
+      - "rrsp_possession3": |
+          % if rrsp_asset[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "rrsp_value_sep3": ${ currency(rrsp_asset[2].sep_value) }
+      - "rrsp3": ${ rrsp_asset[2].details }
+      - "rrsp_value3": ${ currency(rrsp_asset[2].present_value) }
+      - "securities_possession1": |
+          % if securities[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "securities_value_sep1": ${ currency(securities[0].sep_value) }
+      - "securities1": ${ securities[0].details }
+      - "securities_value1": ${ currency(securities[0].present_value) }
+      - "securities_possession2": |
+          % if securities[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "securities_value_sep2": ${ currency(securities[1].sep_value) }
+      - "securities2": ${ securities[1].details }
+      - "securities_value2": ${ currency(securities[1].present_value) }
+      - "securities_possession3": |
+          % if securities[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "securities_value_sep3": ${ currency(securities[2].sep_value) }
+      - "securities3": ${ securities[2].details }
+      - "securities_value3": ${ currency(securities[2].present_value) }
+      - "money_owed_possession1": |
+          % if money_owed[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "money_owed_value_sep1": ${ currency(money_owed[0].sep_value) }
+      - "money_owed1": ${ money_owed[0].details }
+      - "money_owed_value1": ${ currency(money_owed[0].present_value) }
+      - "money_owed_possession2": |
+          % if money_owed[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "money_owed_value_sep2": ${ currency(money_owed[1].sep_value) }
+      - "money_owed2": ${ money_owed[1].details }
+      - "money_owed_value2": ${ currency(money_owed[1].present_value) }
+      - "money_owed_possession3": |
+          % if money_owed[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "money_owed_value_sep3": ${ currency(money_owed[2].sep_value) }
+      - "money_owed3": ${ money_owed[2].details }
+      - "money_owed_value3": ${ currency(money_owed[2].present_value) }
+      - "life_insurance_value_sep1": ${ currency(life_insurance[0].sep_value) }
+      - "life_insurance1": ${ life_insurance[0].details }
+      - "life_insurance_value1": ${ currency(life_insurance[0].present_value) }
+      - "life_insurance_value_sep2": ${ currency(life_insurance[1].sep_value) }
+      - "life_insurance2": ${ life_insurance[1].details }
+      - "life_insurance_value2": ${ currency(life_insurance[1].present_value) }
+      - "life_insurance_value_sep3": ${ currency(life_insurance[2].sep_value) }
+      - "life_insurance3": ${ life_insurance[2].details }
+      - "life_insurance_value3": ${ currency(life_insurance[2].present_value) }
+      - "pension_value_sep1": ${ currency(pension[0].sep_value) }
+      - "pension1": ${ pension[0].details }
+      - "pension_value1": ${ currency(pension[0].present_value) }
+      - "pension_value_sep2": ${ currency(pension[1].sep_value) }
+      - "pension2": ${ pension[1].details }
+      - "pension_value2": ${ currency(pension[1].present_value) }
+      - "pension_value_sep3": ${ currency(pension[2].sep_value) }
+      - "pension3": ${ pension[2].details }
+      - "pension_value3": ${ currency(pension[2].present_value) }
+      - "business_interest_value_sep1": ${ currency(business_interest[0].sep_value) }
+      - "business_interest1": ${ business_interest[0].description }
+      - "business_interest_value1": ${ currency(business_interest[0].present_value) }
+      - "business_interest_value_sep2": ${ currency(business_interest[1].sep_value) }
+      - "business_interest2": ${ business_interest[1].description }
+      - "business_interest_value2": ${ currency(business_interest[1].present_value) }
+      - "business_interest_value_sep3": ${ currency(business_interest[2].sep_value) }
+      - "business_interest3": ${ business_interest[2].description }
+      - "business_interest_value3": ${ currency(business_interest[2].present_value) }
+      - "total_value_sep1": ${ currency(sum_if_defined("real_property[0].sep_value", "real_property[1].sep_value", "real_property[2].sep_value", "vehicles[0].sep_value", "vehicles[1].sep_value", "vehicles[2].sep_value", "household[0].sep_value", "household[1].sep_value", "household[2].sep_value", "equipment[0].sep_value", "equipment[1].sep_value", "equipment[2].sep_value", "bank[0].sep_value", "bank[1].sep_value", "bank[2].sep_value", "rrsp_asset[0].sep_value", "rrsp_asset[1].sep_value", "rrsp_asset[2].sep_value", "securities[0].sep_value", "securities[1].sep_value", "securities[2].sep_value", "money_owed[0].sep_value", "money_owed[1].sep_value", "money_owed[2].sep_value", "life_insurance[0].sep_value", "life_insurance[1].sep_value", "life_insurance[2].sep_value", "pension[0].sep_value", "pension[1].sep_value", "pension[2].sep_value", "business_interest[0].sep_value", "business_interest[1].sep_value", "business_interest[2].sep_value")) }
+      - "total_value": ${ currency(sum_if_defined("real_property[0].present_value", "real_property[1].present_value", "real_property[2].present_value", "vehicles[0].present_value", "vehicles[1].present_value", "vehicles[2].present_value", "household[0].present_value", "household[1].present_value", "household[2].present_value", "equipment[0].present_value", "equipment[1].present_value", "equipment[2].present_value", "bank[0].present_value", "bank[1].present_value", "bank[2].present_value", "rrsp_asset[0].present_value", "rrsp_asset[1].present_value", "rrsp_asset[2].present_value", "securities[0].present_value", "securities[1].present_value", "securities[2].present_value", "money_owed[0].present_value", "money_owed[1].present_value", "money_owed[2].present_value", "life_insurance[0].present_value", "life_insurance[1].present_value", "life_insurance[2].present_value", "pension[0].present_value", "pension[1].present_value", "pension[2].present_value", "business_interest[0].present_value", "business_interest[1].present_value", "business_interest[2].present_value")) }
+      - "mortgage1": ${ mortgage[0].details }
+      - "mortgage_owner1": |
+          % if mortgage[0].debt_type["user"]:
+          (P)
+          % elif mortgage[0].debt_type["respondent"]:
+          (R)
+          % elif mortgage[0].debt_type["joint"]:
+          (*)
+          % endif
+      - "mortgage_outstanding1": ${ currency(mortgage[0].present_outstanding) }
+      - "mortgage_outstanding_sep1": ${ currency(mortgage[0].sep_outstanding) }
+      - "mortgage_payments1": ${ currency(mortgage[0].monthly_payments) }
+      - "mortgage2": ${ mortgage[1].details }
+      - "mortgage_owner2": |
+          % if mortgage[1].debt_type["user"]:
+          (P)
+          % elif mortgage[1].debt_type["respondent"]:
+          (R)
+          % elif mortgage[1].debt_type["joint"]:
+          (*)
+          % endif
+      - "mortgage_outstanding2": ${ currency(mortgage[1].present_outstanding) }
+      - "mortgage_outstanding_sep2": ${ currency(mortgage[1].sep_outstanding) }
+      - "mortgage_payments2": ${ currency(mortgage[1].monthly_payments) }
+      - "mortgage3": ${ mortgage[2].details }
+      - "mortgage_owner3": |
+          % if mortgage[2].debt_type["user"]:
+          (P)
+          % elif mortgage[2].debt_type["respondent"]:
+          (R)
+          % elif mortgage[2].debt_type["joint"]:
+          (*)
+          % endif
+      - "mortgage_outstanding3": ${ currency(mortgage[2].present_outstanding) }
+      - "mortgage_outstanding_sep3": ${ currency(mortgage[2].sep_outstanding) }
+      - "mortgage_payments3": ${ currency(mortgage[2].monthly_payments) }
+      - "loan1": ${ loan[0].details }
+      - "loan_owner1": |
+          % if loan[0].debt_type["user"]:
+          (P)
+          % elif loan[0].debt_type["respondent"]:
+          (R)
+          % elif loan[0].debt_type["joint"]:
+          (*)
+          % endif
+      - "loan_outstanding1": ${ currency(loan[0].present_outstanding) }
+      - "loan_outstanding_sep1": ${ currency(loan[0].sep_outstanding) }
+      - "loan_payments1": ${ currency(loan[0].monthly_payments) }
+      - "loan2": ${ loan[1].details }
+      - "loan_owner2": |
+          % if loan[1].debt_type["user"]:
+          (P)
+          % elif loan[1].debt_type["respondent"]:
+          (R)
+          % elif loan[1].debt_type["joint"]:
+          (*)
+          % endif
+      - "loan_outstanding2": ${ currency(loan[1].present_outstanding) }
+      - "loan_outstanding_sep2": ${ currency(loan[1].sep_outstanding) }
+      - "loan_payments2": ${ currency(loan[1].monthly_payments) }
+      - "loan3": ${ loan[2].details }
+      - "loan_owner3": |
+          % if loan[2].debt_type["user"]:
+          (P)
+          % elif loan[2].debt_type["respondent"]:
+          (R)
+          % elif loan[2].debt_type["joint"]:
+          (*)
+          % endif
+      - "loan_outstanding3": ${ currency(loan[2].present_outstanding) }
+      - "loan_outstanding_sep3": ${ currency(loan[2].sep_outstanding) }
+      - "loan_payments3": ${ currency(loan[2].monthly_payments) }
+      - "credit_card1": ${ credit_card[0].details }
+      - "credit_card_owner1": |
+          % if credit_card[0].debt_type["user"]:
+          (P)
+          % elif credit_card[0].debt_type["respondent"]:
+          (R)
+          % elif credit_card[0].debt_type["joint"]:
+          (*)
+          % endif
+      - "credit_card_outstanding1": ${ currency(credit_card[0].present_outstanding) }
+      - "credit_card_outstanding_sep1": ${ currency(credit_card[0].sep_outstanding) }
+      - "credit_card_payments1": ${ currency(credit_card[0].monthly_payments) }
+      - "credit_card2": ${ credit_card[1].details }
+      - "credit_card_owner2": |
+          % if credit_card[1].debt_type["user"]:
+          (P)
+          % elif credit_card[1].debt_type["respondent"]:
+          (R)
+          % elif credit_card[1].debt_type["joint"]:
+          (*)
+          % endif
+      - "credit_card_outstanding2": ${ currency(credit_card[1].present_outstanding) }
+      - "credit_card_outstanding_sep2": ${ currency(credit_card[1].sep_outstanding) }
+      - "credit_card_payments2": ${ currency(credit_card[1].monthly_payments) }
+      - "credit_card3": ${ credit_card[2].details }
+      - "credit_card_owner3": |
+          % if credit_card[2].debt_type["user"]:
+          (P)
+          % elif credit_card[2].debt_type["respondent"]:
+          (R)
+          % elif credit_card[2].debt_type["joint"]:
+          (*)
+          % endif
+      - "credit_card_outstanding3": ${ currency(credit_card[2].present_outstanding) }
+      - "credit_card_outstanding_sep3": ${ currency(credit_card[2].sep_outstanding) }
+      - "credit_card_payments3": ${ currency(credit_card[2].monthly_payments) }
+      - "other_debt1": ${ other_debt[0].details }
+      - "other_debt_owner1": |
+          % if other_debt[0].debt_type["user"]:
+          (P)
+          % elif other_debt[0].debt_type["respondent"]:
+          (R)
+          % elif other_debt[0].debt_type["joint"]:
+          (*)
+          % endif
+      - "other_debt_outstanding1": ${ currency(other_debt[0].present_outstanding) }
+      - "other_debt_outstanding_sep1": ${ currency(other_debt[0].sep_outstanding) }
+      - "other_debt_payments1": ${ currency(other_debt[0].monthly_payments) }
+      - "other_debt2": ${ other_debt[1].details }
+      - "other_debt_owner2": |
+          % if other_debt[1].debt_type["user"]:
+          (P)
+          % elif other_debt[1].debt_type["respondent"]:
+          (R)
+          % elif other_debt[1].debt_type["joint"]:
+          (*)
+          % endif
+      - "other_debt_outstanding2": ${ currency(other_debt[1].present_outstanding) }
+      - "other_debt_outstanding_sep2": ${ currency(other_debt[1].sep_outstanding) }
+      - "other_debt_payments2": ${ currency(other_debt[1].monthly_payments) }
+      - "other_debt3": ${ other_debt[2].details }
+      - "other_debt_owner3": |
+          % if other_debt[2].debt_type["user"]:
+          (P)
+          % elif other_debt[2].debt_type["respondent"]:
+          (R)
+          % elif other_debt[2].debt_type["joint"]:
+          (*)
+          % endif
+      - "other_debt_outstanding3": ${ currency(other_debt[2].present_outstanding) }
+      - "other_debt_outstanding_sep3": ${ currency(other_debt[2].sep_outstanding) }
+      - "other_debt_payments3": ${ currency(other_debt[2].monthly_payments) }
+      - "total_outstanding": ${ currency(sum_if_defined("mortgage[0].present_outstanding", "mortgage[1].present_outstanding", "mortgage[2].present_outstanding", "loan[0].present_outstanding", "loan[1].present_outstanding", "loan[2].present_outstanding", "credit_card[0].present_outstanding", "credit_card[1].present_outstanding", "credit_card[2].present_outstanding", "other_debt[0].present_outstanding", "other_debt[1].present_outstanding", "other_debt[2].present_outstanding")) }
+      - "total_outstanding_sep": ${ currency(sum_if_defined("mortgage[0].sep_outstanding", "mortgage[1].sep_outstanding", "mortgage[2].sep_outstanding", "loan[0].sep_outstanding", "loan[1].sep_outstanding", "loan[2].sep_outstanding", "credit_card[0].sep_outstanding", "credit_card[1].sep_outstanding", "credit_card[2].sep_outstanding", "other_debt[0].sep_outstanding", "other_debt[1].sep_outstanding", "other_debt[2].sep_outstanding")) }
+      - "total_payments": ${ currency(sum_if_defined("mortgage[0].monthly_payments", "mortgage[1].monthly_payments", "mortgage[2].monthly_payments", "loan[0].monthly_payments", "loan[1].monthly_payments", "loan[2].monthly_payments", "credit_card[0].monthly_payments", "credit_card[1].monthly_payments", "credit_card[2].monthly_payments", "other_debt[0].monthly_payments", "other_debt[1].monthly_payments", "other_debt[2].monthly_payments")) }
+  - name: MB_Financial_Statement_watermarked
+    filename: MB_Financial_Statement_watermarked
+    variable name: MB_Financial_Statement_watermarked[i]        
+    skip undefined: True
+    pdf template file: MB_Financial_Statement_watermarked.pdf
+    fields:
+      - "trial_court": ${ trial_court.address.city }
+      - "trial_court__2": ${ trial_court.address.city }
+      - "user": ${ users[0] }
+      - "user__2": ${ users[0] }
+      - "user__6": ${ users[0] }
+      - "user__5": ${ users[0] }
+      - "user__3": ${ users[0] }
+      - "user__4": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "respondent__2": ${ respondents[0] }
+      - "user_phone_number": ${ user_phone }
+      - "user_street_address": ${ users[0].address.address }
+      - "user_city_postal": ${ users[0].address.zip }
+      - "user_city": ${ users[0].address.city }
+      - "user_province": ${ users[0].address.state }
+      - "user_job_title": ${ user_job_title }
+      - "employed": ${ user_situation["employed"] }
+      - "user_employer_name": ${ user_employer_name }
+      - "user_employer_address": ${ user_employer_address }
+      - "self_employed": ${ user_situation["self_employed"] }
+      - "user_self_employed_business": ${ user_self_employed_business }
+      - "user_self_employed_business_address": ${ user_self_employed_business_address }
+      - "user_unemployed_date": ${ user_unemployed_date }
+      - "unemployed": ${ user_situation["unemployed"] }
+      - "total_income": ${ currency(sum_if_defined("employment_income", "other_employment_income", "old_age_security_pension", "canada_pension_plan", "other_pension", "employment_insurance_benefits", "dividends", "interest_and_investment_income", "net_partnership_income", "net_rental_income", "taxable_capital_gains", "spousal_support", "child_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "workers_compensation_benefits", "social_assistance_payments", "net_federal_supplements")) }
+      - "total_income__2": ${ currency(sum_if_defined("employment_income", "other_employment_income", "old_age_security_pension", "canada_pension_plan", "other_pension", "employment_insurance_benefits", "dividends", "interest_and_investment_income", "net_partnership_income", "net_rental_income", "taxable_capital_gains", "spousal_support", "child_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "workers_compensation_benefits", "social_assistance_payments", "net_federal_supplements")) }
+      - "employment_income": ${ currency(employment_income) }
+      - "other_employment_income": ${ currency(other_employment_income) }
+      - "old_age_security_pension": ${ currency(old_age_security_pension) }
+      - "canada_pension_plan": ${ currency(canada_pension_plan) }
+      - "other_pension": ${ currency(other_pension) }
+      - "employment_insurance_benefits": ${ currency(employment_insurance_benefits) }
+      - "dividends": ${ currency(dividends) }
+      - "taxable_dividends": ${ currency(taxable_dividends) }
+      - "interest_and_investment_income": ${ currency(interest_and_investment_income) }
+      - "net_partnership_income": ${ currency(net_partnership_income) }
+      - "Gross_rental_income": ${ currency(Gross_rental_income) }
+      - "net_rental_income": ${ currency(net_rental_income) }
+      - "taxable_capital_gains": ${ currency(taxable_capital_gains) }
+      - "spousal_support": ${ currency(spousal_support) }
+      - "child_support": ${ currency(child_support) }
+      - "rrsp_income": ${ currency(rrsp_income) }
+      - "gross_business_income": ${ currency(gross_business_income) }
+      - "net_business_income": ${ currency(net_business_income) }
+      - "gross_professional_income": ${ currency(gross_professional_income) }
+      - "net_professional_income": ${ currency(net_professional_income) }
+      - "gross_commission_income": ${ currency(gross_commission_income) }
+      - "net_commission_income": ${ currency(net_commission_income) }
+      - "gross_farming_income": ${ currency(gross_farming_income) }
+      - "net_farming_income": ${ currency(net_farming_income) }
+      - "gross_fishing_income": ${ currency(gross_fishing_income) }
+      - "net_fishing_income": ${ currency(net_fishing_income) }
+      - "workers_compensation_benefits": ${ currency(workers_compensation_benefits) }
+      - "social_assistance_payments": ${ currency(social_assistance_payments) }
+      - "net_federal_supplements": ${ currency(net_federal_supplements) }
+      - "declared_income_last": ${ currency(declared_income_last) }
+      - "return": ${ declared_year }
+      - "actual_dividends": ${ currency(actual_dividends) }
+      - "actual_capital_gains": ${ currency(actual_capital_gains) }
+      - "allowable_capital_cost_allowance": ${ currency(allowable_capital_cost_allowance) }
+      - "stock_options": |
+          % if stock_options_yes:
+          ${ currency(stock_options) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif
+      - "value_of_shares": |
+          % if stock_options_yes:
+          ${ currency(value_of_shares) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif 
+      - "amount_paid_For_shares": |
+          % if stock_options_yes:
+          ${ currency(amount_paid_For_shares) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif 
+      - "options_puchase_amount": |
+          % if stock_options_yes:
+          ${ currency(options_puchase_amount) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif
+      - "total_Stocks": |
+          % if stock_options_yes:
+          ${ currency(total_Stocks) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif
+      - "total_stocks": |
+          % if stock_options_yes:
+          ${ currency(total_stocks) }
+          % elif not stock_options_yes:
+          $0.00
+          % endif
+      - "total_additions": ${ currency(sum_if_defined("actual_dividends", "actual_capital_gains", "allowable_capital_cost_allowance", "stock_options", "total_stocks")) }
+      - "union_and_professional_dues": ${ currency(union_and_professional_dues) }
+      - "child_support_Received": ${ currency(child_support_Received) }
+      - "spousal_support_received": ${ currency(spousal_support_received) }
+      - "social_assistance_from_household": ${ currency(social_assistance_from_household) }
+      - "business_investment_losses": ${ currency(business_investment_losses) }
+      - "carrying_charges_and_interest": ${ currency(carrying_charges_and_interest) }
+      - "self_employment_income": ${ currency(self_employment_income) }
+      - "portion_of_partnership": ${ currency(portion_of_partnership) }
+      - "total_deductions": ${ currency(sum_if_defined("union_and_professional_dues", "child_support_Received", "spousal_support_received", "social_assistance_from_household", "business_investment_losses", "carrying_charges_and_interest", "self_employment_income", "portion_of_partnership")) }
+      - "annual_income_for_child_support": ${ currency(sum_if_defined("employment_income", "other_employment_income", "old_age_security_pension", "canada_pension_plan", "other_pension", "employment_insurance_benefits", "dividends", "interest_and_investment_income", "net_partnership_income", "net_rental_income", "taxable_capital_gains", "spousal_support", "child_support", "rrsp_income", "net_business_income", "net_professional_income", "net_commission_income", "net_farming_income", "net_fishing_income", "workers_compensation_benefits", "social_assistance_payments", "net_federal_supplements") + sum_if_defined("actual_dividends", "actual_capital_gains", "allowable_capital_cost_allowance", "stock_options", "total_stocks") - sum_if_defined("union_and_professional_dues", "child_support_Received", "spousal_support_received", "social_assistance_from_household", "business_investment_losses", "carrying_charges_and_interest", "self_employment_income", "portion_of_partnership")) }
+      - "Benefit1": ${ benefits[0].details }
+      - "Benefit_type1": ${ benefits[0].type }
+      - "Benefit_amount1": ${ currency(benefits[0].amount) }
+      - "Benefit2": ${ benefits[1].details }
+      - "Benefit_type2": ${ benefits[1].type }
+      - "Benefit_amount2": ${ currency(benefits[1].amount) }
+      - "Benefit3": ${ benefits[2].details }
+      - "Benefit_type3": ${ benefits[2].type }
+      - "Benefit_amount3": ${ currency(benefits[2].amount) }
+      - "subtotal_expenses_two": ${ currency(sum_if_defined("educations", "adult_clothing", "hair_Care", "toiletries", "entertainment_and_recreation", "fitness", "personal_insurance", "charitable_donations", "gifts", "alcohol", "clothing", "child_Care", "babysitting", "hair_care", "allowance", "school_fees", "entertainment_children", "child_insurance", "gifts_for_children", "activities_lessons", "camp", "gifts_to_other_children", "rrsp", "resp", "debt_expenses", "lease_payments", "support_payments", "income_tax_saves")) }
+      - "income_tax": ${ currency(income_tax) }
+      - "employment_insurance": ${ currency(employment_insurance) }
+      - "canada_pension_plan_expense": ${ currency(canada_pension_plan_expense) }
+      - "adult_clothing": ${ currency(adult_clothing) }
+      - "clothing": |
+          % if len(children) > 0:
+          ${ currency(clothing) }
+          % else:
+          $0.00
+          % endif
+      - "employer_pension": ${ currency(employer_pension) }
+      - "hair_Care": ${ currency(hair_Care) }
+      - "union_dues": ${ currency(union_dues) }
+      - "toiletries": ${ currency(toiletries) }
+      - "personal_insurance": ${ currency(personal_insurance) }
+      - "child_insurance": |
+          % if len(children) > 0:
+          ${ currency(child_insurance) }
+          % else:
+          $0.00
+          % endif
+      - "insurance": ${ currency(insurance) }
+      - "educations": ${ currency(educations) }
+      - "entertainment_and_recreation": ${ currency(entertainment_and_recreation) }
+      - "fitness": ${ currency(fitness) }
+      - "groceries_and_household": ${ currency(groceries_and_household) }
+      - "charitable_donations": ${ currency(charitable_donations) }
+      - "meals_outside": ${ currency(meals_outside) }
+      - "gifts": ${ currency(gifts) }
+      - "gifts_for_children": |
+          % if len(children) > 0:
+          ${ currency(gifts_for_children) }
+          % else:
+          $0.00
+          % endif
+      - "telephone": ${ currency(telephone) }
+      - "alcohol": ${ currency(alcohol) }
+      - "cable_television": ${ currency(cable_television) }
+      - "laundry_dry_cleaning": ${ currency(laundry_dry_cleaning) }
+      - "child_Care": |
+          % if len(children) > 0:
+          ${ currency(child_Care) }
+          % else:
+          $0.00
+          % endif
+      - "newspaper_publications": ${ currency(newspaper_publications) }
+      - "babysitting": |
+          % if len(children) > 0:
+          ${ currency(babysitting) }
+          % else:
+          $0.00
+          % endif
+      - "stationery": ${ currency(stationery) }
+      - "vacation": ${ currency(vacation) }
+      - "hair_care": |
+          % if len(children) > 0:
+          ${ currency(hair_care) }
+          % else:
+          $0.00
+          % endif
+      - "pet_care": ${ currency(pet_care) }
+      - "allowance": |
+          % if len(children) > 0:
+          ${ currency(allowance) }
+          % else:
+          $0.00
+          % endif
+      - "school_fees": |
+          % if len(children) > 0:
+          ${ currency(school_fees) }
+          % else:
+          $0.00
+          % endif
+      - "rent_and_mortgage": ${ currency(rent_and_mortgage) }
+      - "entertainment_children": |
+          % if len(children) > 0:
+          ${ currency(entertainment_children) }
+          % else:
+          $0.00
+          % endif
+      - "taxes": ${ currency(taxes) }
+      - "home_insurance": ${ currency(home_insurance) }
+      - "heat": ${ currency(heat) }
+      - "water": ${ currency(water) }
+      - "activities_lessons": |
+          % if len(children) > 0:
+          ${ currency(child_gifts) }
+          % else:
+          $0.00
+          % endif ${ currency(activities_lessons) }
+      - "camp": |
+          % if len(children) > 0:
+          ${ currency(camp) }
+          % else:
+          $0.00
+          % endif 
+      - "hydro": ${ currency(hydro) }
+      - "gifts_to_other_children": |
+          % if len(children) > 0:
+          ${ currency(gifts_to_other_children) }
+          % else:
+          $0.00
+          % endif
+      - "hosue_repairs": ${ currency(hosue_repairs) }
+      - "rrsp": ${ currency(rrsp) }
+      - "yard_maintenance": ${ currency(yard_maintenance) }
+      - "resp": ${ currency(resp) }
+      - "debt_expenses": ${ currency(debt_expenses) }
+      - "medical_insurance": ${ currency(medical_insurance) }
+      - "drugs": ${ currency(drugs) }
+      - "lease_payments": ${ currency(lease_payments) }
+      - "dental_care": ${ currency(dental_care) }
+      - "optical_care": ${ currency(optical_care) }
+      - "support_payments": ${ currency(support_payments) }
+      - "income_tax_saves": ${ currency(income_tax_saves) }
+      - "public_transit": ${ currency(public_transit) }
+      - "car_operation": ${ currency(car_operation) }
+      - "total_expenses": ${ currency(sum_if_defined("telephone", "income_tax", "employment_insurance", "canada_pension_plan_expense", "employer_pension", "union_dues", "insurance", "groceries_and_household", "meals_outside", "cable_television", "laundry_dry_cleaning", "newspaper_publications", "stationery", "vacation", "pet_care", "rent_and_mortgage", "taxes", "home_insurance", "heat", "water", "hydro", "hosue_repairs", "yard_maintenance", "medical_insurance", "drugs", "dental_care", "optical_care", "public_transit", "car_operation", "gas_and_oil", "insurance_licence", "maintenance", "parking", "educations", "adult_clothing", "hair_Care", "toiletries", "entertainment_and_recreation", "fitness", "personal_insurance", "charitable_donations", "gifts", "alcohol", "clothing", "child_Care", "babysitting", "hair_care", "allowance", "school_fees", "entertainment_children", "child_insurance", "gifts_for_children", "activities_lessons", "camp", "gifts_to_other_children", "rrsp", "resp", "debt_expenses", "lease_payments", "support_payments", "income_tax_saves")) }
+      - "gas_and_oil": ${ currency(gas_and_oil) }
+      - "insurance_licence": ${ currency(insurance_licence) }
+      - "maintenance": ${ currency(maintenance) }
+      - "parking": ${ currency(parking) }
+      - "subtotal_expenses_one": ${ currency(sum_if_defined("telephone", "income_tax", "employment_insurance", "canada_pension_plan_expense", "employer_pension", "union_dues", "insurance", "groceries_and_household", "meals_outside", "cable_television", "laundry_dry_cleaning", "newspaper_publications", "stationery", "vacation", "pet_care", "rent_and_mortgage", "taxes", "home_insurance", "heat", "water", "hydro", "hosue_repairs", "yard_maintenance", "medical_insurance", "drugs", "dental_care", "optical_care", "public_transit", "car_operation", "gas_and_oil", "insurance_licence", "maintenance", "parking")) }
+      - "real_property_possession1": |
+          % if real_property[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "real_property_value_sep1": ${ currency(real_property[0].sep_value) }
+      - "real_property1": ${ real_property[0].details }
+      - "real_property_value1": ${ currency(real_property[0].present_value) }
+      - "real_property_possession2": |
+          % if real_property[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "real_property_value_sep2": ${ currency(real_property[1].sep_value) }
+      - "real_property2": ${ real_property[1].details }
+      - "real_property_value2": ${ currency(real_property[1].present_value) }
+      - "real_property_possession3": |
+          % if real_property[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "real_property_value_sep3": ${ currency(real_property[2].sep_value) }
+      - "real_property3": ${ real_property[2].details }
+      - "real_property_value3": ${ currency(real_property[2].present_value) }
+      - "vehicles_possession1": |
+          % if vehicles[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "vehicles_value_sep1": ${ currency(vehicles[0].sep_value) }
+      - "vehicles1": ${ vehicles[0].details }
+      - "vehicles_value1": ${ currency(vehicles[0].present_value) }
+      - "vehicles_possession2": |
+          % if vehicles[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "vehicles_value_sep2": ${ currency(vehicles[1].sep_value) }
+      - "vehicles2": ${ vehicles[1].details }
+      - "vehicles_value2": ${ currency(vehicles[1].present_value) }
+      - "vehicles_possession3": |
+          % if vehicles[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "vehicles_value_sep3": ${ currency(vehicles[2].sep_value) }
+      - "vehicles3": ${ vehicles[2].details }
+      - "vehicles_value3": ${ currency(vehicles[2].present_value) }
+      - "household_possession1": |
+          % if household[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "household_value_sep1": ${ currency(household[0].sep_value) }
+      - "household1": ${ household[0].Description }
+      - "household_value1": ${ currency(household[0].present_value) }
+      - "household_possession2": |
+          % if household[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "household_value_sep2": ${ currency(household[1].sep_value) }
+      - "household2": ${ household[1].Description }
+      - "household_value2": ${ currency(household[1].present_value) }
+      - "household_possession3": |
+          % if household[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "household_value_sep3": ${ currency(household[2].sep_value) }
+      - "household3": ${ household[2].Description }
+      - "household_value3": ${ currency(household[2].present_value) }
+      - "equipment_possession1": |
+          % if equipment[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "equipment_value_sep1": ${ currency(equipment[0].sep_value) }
+      - "equipment1": ${ equipment[0].Description }
+      - "equipment_value1": ${ currency(equipment[0].present_value) }
+      - "equipment_possession2": |
+          % if equipment[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "equipment_value_sep2": ${ currency(equipment[1].sep_value) }
+      - "equipment2": ${ equipment[1].Description }
+      - "equipment_value2": ${ currency(equipment[1].present_value) }
+      - "equipment_possession3": |
+          % if equipment[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "equipment_value_sep3": ${ currency(equipment[2].sep_value) }
+      - "equipment3": ${ equipment[2].Description }
+      - "equipment_value3": ${ currency(equipment[2].present_value) }
+      - "bank_possession1": |
+          % if bank[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "bank_value_sep1": ${ currency(bank[0].sep_value) }
+      - "bank1": ${ bank[0].details }
+      - "bank_value1": ${ currency(bank[0].present_value) }
+      - "bank_possession2": |
+          % if bank[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "bank_value_sep2": ${ currency(bank[1].sep_value) }
+      - "bank2": ${ bank[1].details }
+      - "bank_value2": ${ currency(bank[1].present_value) }
+      - "bank_possession3": |
+          % if bank[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "bank_value_sep3": ${ currency(bank[2].sep_value) }
+      - "bank3": ${ bank[2].details }
+      - "bank_value3": ${ currency(bank[2].present_value) }
+      - "rrsp_possession1": |
+          % if rrsp_asset[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "rrsp_value_sep1": ${ currency(rrsp_asset[0].sep_value) }
+      - "rrsp1": ${ rrsp_asset[0].details }
+      - "rrsp_value1": ${ currency(rrsp_asset[0].present_value) }
+      - "rrsp_possession2": |
+          % if rrsp_asset[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "rrsp_value_sep2": ${ currency(rrsp_asset[1].sep_value) }
+      - "rrsp2": ${ rrsp_asset[1].details }
+      - "rrsp_value2": ${ currency(rrsp_asset[1].present_value) }
+      - "rrsp_possession3": |
+          % if rrsp_asset[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "rrsp_value_sep3": ${ currency(rrsp_asset[2].sep_value) }
+      - "rrsp3": ${ rrsp_asset[2].details }
+      - "rrsp_value3": ${ currency(rrsp_asset[2].present_value) }
+      - "securities_possession1": |
+          % if securities[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "securities_value_sep1": ${ currency(securities[0].sep_value) }
+      - "securities1": ${ securities[0].details }
+      - "securities_value1": ${ currency(securities[0].present_value) }
+      - "securities_possession2": |
+          % if securities[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "securities_value_sep2": ${ currency(securities[1].sep_value) }
+      - "securities2": ${ securities[1].details }
+      - "securities_value2": ${ currency(securities[1].present_value) }
+      - "securities_possession3": |
+          % if securities[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "securities_value_sep3": ${ currency(securities[2].sep_value) }
+      - "securities3": ${ securities[2].details }
+      - "securities_value3": ${ currency(securities[2].present_value) }
+      - "money_owed_possession1": |
+          % if money_owed[0].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "money_owed_value_sep1": ${ currency(money_owed[0].sep_value) }
+      - "money_owed1": ${ money_owed[0].details }
+      - "money_owed_value1": ${ currency(money_owed[0].present_value) }
+      - "money_owed_possession2": |
+          % if money_owed[1].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "money_owed_value_sep2": ${ currency(money_owed[1].sep_value) }
+      - "money_owed2": ${ money_owed[1].details }
+      - "money_owed_value2": ${ currency(money_owed[1].present_value) }
+      - "money_owed_possession3": |
+          % if money_owed[2].possession:
+          (P)
+          % else:
+          (R) 
+          % endif
+      - "money_owed_value_sep3": ${ currency(money_owed[2].sep_value) }
+      - "money_owed3": ${ money_owed[2].details }
+      - "money_owed_value3": ${ currency(money_owed[2].present_value) }
+      - "life_insurance_value_sep1": ${ currency(life_insurance[0].sep_value) }
+      - "life_insurance1": ${ life_insurance[0].details }
+      - "life_insurance_value1": ${ currency(life_insurance[0].present_value) }
+      - "life_insurance_value_sep2": ${ currency(life_insurance[1].sep_value) }
+      - "life_insurance2": ${ life_insurance[1].details }
+      - "life_insurance_value2": ${ currency(life_insurance[1].present_value) }
+      - "life_insurance_value_sep3": ${ currency(life_insurance[2].sep_value) }
+      - "life_insurance3": ${ life_insurance[2].details }
+      - "life_insurance_value3": ${ currency(life_insurance[2].present_value) }
+      - "pension_value_sep1": ${ currency(pension[0].sep_value) }
+      - "pension1": ${ pension[0].details }
+      - "pension_value1": ${ currency(pension[0].present_value) }
+      - "pension_value_sep2": ${ currency(pension[1].sep_value) }
+      - "pension2": ${ pension[1].details }
+      - "pension_value2": ${ currency(pension[1].present_value) }
+      - "pension_value_sep3": ${ currency(pension[2].sep_value) }
+      - "pension3": ${ pension[2].details }
+      - "pension_value3": ${ currency(pension[2].present_value) }
+      - "business_interest_value_sep1": ${ currency(business_interest[0].sep_value) }
+      - "business_interest1": ${ business_interest[0].description }
+      - "business_interest_value1": ${ currency(business_interest[0].present_value) }
+      - "business_interest_value_sep2": ${ currency(business_interest[1].sep_value) }
+      - "business_interest2": ${ business_interest[1].description }
+      - "business_interest_value2": ${ currency(business_interest[1].present_value) }
+      - "business_interest_value_sep3": ${ currency(business_interest[2].sep_value) }
+      - "business_interest3": ${ business_interest[2].description }
+      - "business_interest_value3": ${ currency(business_interest[2].present_value) }
+      - "total_value_sep1": ${ currency(sum_if_defined("real_property[0].sep_value", "real_property[1].sep_value", "real_property[2].sep_value", "vehicles[0].sep_value", "vehicles[1].sep_value", "vehicles[2].sep_value", "household[0].sep_value", "household[1].sep_value", "household[2].sep_value", "equipment[0].sep_value", "equipment[1].sep_value", "equipment[2].sep_value", "bank[0].sep_value", "bank[1].sep_value", "bank[2].sep_value", "rrsp_asset[0].sep_value", "rrsp_asset[1].sep_value", "rrsp_asset[2].sep_value", "securities[0].sep_value", "securities[1].sep_value", "securities[2].sep_value", "money_owed[0].sep_value", "money_owed[1].sep_value", "money_owed[2].sep_value", "life_insurance[0].sep_value", "life_insurance[1].sep_value", "life_insurance[2].sep_value", "pension[0].sep_value", "pension[1].sep_value", "pension[2].sep_value", "business_interest[0].sep_value", "business_interest[1].sep_value", "business_interest[2].sep_value")) }
+      - "total_value": ${ currency(sum_if_defined("real_property[0].present_value", "real_property[1].present_value", "real_property[2].present_value", "vehicles[0].present_value", "vehicles[1].present_value", "vehicles[2].present_value", "household[0].present_value", "household[1].present_value", "household[2].present_value", "equipment[0].present_value", "equipment[1].present_value", "equipment[2].present_value", "bank[0].present_value", "bank[1].present_value", "bank[2].present_value", "rrsp_asset[0].present_value", "rrsp_asset[1].present_value", "rrsp_asset[2].present_value", "securities[0].present_value", "securities[1].present_value", "securities[2].present_value", "money_owed[0].present_value", "money_owed[1].present_value", "money_owed[2].present_value", "life_insurance[0].present_value", "life_insurance[1].present_value", "life_insurance[2].present_value", "pension[0].present_value", "pension[1].present_value", "pension[2].present_value", "business_interest[0].present_value", "business_interest[1].present_value", "business_interest[2].present_value")) }
+      - "mortgage1": ${ mortgage[0].details }
+      - "mortgage_owner1": |
+          % if mortgage[0].debt_type["user"]:
+          (P)
+          % elif mortgage[0].debt_type["respondent"]:
+          (R)
+          % elif mortgage[0].debt_type["joint"]:
+          (*)
+          % endif
+      - "mortgage_outstanding1": ${ currency(mortgage[0].present_outstanding) }
+      - "mortgage_outstanding_sep1": ${ currency(mortgage[0].sep_outstanding) }
+      - "mortgage_payments1": ${ currency(mortgage[0].monthly_payments) }
+      - "mortgage2": ${ mortgage[1].details }
+      - "mortgage_owner2": |
+          % if mortgage[1].debt_type["user"]:
+          (P)
+          % elif mortgage[1].debt_type["respondent"]:
+          (R)
+          % elif mortgage[1].debt_type["joint"]:
+          (*)
+          % endif
+      - "mortgage_outstanding2": ${ currency(mortgage[1].present_outstanding) }
+      - "mortgage_outstanding_sep2": ${ currency(mortgage[1].sep_outstanding) }
+      - "mortgage_payments2": ${ currency(mortgage[1].monthly_payments) }
+      - "mortgage3": ${ mortgage[2].details }
+      - "mortgage_owner3": |
+          % if mortgage[2].debt_type["user"]:
+          (P)
+          % elif mortgage[2].debt_type["respondent"]:
+          (R)
+          % elif mortgage[2].debt_type["joint"]:
+          (*)
+          % endif
+      - "mortgage_outstanding3": ${ currency(mortgage[2].present_outstanding) }
+      - "mortgage_outstanding_sep3": ${ currency(mortgage[2].sep_outstanding) }
+      - "mortgage_payments3": ${ currency(mortgage[2].monthly_payments) }
+      - "loan1": ${ loan[0].details }
+      - "loan_owner1": |
+          % if loan[0].debt_type["user"]:
+          (P)
+          % elif loan[0].debt_type["respondent"]:
+          (R)
+          % elif loan[0].debt_type["joint"]:
+          (*)
+          % endif
+      - "loan_outstanding1": ${ currency(loan[0].present_outstanding) }
+      - "loan_outstanding_sep1": ${ currency(loan[0].sep_outstanding) }
+      - "loan_payments1": ${ currency(loan[0].monthly_payments) }
+      - "loan2": ${ loan[1].details }
+      - "loan_owner2": |
+          % if loan[1].debt_type["user"]:
+          (P)
+          % elif loan[1].debt_type["respondent"]:
+          (R)
+          % elif loan[1].debt_type["joint"]:
+          (*)
+          % endif
+      - "loan_outstanding2": ${ currency(loan[1].present_outstanding) }
+      - "loan_outstanding_sep2": ${ currency(loan[1].sep_outstanding) }
+      - "loan_payments2": ${ currency(loan[1].monthly_payments) }
+      - "loan3": ${ loan[2].details }
+      - "loan_owner3": |
+          % if loan[2].debt_type["user"]:
+          (P)
+          % elif loan[2].debt_type["respondent"]:
+          (R)
+          % elif loan[2].debt_type["joint"]:
+          (*)
+          % endif
+      - "loan_outstanding3": ${ currency(loan[2].present_outstanding) }
+      - "loan_outstanding_sep3": ${ currency(loan[2].sep_outstanding) }
+      - "loan_payments3": ${ currency(loan[2].monthly_payments) }
+      - "credit_card1": ${ credit_card[0].details }
+      - "credit_card_owner1": |
+          % if credit_card[0].debt_type["user"]:
+          (P)
+          % elif credit_card[0].debt_type["respondent"]:
+          (R)
+          % elif credit_card[0].debt_type["joint"]:
+          (*)
+          % endif
+      - "credit_card_outstanding1": ${ currency(credit_card[0].present_outstanding) }
+      - "credit_card_outstanding_sep1": ${ currency(credit_card[0].sep_outstanding) }
+      - "credit_card_payments1": ${ currency(credit_card[0].monthly_payments) }
+      - "credit_card2": ${ credit_card[1].details }
+      - "credit_card_owner2": |
+          % if credit_card[1].debt_type["user"]:
+          (P)
+          % elif credit_card[1].debt_type["respondent"]:
+          (R)
+          % elif credit_card[1].debt_type["joint"]:
+          (*)
+          % endif
+      - "credit_card_outstanding2": ${ currency(credit_card[1].present_outstanding) }
+      - "credit_card_outstanding_sep2": ${ currency(credit_card[1].sep_outstanding) }
+      - "credit_card_payments2": ${ currency(credit_card[1].monthly_payments) }
+      - "credit_card3": ${ credit_card[2].details }
+      - "credit_card_owner3": |
+          % if credit_card[2].debt_type["user"]:
+          (P)
+          % elif credit_card[2].debt_type["respondent"]:
+          (R)
+          % elif credit_card[2].debt_type["joint"]:
+          (*)
+          % endif
+      - "credit_card_outstanding3": ${ currency(credit_card[2].present_outstanding) }
+      - "credit_card_outstanding_sep3": ${ currency(credit_card[2].sep_outstanding) }
+      - "credit_card_payments3": ${ currency(credit_card[2].monthly_payments) }
+      - "other_debt1": ${ other_debt[0].details }
+      - "other_debt_owner1": |
+          % if other_debt[0].debt_type["user"]:
+          (P)
+          % elif other_debt[0].debt_type["respondent"]:
+          (R)
+          % elif other_debt[0].debt_type["joint"]:
+          (*)
+          % endif
+      - "other_debt_outstanding1": ${ currency(other_debt[0].present_outstanding) }
+      - "other_debt_outstanding_sep1": ${ currency(other_debt[0].sep_outstanding) }
+      - "other_debt_payments1": ${ currency(other_debt[0].monthly_payments) }
+      - "other_debt2": ${ other_debt[1].details }
+      - "other_debt_owner2": |
+          % if other_debt[1].debt_type["user"]:
+          (P)
+          % elif other_debt[1].debt_type["respondent"]:
+          (R)
+          % elif other_debt[1].debt_type["joint"]:
+          (*)
+          % endif
+      - "other_debt_outstanding2": ${ currency(other_debt[1].present_outstanding) }
+      - "other_debt_outstanding_sep2": ${ currency(other_debt[1].sep_outstanding) }
+      - "other_debt_payments2": ${ currency(other_debt[1].monthly_payments) }
+      - "other_debt3": ${ other_debt[2].details }
+      - "other_debt_owner3": |
+          % if other_debt[2].debt_type["user"]:
+          (P)
+          % elif other_debt[2].debt_type["respondent"]:
+          (R)
+          % elif other_debt[2].debt_type["joint"]:
+          (*)
+          % endif
+      - "other_debt_outstanding3": ${ currency(other_debt[2].present_outstanding) }
+      - "other_debt_outstanding_sep3": ${ currency(other_debt[2].sep_outstanding) }
+      - "other_debt_payments3": ${ currency(other_debt[2].monthly_payments) }
+      - "total_outstanding": ${ currency(sum_if_defined("mortgage[0].present_outstanding", "mortgage[1].present_outstanding", "mortgage[2].present_outstanding", "loan[0].present_outstanding", "loan[1].present_outstanding", "loan[2].present_outstanding", "credit_card[0].present_outstanding", "credit_card[1].present_outstanding", "credit_card[2].present_outstanding", "other_debt[0].present_outstanding", "other_debt[1].present_outstanding", "other_debt[2].present_outstanding")) }
+      - "total_outstanding_sep": ${ currency(sum_if_defined("mortgage[0].sep_outstanding", "mortgage[1].sep_outstanding", "mortgage[2].sep_outstanding", "loan[0].sep_outstanding", "loan[1].sep_outstanding", "loan[2].sep_outstanding", "credit_card[0].sep_outstanding", "credit_card[1].sep_outstanding", "credit_card[2].sep_outstanding", "other_debt[0].sep_outstanding", "other_debt[1].sep_outstanding", "other_debt[2].sep_outstanding")) }
+      - "total_payments": ${ currency(sum_if_defined("mortgage[0].monthly_payments", "mortgage[1].monthly_payments", "mortgage[2].monthly_payments", "loan[0].monthly_payments", "loan[1].monthly_payments", "loan[2].monthly_payments", "credit_card[0].monthly_payments", "credit_card[1].monthly_payments", "credit_card[2].monthly_payments", "other_debt[0].monthly_payments", "other_debt[1].monthly_payments", "other_debt[2].monthly_payments")) }

@@ -1,0 +1,69 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - Form_351__Parenting_Claim_.yml
+---
+metadata:
+  title: |
+    Form 35.1 - Parenting Claim
+  short title: |
+    Parenting Claim
+  tags:
+    - FA-00-00-00-00
+---
+mandatory: True
+comment: |
+  This contains metadata that will not be overwritten if this YAML file is included in another
+  file. Each file gets its own key in the interview_metadata dictionary.
+  Most keys are not currently used at runtime, other than "allowed courts".
+code: |
+  interview_metadata
+  if not defined("interview_metadata['Form_351__Parenting_Claim_']"):
+    interview_metadata.initializeObject("Form_351__Parenting_Claim_")
+    interview_metadata["Form_351__Parenting_Claim_"].update({
+      "al_weaver_version": "1.1.0",
+      "generated on": "2021-08-24",
+      "title": "Form 35.1 - Parenting Claim",
+      "short title": "Parenting Claim",
+      "description": "This will help you fill out a Parenting Claim for Ontario",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_Form_351__Parenting_Claim_",
+      "attachment block variable": "Form_351__Parenting_Claim__attachment",
+      "typical role": "plaintiff",
+    })
+---
+code: |
+  interview_short_title = "File for a Parenting Claim"
+---
+sections:
+  - review_Form_351__Parenting_Claim_: Review your answers
+---
+###################### Main order ######################
+comment: |
+  This block includes the logic for standalone interviews.
+  Delete mandatory: True to include in another interview
+mandatory: True
+code: |
+  al_intro_screen
+  Form_351__Parenting_Claim__intro
+  interview_order_Form_351__Parenting_Claim_
+  signature_date
+  # Save anonymized interview statistics (customize the saved data below)
+  store_variables_snapshot(data={'zip': users[0].address.zip})
+  Form_351__Parenting_Claim__preview_question
+  basic_questions_signature_flow
+  Form_351__Parenting_Claim__download
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[Post_interview_instructions,Form_351__Parenting_Claim__attachment], filename="Form_351__Parenting_Claim__package.pdf", title="All forms to download for your records")
+  - al_court_bundle: ALDocumentBundle.using(elements=[Form_351__Parenting_Claim__attachment], filename="Form_351__Parenting_Claim__package.pdf", title="All forms to download for your records")
+---
+code: |
+  Form_351__Parenting_Claim__attachment.enabled=True
+  Post_interview_instructions.enabled=True

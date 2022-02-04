@@ -1,0 +1,421 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+mandatory: True
+comment: |
+  This contains metadata that will not be overwritten if this YAML file is included in another
+  file. Each file gets its own key in the interview_metadata dictionary.
+  Most keys are not currently used at runtime, other than "allowed courts".
+code: |
+  interview_metadata
+  if not defined("interview_metadata['Petition_for_Divorce_Alberta']"):
+    interview_metadata.initializeObject("Petition_for_Divorce_Alberta")
+    interview_metadata["Petition_for_Divorce_Alberta"].update({
+      "al_weaver_version": "1.2.0",
+      "generated on": "2021-09-14",
+      "title": "Petition for divorce alberta",
+      "short title": "Petition for divorce alberta",
+      "description": "Petition for divorce alberta",
+      "original_form": "",
+      "allowed courts": [
+        "Superior Court",
+      ],
+      "categories": [
+        "FA-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_Petition_for_Divorce_Alberta",
+      "attachment block variable": "Petition_for_Divorce_Alberta_attachment",
+      "typical role": "plaintiff",
+    })
+---
+if: |
+  str(province_choice) in ["Alberta"]
+code: |
+  children[i].name.first
+  children[i].birthdate
+  children[i].complete = True
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_Petition_for_Divorce_Alberta
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["Petition_for_Divorce_Alberta"]["allowed courts"]
+  nav.set_section('review_Petition_for_Divorce_Alberta')
+  user_role = 'plaintiff'
+  province_choice
+  trial_court_index
+  users.gather()
+  set_parts(subtitle=str(users))
+  users[0].birthdate
+  users[0].address.address
+  user_different_name
+  respondents.gather()
+  other_parties[0].birthdate
+  respondents[0].address.address
+  respondent_different_name
+  claim_sought
+  basis_for_divorce
+  lived_together
+  previous_court_proceedings
+  other_proceedings
+  children.gather()
+  
+  if children.target_number > 0:
+    proposed_custody
+    
+  if children.target_number > 0:    
+    parenting_agreement_yes
+  
+  Petition_for_Divorce_Alberta_preview_question
+  users[0].signature
+    
+  interview_order_Petition_for_Divorce_Alberta = True
+---
+if: |
+  str(province_choice) in ["Alberta"]
+id: Screen seven
+question: |
+  Previous Court Cases
+subquestion: |
+  Have any parties involved in this case been involved in another case regarding marriage, custody, access, parenting arrangements, or support? If yes, please explain
+fields:
+  - no label: previous_court_proceedings
+    datatype: area
+    required: False
+    rows: 5
+---
+if: |
+  str(province_choice) in ["Alberta"]
+id: Screen seven
+question: |
+  Other Proceedings
+subquestion: |
+  Have any parties involved in this case been involved in another case regarding civil or family restraining orders, protection order, child protection, or any other criminal nature? If yes, please explain
+fields:
+  - no label: other_proceedings
+    datatype: area
+    required: False
+    rows: 5
+---
+if: |
+  str(province_choice) in ["Alberta"]
+id: how many children
+question: |
+  % if al_form_type in ['starts_case','existing_case','appeal']:
+  Are there any children from the marriage?
+  % else:
+  Are any children involved in this matter?
+  % endif  
+fields:
+  - no label: children.there_are_any
+    datatype: yesnoradio
+  - How many?: children.target_number
+    datatype: integer
+    show if: children.there_are_any
+validation code: |
+  if not children.there_are_any:
+    children.target_number = 0
+---
+if: |
+  str(province_choice) in ["Alberta"]
+id: children names without birthdate
+sets:
+  - children[0].name.first
+  - children[0].name.last
+question: |
+  % if hasattr(children, 'ask_number') and children.ask_number and children.target_number == 1:
+  Your Child's Name
+  % else:
+  Your Oldest Child's Name
+  % endif
+fields:
+  - code: |
+      children[0].name_fields()
+---
+if: |
+  str(province_choice) in ["Alberta"]
+id: children names without birthdate
+sets:
+  - children[i].name.first
+  - children[i].name.last
+question: |
+  Your ${ ordinal(i).capitalize() } Child's Name
+fields:
+  - code: |
+      children[i].name_fields()
+---
+if: |
+  str(province_choice) in ["Alberta"]
+id: Screen one
+question: |
+  Parenting Arrangements
+fields:
+  - Outline your proposed custody arrangements.: proposed_custody
+    datatype: area
+  - Outline your proposed financial arrangements for each child: proposed_financial
+    datatype: area
+---
+if: |
+  str(province_choice) in ["Alberta"]
+id: agreements
+question: |
+  Previous Agreement 
+fields:
+  - "Is there a agreement between the parties custody, access, parenting arrangements, support of the children or support of each other?": parenting_agreement_yes
+    datatype: yesnoradio
+  - "Describe the agreement": parenting_agreement
+    maxlength: 76
+    datatype: area
+    show if: parenting_agreement_yes
+---
+if: |
+  str(province_choice) in ["Alberta"]
+id: preview Petition_for_Divorce_Alberta
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ AB_preview_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. 
+continue button field: Petition_for_Divorce_Alberta_preview_question    
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+objects:
+  - Petition_for_Divorce_Alberta_attachment: ALDocument.using(title="Statement of Claim for Divorce", filename="Alberta_statement_of_claim_for_divorce.pdf", enabled=True, has_addendum=False)
+  - Petition_for_Divorce_Alberta_attachment_watermarked: ALDocument.using(title="PREVIEW - Statement of Claim for Divorce", filename="Alberta_statement_of_claim_for_divorce.pdf", enabled=True, has_addendum=False)
+  - Additional_Information: ALDocument.using(title="Additional Information", filename="Additional_Information.pdf", enabled=True, has_addendum=False)
+  - Key_Assumptions_AB: ALDocument.using(title="Important Key Assumptions", filename="Key_Assumptions.pdf", enabled=True, has_addendum=False)
+---
+objects:
+  - AB_user_bundle: ALDocumentBundle.using(elements=[Petition_for_Divorce_Alberta_attachment, Additional_Information, Key_Assumptions_AB], filename="Petition_for_Divorce_Alberta_package.pdf", title="All forms to download for your records", enabled=True)
+  - AB_GJ_bundle: ALDocumentBundle.using(elements=[Petition_for_Divorce_Alberta_attachment], filename="Petition_for_Divorce_Alberta_package.pdf", title="All forms to download for your records", enabled=True)
+  - AB_preview_bundle: ALDocumentBundle.using(elements=[Petition_for_Divorce_Alberta_attachment_watermarked], filename="Petition_for_Divorce_Alberta_package.pdf", title="All forms to download for your records", enabled=True)
+---
+attachments:
+  - name: Alberta_statement_of_claim_for_divorce
+    filename: Alberta_statement_of_claim_for_divorce
+    variable name: Petition_for_Divorce_Alberta_attachment[i]        
+    skip undefined: True    
+    pdf template file: Alberta_statement_of_claim_for_divorce.pdf
+    fields:
+      - "Text1": 
+      - "judicial_district": ${ trial_court.address.city }
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "user_address_on_one_line": ${ users[0].address.on_one_line() }
+      - "marriage_date": ${ marriage_date }
+      - "marriage_place": ${ marriage_place }
+      - "started_living_together_date": ${ started_living_together_date }
+      - "separated_date": ${ separated_date }
+      - "user_birthdate": ${ users[0].birthdate }
+      - "user_birthplace": ${ user_birthplace }
+      - "user_name_last_at_birth": |
+          % if user_different_name:
+          ${ user_name_last_at_birth }
+          % else:
+          ${ users[0].name.last }
+          % endif
+      - "user_last_before_marriage": |
+          % if user_different_name:
+          ${ user_name_last_before_marriage }
+          % else:
+          ${ users[0].name.last }
+          % endif 
+      - "user_gender": ${ users[0].gender.capitalize().replace("-"," ") }
+      - "user_marital_status": ${ user_marital_status }
+      - "respondent_address_on_one_line": ${ respondents[0].address.on_one_line() }
+      - "respondent_birthdate": ${ other_parties[0].birthdate }
+      - "respondent_birthplace": ${ respondent_birthplace }
+      - "respondent_name_last_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_last_at_birth }
+          % else:
+          ${ respondents[0].name.last }
+          % endif
+      - "respondent_last_before_marriage": |
+          % if respondent_different_name:
+          ${ respondent_name_last_before_marriage }
+          % else:
+          ${ respondents[0].name.last }
+          % endif  
+      - "respondent_gender": ${ respondents[0].gender.capitalize().replace("-"," ") }
+      - "respondent_marital_status": ${ respondent_marital_status }
+      - "basis_for_divorce_separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "basis_for_divorce_adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "basis_for_divorce_cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "adultery_checked": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format() }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format() }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format() }
+      - "proposed_custody": |
+          % if  children.target_number > 0: 
+          ${ proposed_custody }
+          % elif children.target_number == 0:
+          No children from the marriage
+          % endif
+      - "Text4": |
+          % if  children.target_number > 0: 
+          Email
+          % elif children.target_number == 0:
+          No children from the marriage
+          % endif              
+      - "proposed_financial": |
+          % if  children.target_number > 0: 
+          ${ proposed_financial }
+          % elif children.target_number == 0:
+          No children from the marriage
+          % endif
+      - "parenting_agreement": |
+          % if  children.target_number > 0: 
+          ${ parenting_agreement }
+          % elif children.target_number == 0:
+          No children from the marriage
+          % endif
+      - "previous_court_proceedings": ${ previous_court_proceedings }
+      - "other_proceedings": ${ other_proceedings }
+      - "claiming_ss": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "not_claiming_ss": |
+          % if not defined("support_claim_sought"):
+          ${ True }
+          % elif not claim_sought["support_claim_sought"]:
+          ${ not support_claim_sought["divorce_act_spousal_support"] }
+          % endif
+      - "divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "custody": ${ claim_sought["divorce_act_custody"] }
+      - "access_or_parenting_time": ${ access_or_parenting_time }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other_relief": ${ claim_other }
+      - "costs": ${ claim_costs }
+      - "today()": ${ today() }
+      - "user_city": ${ users[0].address.city }
+      - "user_signature": |
+          ${ users[0].signature }
+      - "judicial_district__2": ${ trial_court.address.city }
+  - name: Alberta_statement_of_claim_for_divorce_watermarked
+    filename: Alberta_statement_of_claim_for_divorce_watermarked
+    variable name: Petition_for_Divorce_Alberta_attachment_watermarked[i]
+    skip undefined: True    
+    pdf template file: Alberta_statement_of_claim_for_divorce_watermarked.pdf
+    fields:
+      - "Text1": 
+      - "judicial_district": ${ trial_court.address.city }
+      - "user": ${ users[0] }
+      - "respondent": ${ respondents[0] }
+      - "user_address_on_one_line": ${ users[0].address.on_one_line() }
+      - "marriage_date": ${ marriage_date }
+      - "marriage_place": ${ marriage_place }
+      - "started_living_together_date": ${ started_living_together_date }
+      - "separated_date": ${ separated_date }
+      - "user_birthdate": ${ users[0].birthdate }
+      - "user_birthplace": ${ user_birthplace }
+      - "user_name_last_at_birth": |
+          % if user_different_name:
+          ${ user_name_last_at_birth }
+          % else:
+          ${ users[0].name.last }
+          % endif
+      - "user_last_before_marriage": |
+          % if user_different_name:
+          ${ user_name_last_before_marriage }
+          % else:
+          ${ users[0].name.last }
+          % endif 
+      - "user_gender": ${ users[0].gender.capitalize().replace("-"," ") }
+      - "user_marital_status": ${ user_marital_status }
+      - "respondent_address_on_one_line": ${ respondents[0].address.on_one_line() }
+      - "respondent_birthdate": ${ other_parties[0].birthdate }
+      - "respondent_birthplace": ${ respondent_birthplace }
+      - "respondent_name_last_at_birth": |
+          % if respondent_different_name:
+          ${ respondent_name_last_at_birth }
+          % else:
+          ${ respondents[0].name.last }
+          % endif
+      - "respondent_last_before_marriage": |
+          % if respondent_different_name:
+          ${ respondent_name_last_before_marriage }
+          % else:
+          ${ respondents[0].name.last }
+          % endif  
+      - "respondent_gender": ${ respondents[0].gender.capitalize().replace("-"," ") }
+      - "respondent_marital_status": ${ respondent_marital_status }
+      - "basis_for_divorce_separation": ${ basis_for_divorce["basis_for_divorce_separation"] }
+      - "basis_for_divorce_adultery": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "basis_for_divorce_cruelty": ${ basis_for_divorce["basis_for_divorce_cruelty"] }
+      - "adultery_checked": ${ basis_for_divorce["basis_for_divorce_adultery"] }
+      - "child1": ${ children[0] }
+      - "child1_birthdate": ${ children[0].birthdate.format() }
+      - "child2": ${ children[1] }
+      - "child2_birthdate": ${ children[1].birthdate.format() }
+      - "child3": ${ children[2] }
+      - "child3_birthdate": ${ children[2].birthdate.format() }
+      - "proposed_custody": |
+          % if  children.target_number > 0: 
+          ${ proposed_custody }
+          % elif children.target_number == 0:
+          No children from the marriage
+          % endif
+      - "Text4": |
+          % if  children.target_number > 0: 
+          Email
+          % elif children.target_number == 0:
+          No children from the marriage
+          % endif              
+      - "proposed_financial": |
+          % if  children.target_number > 0: 
+          ${ proposed_financial }
+          % elif children.target_number == 0:
+          No children from the marriage
+          % endif
+      - "parenting_agreement": |
+          % if  children.target_number > 0: 
+          ${ parenting_agreement }
+          % elif children.target_number == 0:
+          No children from the marriage
+          % endif
+      - "previous_court_proceedings": ${ previous_court_proceedings }
+      - "other_proceedings": ${ other_proceedings }
+      - "claiming_ss": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "not_claiming_ss":  |
+          % if not defined("support_claim_sought"):
+          ${ True }
+          % elif not claim_sought["support_claim_sought"]:
+          ${ not support_claim_sought["divorce_act_spousal_support"] }
+          % endif
+      - "divorce": ${ claim_sought["divorce_act_divorce"] }
+      - "custody": ${ claim_sought["divorce_act_custody"] }
+      - "access_or_parenting_time": ${ access_or_parenting_time }
+      - "child_support": ${ support_claim_sought["divorce_act_table_child_support"] }
+      - "spousal_support": ${ support_claim_sought["divorce_act_spousal_support"] }
+      - "other_relief": ${ claim_other }
+      - "costs": ${ claim_costs }
+      - "today()": ${ today() }
+      - "user_city": ${ users[0].address.city }
+      - "user_signature": |
+          ${ user[0].signature }
+      - "judicial_district__2": ${ trial_court.address.city }
+  - name: Additional_Information
+    filename: Additional_Information
+    variable name: Additional_Information[i]        
+    skip undefined: True
+    pdf template file: Additional_Information.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }
+  - name: Key_Assumptions_AB
+    filename: Key_Assumptions_AB
+    variable name: Key_Assumptions_AB[i]        
+    skip undefined: True
+    pdf template file: Key_Assumptions_AB.pdf
+    fields:
+      - "today()": ${ today().format('dd/MMM/yyyy') }
